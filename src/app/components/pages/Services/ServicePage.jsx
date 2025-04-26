@@ -7,7 +7,7 @@ import ServicesList from "../../service/ServicesList";
 import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "../../ServiceProcedure/index"
-// import FaqImg from '/assets/images/newFaqCon.webp';
+
 
 export default function ServicePage({ city, cat }) {
   const [openItem,setOpenItem]=useState(0)
