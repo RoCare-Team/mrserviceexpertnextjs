@@ -25,7 +25,7 @@ export async function generateMetadata({ params }) {
     title: data?.city_detail.meta_title || `Service in ${city} | Your Brand`,
     description: data?.city_detail.meta_description || `Find the best services in ${city}. Book now!`,
     keywords: data?.city_detail.meta_keywords || `services in ${city}, ${city} services`,
-   
+    robots: 'index, follow',
   };
 }
 

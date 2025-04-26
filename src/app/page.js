@@ -4,11 +4,15 @@ import React from 'react'
 
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
+import Head from 'next/head'; 
 
 function home() {
     return (
         <div className='common-spacing'>
-
+         <Head>
+        <title>Home Appliance Services</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
 
             {/*=================hero section================================== */}
             <div className="hero-section flex items-center  justify-around">
