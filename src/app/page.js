@@ -22,7 +22,7 @@ function home() {
                 <div className="rightHeroDetails w-5/12 flex flex-col items-start justify-between  pl-2 pr-2">
                     <div>
                         <h3 className='heroHeading'>Fast, Reliable Home Appliance Service – Right at Your Doorstep</h3>
-                        <p className='text-xl'>Ensuring your family's comfort and convenience with expert installation and repair services</p>
+                        <p className='text-xl'>Ensuring your familys comfort and convenience with expert installation and repair services</p>
                         <div className="benifits">
                             <li>✓<strong>Advanced RO system maintenance</strong></li>
                             <li>✓<strong>Same-day emergency repairs</strong></li>
