@@ -1,15 +1,9 @@
 'use client';
 
 import React from 'react'
-// import ServiceBar from '../../service/ServiceBar';
-// import Slider from '../../imgSlider/index';
+
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
-// import Star from '../../../assets/images/star.png';
-// import BannerImage from '../../../assets/images/BannerImg2.jpg';
-// import serviceBanner from '../../../assets/images/home-appliaces.webp';
-// import HomeCategories from '../app/components/homecategory/homeCategories';
-
 
 function home() {
     return (
