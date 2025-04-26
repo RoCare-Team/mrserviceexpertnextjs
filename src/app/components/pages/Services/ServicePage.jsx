@@ -6,7 +6,7 @@ import Tabs from "../../tabs/Tabs";
 import ServicesList from "../../service/ServicesList";
 import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
-import ServiceProcedure from "../../ServiceProcedure/index"
+import ServiceProcedure from "@/app/components/serviceProcedure/index"
 
 
 export default function ServicePage({ city, cat }) {
