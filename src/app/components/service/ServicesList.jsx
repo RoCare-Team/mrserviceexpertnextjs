@@ -61,6 +61,10 @@ useEffect(()=>{
     lead_type = 10;
   }else if (cat === "refrigerator-repair" ||city === "refrigerator-repair") {
     lead_type = 6;
+  }else if (cat === "led-tv-repair" ||city === "led-tv-repair") {
+    lead_type = 8;
+  }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair") {
+    lead_type = 18;
   }
 
   

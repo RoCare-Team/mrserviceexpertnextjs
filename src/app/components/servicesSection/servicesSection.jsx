@@ -15,10 +15,10 @@ function ServiceSection() {
         { id: 7, name: 'Air Conditioners', image: "/assets/images/servicesImages/ac.png", info: 'Stay cool during the hottest days with our powerful and silent air conditioners. Fast cooling, energy-saving, and built for long-lasting comfort.',link:"ac" },
         { id: 8, name: 'Geyser', image: "/assets/images/serviceBrands/geyser icon 70x70.png", info: 'Enjoy instant hot water with our high-performance geysers. Designed for safety, durability, and efficient heating to keep your winters warm and cozy.',link:"geyser-repair" },
         { id: 10, name: 'Microwave', image: "/assets/images/servicesImages/microWave.png", info: '',link:"microwav-repair" },
-        { id: 11, name: 'Led', image: "/assets/images/servicesImages/led.png", info: '',link:"ac" },
+        { id: 11, name: 'Led', image: "/assets/images/servicesImages/led.png", info: '',link:"led-tv-repair" },
         { id: 12, name: 'kitchen Chimney', image: "/assets/images/servicesImages/kitchen chimney.png", info: '',link:"kitchen-chimney-repair" },
-        { id: 13, name: 'Air Purifier', image: "/assets/images/servicesImages/air cooler.png", info: '',link:"" },
-        { id: 14, name: 'Vaccum Cleaner', image: "/assets/images/servicesImages/vacuum cleaner.png", info: '',link:"" }
+        { id: 13, name: 'Air Purifier', image: "/assets/images/servicesImages/air cooler.png", info: '',link:"air-purifier-repair" },
+        { id: 14, name: 'Vaccum Cleaner', image: "/assets/images/servicesImages/vacuum cleaner.png", info: '',link:"vacuum-cleaner-repair" }
     ];
 
 
