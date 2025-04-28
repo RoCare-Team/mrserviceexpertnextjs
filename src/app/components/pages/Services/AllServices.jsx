@@ -25,7 +25,7 @@ const AllServices = () => {
     <div className="w-full max-w-4xl mx-auto  ">
       <div className="bg-white rounded-lg shadow-md p-4 sticky top-10 servicePortion gap-4 ">
         <div className='flex gap-6 serviceHeading'>
-          <h4 className=" font-semibold mb-0 text-center">Select a Service</h4>
+          <h4 className=" font-semibold mb-0 text-center">Select Service</h4>
           <span className='serviceHorizontal'></span>
         </div>
 
