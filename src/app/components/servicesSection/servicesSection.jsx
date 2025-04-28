@@ -48,7 +48,7 @@ function ServiceSection() {
                                 className="serviceImg w-28 h-28"
                             />
                         </div>
-                           <p className="text-2xs text-wrap mb-1 serviceSectionName text-black"><b>{Service.name}</b></p></Link> 
+                           <p className="text-2xs text-wrap mb-1 text-center serviceSectionName text-black"><b>{Service.name}</b></p></Link> 
                        
                     </div>
                 ))}
