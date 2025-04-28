@@ -29,7 +29,10 @@ export async function generateMetadata({ params }) {
       title: cityDetail?.meta_title || categoryDetail?.meta_title || `Service in ${city} | Your Brand`,
       description: cityDetail?.meta_description || categoryDetail?.meta_description || `Find the best services in ${city}. Book now!`,
       keywords: cityDetail?.meta_keywords || categoryDetail?.meta_keywords || `services in ${city}, ${city} services`,
-      robots: 'noindex, nofollow',
+      robots: 'index, follow',
+      alternates: {
+        canonical: `https://www.mrserviceexpert.com/${city}`,
+      },
     };
 
   } catch (error) {
@@ -38,7 +41,10 @@ export async function generateMetadata({ params }) {
       title: `Service in ${city} | Your Brand`,
       description: `Find the best services in ${city}. Book now!`,
       keywords: `services in ${city}, ${city} services`,
-      robots: 'noindex, nofollow',
+      alternates: {
+        canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
+      },
+      robots: 'index, follow',
     };
   }
 }

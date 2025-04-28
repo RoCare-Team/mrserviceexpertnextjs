@@ -26,7 +26,10 @@ console.log(data);
     title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
     description: data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
     keywords: data?.content?.meta_keywords || `services in ${city}, ${city} services`,
-    robots: 'noindex, nofollow',
+    alternates: {
+      canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
+    },
+    robots: 'index, follow',
   };
 }
 
