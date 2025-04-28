@@ -18,6 +18,7 @@ export const metadata = {
   alternates: {
     canonical: "https://www.mrserviceexpert.com/",
   },
+  robots: 'index, follow',
 };
 
 export default function RootLayout({ children }) {
