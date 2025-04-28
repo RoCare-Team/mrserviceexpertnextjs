@@ -47,7 +47,12 @@ function Booking() {
 
     
     // const currentServices = serviceData[activeTab] || [];
-    const currentServices=JSON.parse(localStorage.getItem("all_cmpl") || "[]");;
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
+            setCurrentServices(allServices);
+        }
+    }, []);
     // serviceData[activeTab] || []
 
     return (
