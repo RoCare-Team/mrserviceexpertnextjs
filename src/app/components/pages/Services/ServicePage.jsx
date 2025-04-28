@@ -2,7 +2,7 @@
 
 import Head from "next/head";
 import React, { useState, useEffect } from "react";
-import Tabs from "../../tabs/Tabs";
+import Tabs from "@/app/components/pages/Services/AllServices";
 import ServicesList from "../../service/ServicesList";
 import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
