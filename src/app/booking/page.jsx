@@ -9,7 +9,8 @@ function Booking() {
 
     const [activeTab, setActiveTab] = useState('ongoing');
     const [open, setOpen] = useState(false);
-    const [leadDetails,setLeadDetails]=useState([]);      
+    const [leadDetails,setLeadDetails]=useState([]);     
+    const [currentServices, setCurrentServices] = useState([]); // New state banayi ha  
     const getcmpldetls = async(lead_id) => {
         const user_no=lead_id;
         const payload={lead_id:user_no}
