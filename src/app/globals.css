@@ -1798,6 +1798,29 @@ hr {
   background-color: #f5f5f5;
   border-radius: 25px;
 }
+.serviceContentStyle {
+  display: flex;
+   flex-direction: column;
+   gap: 10px;
+}
+
+.serviceContentStyle a {
+ color: #333;
+}
+
+.serviceContentStyle table {
+ border: 1px solid #7533ea;
+ width: 50%;
+ border-radius: 15px ;
+ border-collapse: collapse;
+}
+
+.serviceContentStyle th, 
+.serviceContentStyle td {
+ border: 1px solid #7533ea;
+ padding: 8px;
+ text-align: left;
+}
 
 .contact-btn-style{
   border-radius: 9px;
@@ -2135,6 +2158,9 @@ padding-block: 13px;
     background-color: white;
     z-index: 1000;
     padding: 10px
+  }
+  .serviceContentStyle table{
+    width:100%;
   }
 
   /* ul{

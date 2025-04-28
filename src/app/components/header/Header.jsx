@@ -20,6 +20,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBook, faCartShopping, faDoorClosed, faHeadset, faHome, faPerson, faSignIn, faSignOut, faTools, faUser } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import PhoneVerification from "../PhoneVerification/PhoneVerification";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -28,7 +29,7 @@ export default function Header() {
   const [showModal, setShowModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
- 
+ const navigate=useRouter();
   
 
   // Profile popup states
@@ -114,7 +115,7 @@ export default function Header() {
   };
 
   const handleNavigation = (path) => {
-    // navigate.push(path);
+    navigate.push(path);
     handleMenuClose();
     setDrawerOpen(false);
     setIsPopupVisible(false);

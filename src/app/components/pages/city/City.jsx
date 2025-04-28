@@ -152,7 +152,7 @@ else
   <div className="common-spacing">
   <div className=" bg-white aboutStyle">
    <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {cityData.city_name}</h3>
-   <div dangerouslySetInnerHTML={{ __html: cityData?.categorydetail?.category_content }} />
+   <div dangerouslySetInnerHTML={{ __html: cityData?.categorydetail?.category_content }} className="serviceContentStyle" />
    {/* <p className="catgoreyContent" >{cityData?.categorydetail?.category_content   }</p> */}
    </div>
   </div>

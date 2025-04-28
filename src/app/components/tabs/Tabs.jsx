@@ -4,8 +4,8 @@ import React from 'react';
 const serviceList = [
   { id: "ro-service", name: "RO Service", image: "/assets/images/ro-service/ro service.webp" },
   { id: "ro-repair", name: "RO Repair", image: "/assets/images/ro-service/ro repair.webp"},
-  { id: "ro-installation", name: "RO Installation ", image: "assets/images/serviceBrands/RoInstallation.png" },
-  { id: "ro-unistallation", name: "RO Uninstallation ", image: "assets/images/serviceBrands/RoInstallation.png" },
+  { id: "ro-installation", name: "RO Installation ", image: "/assets/images/serviceBrands/RoInstallation.png" },
+  { id: "ro-unistallation", name: "RO Uninstallation ", image: "/assets/images/serviceBrands/RoInstallation.png" },
   { id: "Ro-Amc", name: 'RO AMC', image: "/assets/images/AMC.jpg" },
   // { id: "water-purifier", name: "Water Purifier", image: WaterPurifier },
 
