@@ -2,8 +2,8 @@
 
 import React, { useState, useRef } from 'react';
 import { Modal, Box } from '@mui/material';
-import CongratsModal from '../modals/CongratsModal';
-import BasicDetails from '../modals/BasicDetails';
+import CongratsModal from '@/app/components/modals/CongratsModal';
+import BasicDetails from '@/app/components/modals/BasicDetails';
 import { toast, ToastContainer } from 'react-toastify';
 
 const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) => {

@@ -206,7 +206,7 @@ export default function Header() {
 
            
 
-            <Link href='ro-water-purifier'>
+            <Link href='/ro-water-purifier'>
               <Button
                 style={{ color: 'white' }}
                 sx={{ textTransform: "none", fontSize: "16px" }}
@@ -360,7 +360,7 @@ export default function Header() {
               </Typography>
             </ListItem>
             <Divider sx={{ borderColor: 'gray' }} />
-            <ListItem button onClick={() => handleNavigation('/service/ro-water-purifier')}>
+            <ListItem button onClick={() => handleNavigation('/ro-water-purifier')}>
               <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faTools} /> </ListItemIcon>
               <Typography variant="span" fontWeight="400">
                 Service
