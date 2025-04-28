@@ -206,7 +206,7 @@ export default function Header() {
 
            
 
-            <Link href='/service/washing-machine-repair'>
+            <Link href='ro-water-purifier'>
               <Button
                 style={{ color: 'white' }}
                 sx={{ textTransform: "none", fontSize: "16px" }}
