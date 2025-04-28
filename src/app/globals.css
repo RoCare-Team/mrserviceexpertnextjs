@@ -1700,10 +1700,11 @@ hr {
 
 .serviceImg {
   background: rgb(197, 180, 245);
+  
   padding: 10px;
   border-radius: 50%;
-  height: 110px;
-  width: 100%;
+  height: auto;
+  width: 8rem;
 }
 
 .rightSidePortion {

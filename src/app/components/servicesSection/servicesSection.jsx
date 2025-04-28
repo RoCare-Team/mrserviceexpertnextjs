@@ -41,14 +41,14 @@ function ServiceSection() {
                        
                     >
                        
-                        <div className="imgSection">
+                       <Link href={`/${Service.link}`} className="text-black">  <div className="imgSection">
                             <img
                                 src={Service.image}
                                 alt={Service.name}
                                 className="serviceImg w-28 h-28"
                             />
                         </div>
-                          <Link href={`/${Service.link}`} className="text-black"> <p className="text-2xs text-wrap mb-1 serviceSectionName text-black"><b>{Service.name}</b></p></Link> 
+                           <p className="text-2xs text-wrap mb-1 serviceSectionName text-black"><b>{Service.name}</b></p></Link> 
                        
                     </div>
                 ))}
