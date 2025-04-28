@@ -12,6 +12,12 @@ import { useParams } from "next/navigation";
 const ServicesList = ({ addedServices = [], state }) => {
 //   const location = useLocation();
 
+const [clickedValues, setClickedValues] = useState([]);
+
+// const handleButtonClick = (value) => {
+//   setClickedValues((prevValues) => [...prevValues, value]);
+// };
+
   const { city, cat} = useParams(); 
   
 
@@ -99,6 +105,7 @@ setBrandName(cat);
   const handleAddToCart = async (service) => {
     if (!addedServices.includes(service.id)) {
       // onAddToCart(service); 
+      setClickedValues((prevValues) => [...prevValues, service.id]);
       const service_id = service.id;
       const quantity = 1;
       console.log(quantity);
@@ -134,6 +141,9 @@ setBrandName(cat);
 
     }
   };
+
+console.log(clickedValues);
+
 
   return (
     <div className="services-list">
