@@ -26,7 +26,7 @@ const Footer = () => {
 
         {/* Kent RO Popular Cities */}
         <div className="mb-2.5">
-          <h3 className="text-lg font-semibold mb-4">Kent RO Service in Popular Cities</h3>
+          <h3 className="text-lg font-semibold mb-4">Service in Popular Cities</h3>
           <div className="flex flex-wrap gap-2">
             {["Gurgaon",
               "Delhi",
@@ -57,7 +57,7 @@ const Footer = () => {
               "Chandigarh"].map((city) => (
                 <a
                   key={city}
-                  href="#"
+                  href={`${city.toLowerCase().replace(/\s+/g, "-")}`}
                   className=" text-white px-3 py-1  text-sm hover:text-yellow-300 transition"
                 >
                   {city}
