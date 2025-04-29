@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Mr. Service Expert - Home Appliances Repair Services ",
-  description: "Mr. Service Expert is your one-stop solution for home appliances repair services in Delhi. We have 1000+ trusted professionals near you in Delhi to take care of your home appliances.",
+  title: "Home Appliance Repair & Services | Mr. Service Expert",
+  description: "Expert repair and maintenance services for ACs, water purifiers, and home appliances. Book reliable technicians across India with Mr. Service Expert.",
   keywords:"ac repair service,water purifier repair,home appliance repair,refrigerator repair service,washing machine repair,air conditioner maintenance,ro service near me,microwave oven repair,geyser installation service,appliance service center",
   alternates: {
     canonical: "https://www.mrserviceexpert.com/",
