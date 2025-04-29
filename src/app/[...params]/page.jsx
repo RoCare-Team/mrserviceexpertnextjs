@@ -1,0 +1,57 @@
+// app/[city]/[cat]/page.tsx
+import ServicePage from "@/app/components/pages/Services/brands";
+import { notFound } from 'next/navigation';
+
+
+
+export async function generateMetadata({ params }) {
+    const [city, brand, cat] = params.params || [];
+
+  const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ city,brand,cat }),
+    cache: 'no-store',
+  });
+
+  const data = await response.json();
+// console.log(data);
+
+  return {
+    title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
+    description: data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
+    keywords: data?.content?.meta_keywords || `services in ${city}, ${city} services`,
+    alternates: {
+      canonical: `https://www.mrserviceexpert.com/${city}/${brand}/${cat}`,
+    },
+    robots: 'index, follow',
+  };
+}
+
+export default async function Page({ params }) {
+//   const { city,brand, cat } = params;
+const [city, brand, cat] = params.params || [];
+ 
+  
+   try {
+      const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ city,brand, cat }),
+        cache: 'no-store',
+      });
+  
+      const data = await response.json();
+  console.log(data);
+  
+      if (data.error) {
+        notFound(); // <-- This will show the Next.js built-in 404 page
+      }
+  
+      return <ServicePage city={city} brand={brand} cat={cat} />;
+    } catch (error) {
+      console.error('Error fetching city page:', error);
+      notFound(); // if API fails or wrong city, go to 404
+    }
+
+    }

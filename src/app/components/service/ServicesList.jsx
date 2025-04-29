@@ -9,7 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 // import {  useParams } from "react-router-dom";
 import { useParams } from "next/navigation";
 
-const ServicesList = ({ addedServices = [], state }) => {
+const ServicesList = ({cate, addedServices = [], state }) => {
 //   const location = useLocation();
 
 const [clickedValues, setClickedValues] = useState([]);
@@ -18,8 +18,8 @@ const [clickedValues, setClickedValues] = useState([]);
 //   setClickedValues((prevValues) => [...prevValues, value]);
 // };
 
-  const { city, cat} = useParams(); 
-  
+  const { city,brand,cat} = useParams(); 
+  // const [city, brand, cat] = params.params || [];
 
   const [catNam,setCatNam]=useState("");
   const [servicedata,setServiceData]=useState([]);
@@ -27,7 +27,7 @@ const [clickedValues, setClickedValues] = useState([]);
   const [BrandName,setBrandName]=useState("");
   // const { city, cat } = useParams();
 
-console.log(cat +"-"+ status );
+console.log(city +"-"+ brand );
 
 // console.log(BrandName);
 
@@ -45,25 +45,25 @@ useEffect(()=>{
 
 //   const cat=category;
 
-  if (cat === "washing-machine-repair" ||city === "washing-machine-repair") {
+  if (cat === "washing-machine-repair" ||city === "washing-machine-repair"|| cate === "washing-machine-repair") {
     lead_type = 4;
-  } else if (cat === "ac" || city === "ac") {
+  } else if (cat === "ac" || city === "ac" || cate === "ac") {
     lead_type = 2;
-  } else if (cat === "ro-water-purifier" ||city === "ro-water-purifier") {
+  } else if (cat === "ro-water-purifier" ||city === "ro-water-purifier" ||cate === "ro-water-purifier") {
     lead_type = 1;
-  }else if (cat === "microwav-repair" ||city === "microwav-repair") {
+  }else if (cat === "microwav-repair" ||city === "microwav-repair"|| cate === "microwav-repair") {
     lead_type = 9;
-  }else if (cat === "vacuum-cleaner-repair" ||city === "vacuum-cleaner-repair") {
+  }else if (cat === "vacuum-cleaner-repair" ||city === "vacuum-cleaner-repair"|| cate === "vacuum-cleaner-repair") {
     lead_type = 11;
-  }else if (cat === "geyser-repair" ||city === "geyser-repair") {
+  }else if (cat === "geyser-repair" ||city === "geyser-repair"|| cate === "geyser-repair") {
     lead_type = 5;
-  }else if (cat === "kitchen-chimney-repair" ||city === "kitchen-chimney-repair") {
+  }else if (cat === "kitchen-chimney-repair" ||city === "kitchen-chimney-repair"|| cate === "kitchen-chimney-repair") {
     lead_type = 10;
-  }else if (cat === "refrigerator-repair" ||city === "refrigerator-repair") {
+  }else if (cat === "refrigerator-repair" ||city === "refrigerator-repair"|| cate === "refrigerator-repair") {
     lead_type = 6;
-  }else if (cat === "led-tv-repair" ||city === "led-tv-repair") {
+  }else if (cat === "led-tv-repair" ||city === "led-tv-repair"|| cate === "led-tv-repair") {
     lead_type = 8;
-  }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair") {
+  }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair"|| cate === "air-purifier-repair") {
     lead_type = 18;
   }
 
