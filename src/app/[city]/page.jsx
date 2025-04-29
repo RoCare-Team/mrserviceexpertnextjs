@@ -1,5 +1,6 @@
 // app/[city]/[cat]/page.tsx
 import CityPage from "@/app/components/pages/city/City";
+import { notFound } from 'next/navigation';
 
 // export async function generateMetadata({ params }) {
 //   const { city } = params;
@@ -49,7 +50,26 @@ export async function generateMetadata({ params }) {
   }
 }
 
-export default function Page({ params }) {
+export default async function Page({ params }) {
   const { city } = params;
-  return <CityPage city={city} />;
+
+  try {
+    const response = await fetch('https://mannubhai.in/web_api/get_city_page_data.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city }),
+      cache: 'no-store',
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+      notFound(); // <-- This will show the Next.js built-in 404 page
+    }
+
+    return <CityPage city={city} />;
+  } catch (error) {
+    console.error('Error fetching city page:', error);
+    notFound(); // if API fails or wrong city, go to 404
+  }
 }
