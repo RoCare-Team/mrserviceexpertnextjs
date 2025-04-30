@@ -70,15 +70,10 @@ useEffect(()=>{
 })
 .then(res => res.json())
 .then(data => {
-console.log(data);
+console.log(data.error);
 
-  if(data.error==false){
-    
-    setserviceList(serviceL)
-  }else{
-   
+  if(data.error=='false'){
 const grouped = {};
-
 data.service_details.forEach(item => {
   let baseName = item.service_name;
   if (/^AMC Plan/i.test(baseName)) {
@@ -99,6 +94,9 @@ data.service_details.forEach(item => {
 const result = Object.values(grouped);
 const unique = [...new Set(result)];
 setserviceList(unique);
+    
+  }else{
+    setserviceList(serviceL)
 }
 
 
