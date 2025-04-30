@@ -4,6 +4,19 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
 
 
+const serviceL = [
+//   { id: "ro-service", name: "RO Service", image: RoService },
+  { id: "ac", service_name: "Air Conditioner", image: "/assets/images/ro-service/ro repair.webp",link:"ac"},
+  {id:"washing-machine",service_name:"Washing Machine",image:"/assets/images/ro-service/ro repair.webp",link:"washing-machine-repair"},
+  { id: "water-purifier", service_name: "Water Purifier", image: "/assets/images/serviceBrands/RoInstallation.png",link:"" },
+  { id: "gyeser", service_name: "Gyeser", image: "/assets/images/serviceBrands/geyser icon 70x70.png",link:"geyser-repair" },
+  { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png",link:"refrigerator-repair" },
+  { id: "led", service_name: "Led", image: "/assets/images/servicesImages/led.png",link:"led-tv-repair" },
+ { id: "microwav-repair", service_name: "Microwave", image: "/assets/images/servicesImages/microWave.png",link:"microwav-repair" },
+  {id:"vaccum-cleaner",service_name:"Vaccum Cleaner",image: "/assets/images/servicesImages/vacuum cleaner.png",link:"vacuum-cleaner-repair"}
+
+];
+
 const AllServices = (cater) => {
   const { city,brand,cat} = useParams(); 
   const [serviceList,setserviceList]=useState([]);
@@ -57,8 +70,13 @@ useEffect(()=>{
 })
 .then(res => res.json())
 .then(data => {
+console.log(data);
 
-
+  if(data.error==false){
+    
+    setserviceList(serviceL)
+  }else{
+   
 const grouped = {};
 
 data.service_details.forEach(item => {
@@ -77,16 +95,22 @@ data.service_details.forEach(item => {
     };
   }
 });
-// const unique = [...new Set(simplified)];
+
 const result = Object.values(grouped);
 const unique = [...new Set(result)];
-setserviceList(unique)
+setserviceList(unique);
+}
+
+
 
 
 },[])
 
   
 },[cat])
+
+console.log("hisidd" +serviceList);
+
 
   return (
     <div className="w-full max-w-4xl mx-auto  ">
