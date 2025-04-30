@@ -128,7 +128,7 @@ else
                     <div className="lg:w-1/2">
                         <h2 className="ml-2.5 mt-1.5 text-3xl">{cityData?.categorydetail?.category_name}</h2>
                         <div className="mb-3.5 flex items-center justify-center ">
-                        <img src="/assets/images/RO CARE BANNER 448X251 (1).webp" alt='service img' width={475} height={345} style={{
+                        <img src={`/assets/categorybanner/${cityData.catbanner}`} alt='service img' width={475} height={345} style={{
                             borderRadius:'17px',width:'100%'
                         }}/></div>
                        

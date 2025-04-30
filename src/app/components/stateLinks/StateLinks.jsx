@@ -21,7 +21,7 @@ function StateLinks() {
                 {State.map((city) => (
                     <Link
                         key={city}
-                        href={`/${city.toLowerCase()}/ro-water-purifier`}
+                        href={`/${city.toLowerCase().replace(/\s+/g, "-")}/ro-water-purifier`}
                         className="state-link  "
                        
                     >
