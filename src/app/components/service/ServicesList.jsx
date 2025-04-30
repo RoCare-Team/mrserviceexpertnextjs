@@ -27,7 +27,7 @@ const [clickedValues, setClickedValues] = useState([]);
   const [BrandName,setBrandName]=useState("");
   // const { city, cat } = useParams();
 
-console.log(city +"-"+ brand );
+// console.log(city +"-"+ brand );
 
 // console.log(BrandName);
 
@@ -81,7 +81,7 @@ useEffect(()=>{
 })
 .then(res => res.json())
 .then(data => {
-console.log("Service Response:", data);
+// console.log("Service Response:", data);
 // console.log(data.Title);
 
 setServiceData(data.service_details);
@@ -116,7 +116,7 @@ setBrandName(cat);
       
       const type = localStorage.getItem('type');
       const cid = localStorage.getItem('customer_id');
-      console.log(cid);
+      // console.log(cid);
       if (cid != null) {
         toast.success('Hope You Enjoy Our Services 🎉');
         const payload = { service_id, quantity, cid, type };
@@ -160,7 +160,7 @@ console.log(clickedValues);
 
               return (
                 
-                <div key={service.id} className="common-service-style">
+                <div key={service.id} id={service.id} className="common-service-style">
                    
                   <div className="servicePortionDetails flex-col" >
                   <div className="flex serviceWiseContainer">

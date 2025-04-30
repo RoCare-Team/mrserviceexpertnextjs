@@ -120,7 +120,7 @@ else
             <div className="left-side lg:w-1/4 flex-col mb-1.5">
                <div className="sticky top-20">
                <h3 className="cityHeadings">Most Loved Services by Our Customers!</h3>
-               <Tabs />
+               <Tabs cat={city}/>
                </div>
             </div>
             <div className="right-side lg:w-3/4">

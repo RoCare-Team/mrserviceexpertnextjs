@@ -1,25 +1,105 @@
-import React from 'react';
+// import React from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from "react";
 
 
+// const serviceList = [
+// //   { id: "ro-service", name: "RO Service", image: RoService },
+//   { id: "ac", name: "Air Conditioner", image: "/assets/images/ro-service/ro repair.webp",link:"ac"},
+//   {id:"washing-machine",name:"Washing Machine",image:"/assets/images/ro-service/ro repair.webp",link:"washing-machine-repair"},
+//   { id: "water-purifier", name: "Water Purifier", image: "/assets/images/serviceBrands/RoInstallation.png",link:"" },
+//   { id: "gyeser", name: "Gyeser", image: "/assets/images/serviceBrands/geyser icon 70x70.png",link:"geyser-repair" },
+//   { id: "refrigerator", name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png",link:"refrigerator-repair" },
+//   { id: "led", name: "Led", image: "/assets/images/servicesImages/led.png",link:"led-tv-repair" },
+//  { id: "microwav-repair", name: "Microwave", image: "/assets/images/servicesImages/microWave.png",link:"microwav-repair" },
+//   {id:"vaccum-cleaner",name:"Vaccum Cleaner",image: "/assets/images/servicesImages/vacuum cleaner.png",link:"vacuum-cleaner-repair"}
 
-const serviceList = [
-//   { id: "ro-service", name: "RO Service", image: RoService },
-  { id: "ac", name: "Air Conditioner", image: "/assets/images/ro-service/ro repair.webp",link:"ac"},
-  {id:"washing-machine",name:"Washing Machine",image:"/assets/images/ro-service/ro repair.webp",link:"washing-machine-repair"},
-  { id: "water-purifier", name: "Water Purifier", image: "/assets/images/serviceBrands/RoInstallation.png",link:"" },
-  { id: "gyeser", name: "Gyeser", image: "/assets/images/serviceBrands/geyser icon 70x70.png",link:"geyser-repair" },
-  { id: "refrigerator", name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png",link:"refrigerator-repair" },
-  { id: "led", name: "Led", image: "/assets/images/servicesImages/led.png",link:"led-tv-repair" },
- { id: "microwav-repair", name: "Microwave", image: "/assets/images/servicesImages/microWave.png",link:"microwav-repair" },
-  {id:"vaccum-cleaner",name:"Vaccum Cleaner",image: "/assets/images/servicesImages/vacuum cleaner.png",link:"vacuum-cleaner-repair"}
+// ];
 
-];
-
-const AllServices = () => {
+const AllServices = (cater) => {
+  const { city,brand,cat} = useParams(); 
+  const [serviceList,setserviceList]=useState([]);
   const scrollToSection = (id) => {
+    console.log(document.getElementById(id));
+    
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
   };
+
+const cate=cater.cater;
+
+useEffect(()=>{
+  let lead_type = null;
+
+//   const cat=category;
+
+  if (cat === "washing-machine-repair" ||city === "washing-machine-repair"|| cate === "washing-machine-repair") {
+    lead_type = 4;
+  } else if (cat === "ac" || city === "ac" || cate === "ac") {
+    lead_type = 2;
+  } else if (cat === "ro-water-purifier" ||city === "ro-water-purifier" ||cate === "ro-water-purifier") {
+    lead_type = 1;
+  }else if (cat === "microwav-repair" ||city === "microwav-repair"|| cate === "microwav-repair") {
+    lead_type = 9;
+  }else if (cat === "vacuum-cleaner-repair" ||city === "vacuum-cleaner-repair"|| cate === "vacuum-cleaner-repair") {
+    lead_type = 11;
+  }else if (cat === "geyser-repair" ||city === "geyser-repair"|| cate === "geyser-repair") {
+    lead_type = 5;
+  }else if (cat === "kitchen-chimney-repair" ||city === "kitchen-chimney-repair"|| cate === "kitchen-chimney-repair") {
+    lead_type = 10;
+  }else if (cat === "refrigerator-repair" ||city === "refrigerator-repair"|| cate === "refrigerator-repair") {
+    lead_type = 6;
+  }else if (cat === "led-tv-repair" ||city === "led-tv-repair"|| cate === "led-tv-repair") {
+    lead_type = 8;
+  }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair"|| cate === "air-purifier-repair") {
+    lead_type = 18;
+  }
+
+  
+
+  const cid = localStorage.getItem('customer_id');
+  
+  fetch('https://waterpurifierservicecenter.in/customer/ro_customer/all_services.php', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({cid:cid,lead_type:lead_type})
+
+})
+.then(res => res.json())
+.then(data => {
+
+
+const grouped = {};
+
+data.service_details.forEach(item => {
+  let baseName = item.service_name;
+  if (/^AMC Plan/i.test(baseName)) {
+    baseName = "AMC";
+  } else {
+    // Remove anything inside parentheses
+    baseName = baseName.replace(/\s*\(.*?\)/g, '').trim();
+  }
+  if (!grouped[baseName]) {
+    grouped[baseName] = {
+      id: item.id,
+      service_name: baseName,
+      image: item.image
+    };
+  }
+});
+// const unique = [...new Set(simplified)];
+const result = Object.values(grouped);
+const unique = [...new Set(result)];
+setserviceList(unique)
+
+
+},[])
+
+  
+},[cat])
 
   return (
     <div className="w-full max-w-4xl mx-auto  ">
@@ -31,7 +111,7 @@ const AllServices = () => {
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
           {serviceList.map((service) => (
-             <Link href={`/${service.link}`} key={service.id}>
+            //  <Link href={`/${service.id}`} key={service.id}>
             <button
               
               onClick={() => scrollToSection(service.id)}
@@ -40,13 +120,13 @@ const AllServices = () => {
              
             <img
                 src={service.image}
-                alt={service.name}
+                alt={service.service_name}
                 className="w-11 h-auto object-contain mb-2"
               />
-              <span className="text-xs font-medium text-gray-700 text-center text-wrap">{service.name}</span>
+              <span className="text-xs font-medium text-gray-700 text-center text-wrap">{service.service_name}</span>
            
             </button>
-            </Link>
+          
           ))}
         </div>
 
