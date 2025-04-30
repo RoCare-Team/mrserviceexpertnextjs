@@ -1,7 +1,11 @@
 // src/components/SiteLoader.js
+
+"use client"
+
 import React, { useState, useEffect } from 'react';
 // import Logo from './logo/Logo';
-import Logo from '../logo/Logo';
+// import Logo from '../logo/Logo';
+
 
 
 const SiteLoader = ({ 
@@ -34,8 +38,8 @@ const SiteLoader = ({
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
-      <Logo 
-        src={logoSrc} 
+      <img 
+        src="/assets/images/serviceLogo.png" 
         className="mb-6" 
         width={200} 
         height={100} 

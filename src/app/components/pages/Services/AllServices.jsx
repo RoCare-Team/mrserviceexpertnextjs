@@ -4,19 +4,6 @@ import { useParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
 
 
-// const serviceList = [
-// //   { id: "ro-service", name: "RO Service", image: RoService },
-//   { id: "ac", name: "Air Conditioner", image: "/assets/images/ro-service/ro repair.webp",link:"ac"},
-//   {id:"washing-machine",name:"Washing Machine",image:"/assets/images/ro-service/ro repair.webp",link:"washing-machine-repair"},
-//   { id: "water-purifier", name: "Water Purifier", image: "/assets/images/serviceBrands/RoInstallation.png",link:"" },
-//   { id: "gyeser", name: "Gyeser", image: "/assets/images/serviceBrands/geyser icon 70x70.png",link:"geyser-repair" },
-//   { id: "refrigerator", name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png",link:"refrigerator-repair" },
-//   { id: "led", name: "Led", image: "/assets/images/servicesImages/led.png",link:"led-tv-repair" },
-//  { id: "microwav-repair", name: "Microwave", image: "/assets/images/servicesImages/microWave.png",link:"microwav-repair" },
-//   {id:"vaccum-cleaner",name:"Vaccum Cleaner",image: "/assets/images/servicesImages/vacuum cleaner.png",link:"vacuum-cleaner-repair"}
-
-// ];
-
 const AllServices = (cater) => {
   const { city,brand,cat} = useParams(); 
   const [serviceList,setserviceList]=useState([]);
