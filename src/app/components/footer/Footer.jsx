@@ -54,13 +54,13 @@ const Footer = () => {
               "Varanasi",
               "Allahabad",
               "Prayagraj",
-              "Chandigarh"].map((city) => (
+              "Chandigarh"].map((item,index) => (
                 <a
-                  key={city}
-                  href={`${city.toLowerCase().replace(/\s+/g, "-")}`}
+                  key={index}
+                  href={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
                   className=" text-white px-3 py-1  text-sm hover:text-yellow-300 transition"
                 >
-                  {city}
+                  {item}
                 </a>
               ))}
           </div>

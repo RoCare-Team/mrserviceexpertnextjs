@@ -169,7 +169,7 @@ console.log(clickedValues);
                       <h3 className="serviceVarities">{service.service_name}</h3>
                       <div>
                         <span className="serviceReview">
-                          <FontAwesomeIcon icon={faStar} /> {service.rating} ({service.reviews} reviews)
+                          <FontAwesomeIcon icon={faStar} /> {4.5} (30K+ reviews)
                         </span>
                         <div className="dashedLine"></div>
                         <div className="prices flex gap-2.5">

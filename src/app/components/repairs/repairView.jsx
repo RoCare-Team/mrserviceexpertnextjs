@@ -108,8 +108,8 @@ function RepairView() {
         <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
           {brandLogos.map((brand) => (
             <Grid
-              item
-              xs={6} sm={4} md={3} lg={2}
+              // item
+              size={{  xs:6 ,sm:4, md:3,lg:2 }}
               key={brand.id}
               sx={{
                 display: (!showAllBrands && brand.id > 7) ? { xs: 'none', sm: 'block' } : 'block'

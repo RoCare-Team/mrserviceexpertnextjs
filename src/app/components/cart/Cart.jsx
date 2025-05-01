@@ -196,7 +196,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
         </div>
         <div className="flex flex-col px-1">
           ₹{item.price}
-          <IconButton onClick={() => onRemove(item.id)} color="error" className="p-0">
+          <IconButton onClick={() => handleRemoveFromCart(item.service_id, 'delete', 0)} color="error" className="p-0">
             <img src="/assets/images/Remove.png" alt="Remove" style={{ width: 24, height: 24 }} />
           </IconButton>
         </div>
