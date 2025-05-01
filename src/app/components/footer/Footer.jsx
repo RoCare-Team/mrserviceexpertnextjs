@@ -81,9 +81,10 @@ const Footer = () => {
 
           </div>
           <div className="flex space-x-3 socialLinks">
-            <a href="https://x.com/RoCareIndia" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter.png" alt="" className="w-10 h-10" /></a>
+          {/* https://www.facebook.com/MrServiceExpert/ */}
+            <a href="https://twitter.com/mrserviceexper4/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter.png" alt="" className="w-10 h-10" /></a>
             <a href="https://www.instagram.com/rocareindia/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/insta.svg" alt="" className="w-10 h-10" /></a>
-            <a href="https://www.linkedin.com/company/rocareindia/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkdnn.svg" alt="" className="w-10 h-10" /></a>
+            <a href="https://www.linkedin.com/company/mr-service-expert/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkdnn.svg" alt="" className="w-10 h-10" /></a>
           </div>
         </div>
 

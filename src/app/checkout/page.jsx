@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import PhoneVerification from "../components/PhoneVerification/PhoneVerification";
 import BookingSlots from "../components/bookingData/BookingSlots";
+import Link from "next/link";
 
 const CheckOut = () => {
  
@@ -206,19 +207,9 @@ const CheckOut = () => {
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="checkSection">
-                <div className="checkLeft lg:w-5/12">
+               {cartDataArray.length>0 ? ( <div className="checkLeft lg:w-5/12">
                     <div className="sticky top-15">
-                        {/* {cartDataArray.length > 0 && discountAmount > 0 && (
-                            <div className="flex items-center gap-0.5 text-green-300">
-                                <div className="problemIcon">
-                                    <img src={SavedIcon} alt="saved" />
-                                </div>
-                                <h5 className="m-0">You saved ₹{discountAmount.toFixed(2)}</h5>
-                            </div>
-                        )} */}
-
                         <h4 className="text-2xl">Account</h4>
-
                         {!isLoggedIn ? (
                             // Show login prompt if user is not logged in
                             <div className="login-required-container  rounded-lg shadow-sm bg-gray-50 text-center">
@@ -254,10 +245,12 @@ const CheckOut = () => {
 
                         )}
                     </div>
-                </div>
+                </div>): (<></>)}
 
                 <div className="checkRight max-w-lg">
-                    <h3>Order Summary</h3>
+                   {cartDataArray.length>0 ? ( <h3>Order Summary</h3>):(<div  className="emptyCartHeading">
+                    <h3 className="text-center text-black"><b>For Availing Services Go To <Link href={'/ro-water-purifier'} >Services</Link></b></h3>
+                   </div>)}
                     <div className="order-summary">
 
                         {/* <Cart

@@ -1866,7 +1866,16 @@ hr {
   /* height: 250px; */
   width: 100%;
 }
+.emptyCartHeading a{
+  color: #000000;
+}
 
+.emptyCartHeading a:hover{
+  color: #7b14dc;
+}
+.emptyCartHeading a:focus{
+  color: #7b14dc;
+}
 .services-section {
   cursor: pointer;
 }

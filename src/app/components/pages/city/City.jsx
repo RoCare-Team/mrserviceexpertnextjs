@@ -35,10 +35,6 @@ const City = () => {
           console.log("Backend Response:", data);
   
           // console.log(JSON.stringify(data));
-  
-          
-          
-  
           // console.log("brands name"+data.brands[2].brand_url);
           
           if(!data.error){
