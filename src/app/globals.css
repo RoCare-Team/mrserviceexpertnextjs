@@ -1690,6 +1690,10 @@ hr {
   display: flex;
 }
 
+.headingTitle{
+  font-size: 24px;
+}
+
 /*-------------------image slider--------------------------------*/
 .imgSlider {
   display: flex;
@@ -1892,6 +1896,9 @@ hr {
     height: 100px;
   }
 
+  .headingTitle{
+    font-size: 20px;
+  }
   .tabs-btn{
 font-size: 12px;
 padding: 10px;

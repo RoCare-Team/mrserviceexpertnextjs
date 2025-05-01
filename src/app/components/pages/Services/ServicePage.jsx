@@ -15,6 +15,11 @@ export default function ServicePage({ city, cat }) {
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]); 
   const [totalAmount, setTotalAmount] = useState(0);
+  const [cartChanged, setCartChanged] = useState(false);
+  const [cartLoaded, setCartLoaded] = useState(false);
+
+
+
   useEffect(() => {
 
     fetch('https://mannubhai.in/web_api/get_page_data.php', {
@@ -41,7 +46,10 @@ export default function ServicePage({ city, cat }) {
     // setCategoryName(cat);
   }, [city, cat]);
 
- 
+  const handleCartLoading = () => {
+    setCartLoaded(prevState => prevState + 1);
+    setCartChanged(prev => !prev);
+};
 
   useEffect(() => {
     const loadCartFromLocalStorage = () => {
@@ -209,15 +217,18 @@ window.scrollTo(0, 0);
               <div className="right-side lg:w-3/4">
                   <div className="rightSidePortion justify-center">
                       <div className="lg:w-1/2">
-                          <h2 className="ml-2.5 mt-1.5">Services in {pagedata.city_name}</h2>
+                          <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
                           <div className="mb-3.5 flex items-center justify-center ">
                           <img src={`/assets/categorybanner/${pagedata.banner}`} alt='service img' width={475} height={345} style={{
                               borderRadius:'17px',width:'100%'
                           }}/></div>
   
                           <ServicesList 
-                              onAddToCart={handleAddToCart} 
+                              // onAddToCart={handleAddToCart} 
+                              // addedServices={addedServices}
+                              handleCartLoading={handleCartLoading} 
                               addedServices={addedServices}
+                              state={cartChanged}
                               
                           />
                       </div>
@@ -226,9 +237,11 @@ window.scrollTo(0, 0);
                               <Cart
                                   // selectedServices={selectedServices}
                                   // total={totalAmount}
-                                  onRemove={handleRemoveFromCart}
-                                  onIncrement={handleIncrementService}
-                                  onDecrement={handleDecrementService}
+                                  // onRemove={handleRemoveFromCart}
+                                  // onIncrement={handleIncrementService}
+                                  // onDecrement={handleDecrementService}
+                                  cartLoaded={cartLoaded}
+                                  cartLoadedToggle={handleCartLoading}
                                   // onCartLoad={handleCartLoad}
                               />
                               <Assurance />

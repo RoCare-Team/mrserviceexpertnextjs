@@ -120,9 +120,9 @@ console.log("hisidd" +serviceList);
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
           {serviceList.map((service) => (
-            //  <Link href={`/${service.id}`} key={service.id}>
+            //  <Link href={`/${service.id}`} >
             <button
-              
+            key={service.id}
               onClick={() => scrollToSection(service.id)}
               className="flex flex-col items-center justify-center  tabCards sm:w-xs bg-gray-100 rounded-lg hover:bg-white transition-all shadow-md hover:shadow-lg border border-gray-300 hover:ring-2 hover:ring-purple-300 p-1"
             >

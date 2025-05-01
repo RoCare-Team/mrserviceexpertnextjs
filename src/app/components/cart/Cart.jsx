@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 
 
 // const Cart = ({cartdata, total, onRemove, onIncrement, onDecrement, onCartLoad }) => {
-const Cart = () => {
+const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
   const [cartDataArray, setCartDataArray] = useState([]);
   const [finalTotal, setFinalTotal] = useState(0);
@@ -43,8 +43,8 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
   useEffect(() => {
 
-    displayCartData();
-  }, [])
+    displayCartData(cartLoaded);
+  }, [cartLoaded])
 
 
 
@@ -101,7 +101,16 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
       // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
       localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
       localStorage.setItem('cart_total_price',data.total_price== null ? 0 : data.total_price);
-
+      if(quantity===0){
+        const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+        const updatedCartItems = oldCartItems.filter(id => id !== service_id);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+        
+        // trigger parent update
+        if (typeof cartLoadedToggle === 'function') {
+          cartLoadedToggle();
+        }
+      }
       
       displayCartData();
       toast.success(data.msg);
@@ -134,7 +143,16 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
    
     localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
       localStorage.setItem('cart_total_price',data.total_price== null ? 0 : data.total_price);
-
+      const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      const updatedCartItems = oldCartItems.filter(id => id !== service_id);
+      console.log("cart remove" + updatedCartItems);
+      
+      localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+      
+      // trigger parent update
+      if (typeof cartLoadedToggle === 'function') {
+        cartLoadedToggle();
+      }
     displayCartData();
     toast.success(data.msg);
 

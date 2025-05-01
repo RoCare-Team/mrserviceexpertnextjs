@@ -9,8 +9,9 @@ import { toast, ToastContainer } from "react-toastify";
 // import {  useParams } from "react-router-dom";
 import { useParams } from "next/navigation";
 
-const ServicesList = ({cate, addedServices = [], state }) => {
+const ServicesList = ({cate, addedServices = [],state, handleCartLoading }) => {
 //   const location = useLocation();
+const [serviceListCart, setServiceListCart] = useState([]);
 
 const [clickedValues, setClickedValues] = useState([]);
 
@@ -36,10 +37,44 @@ const [clickedValues, setClickedValues] = useState([]);
   const modalCategories = ['ac', 'refrigerator', 'chimney', 'washing-machine', 'water-purifier'];
   const [showModal, setShowModal] = useState(false);
 
-  const type = localStorage.setItem('type', 'add');
+  // const type = localStorage.setItem('type', 'add');
  
-  
+  useEffect(() => {
+    const storedCartItems = localStorage.getItem('cartItems');
+    if (storedCartItems) {
+      setServiceListCart(JSON.parse(storedCartItems));
+    } else {
+      setServiceListCart([]);
+    }
+  }, [state]); //  dependency to change the cart states
  
+   // Initialize from localStorage and props when component mounts
+   useEffect(() => {
+    // Load clickedValues from localStorage
+    const storedClickedValues = localStorage.getItem('clickedValues');
+    if (storedClickedValues) {
+      setClickedValues(JSON.parse(storedClickedValues));
+    }
+    
+    // Initialize serviceListCart from both localStorage and props
+    const storedCartItems = localStorage.getItem('cartItems');
+    if (storedCartItems) {
+      setServiceListCart(JSON.parse(storedCartItems));
+    } else if (addedServices.length > 0) {
+      setServiceListCart(addedServices);
+      localStorage.setItem('cartItems', JSON.stringify(addedServices));
+    }
+    
+    localStorage.setItem('type', 'add');
+  }, []);
+
+  // Update serviceListCart when addedServices prop changes
+  useEffect(() => {
+    if (addedServices.length > 0) {
+      setServiceListCart(addedServices);
+      localStorage.setItem('cartItems', JSON.stringify(addedServices));
+    }
+  }, [addedServices]);
 useEffect(()=>{
   let lead_type = null;
 
@@ -133,6 +168,20 @@ setBrandName(cat);
 
            // Update the addedServices array after successful API call
       // setAddedServices(prev => [...prev, service.id]);
+
+       // Update clickedValues and store in localStorage
+       const newClickedValues = [...clickedValues, service.id];
+       setClickedValues(newClickedValues);
+       localStorage.setItem('clickedValues', JSON.stringify(newClickedValues));
+       
+       // Update serviceListCart and store in localStorage
+       const newServiceListCart = [...serviceListCart, service.id];
+       setServiceListCart(newServiceListCart);
+       localStorage.setItem('cartItems', JSON.stringify(newServiceListCart));
+       
+       if (handleCartLoading) {
+         handleCartLoading();
+       }
       } else {
         setShowModal(true);
         // toast.error('Login before addding any service');
@@ -146,7 +195,7 @@ setBrandName(cat);
     }
   };
 
-console.log(clickedValues);
+// console.log(clickedValues);
 
 
   return (
@@ -154,7 +203,8 @@ console.log(clickedValues);
       {/* <ToastContainer /> */}
       <h3 className="mt-3 ml-4"><b>{catergoryTitle}</b></h3>
       {servicedata?.map((service) => {
-              const isAdded = addedServices.includes(service.id);
+              // const isAdded = addedServices.includes(service.id);
+              const isAdded = serviceListCart.includes(service.id)
               // Fix: Define useModal variable here
               const useModal = modalCategories.includes(service.category);
 

@@ -24,9 +24,6 @@ function home() {
                             <li>✓<strong>Advanced RO system maintenance</strong></li>
                             <li>✓<strong>Same-day emergency repairs</strong></li>
                             <li>✓<strong>Professional technicians at your doorstep</strong></li>
-                            {/* <li>✓ <strong>Geyser Installation & Troubleshooting</strong></li>
-                            <li>✓ <strong>Microwave Oven Repairs</strong></li>
-                            <li>✓ <strong>LED TV Setup & Servicing</strong></li> */}
                         </div>
                     </div>
 
@@ -36,14 +33,6 @@ function home() {
                 </div>
             </div>
 
-            {/*=========================bar=====section============================================= */}
-            {/* <div>
-                <ServiceBar
-                    headText="Reliable Home Appliance Services at Your Doorstep!"
-                    servicePara="From RO purifiers to refrigerators, washing machines, air conditioners, and more — get expert installation, maintenance, and repair services by trained professionals. Enjoy hassle-free, same-day support and keep your home running smoothly with our trusted appliance care solutions."
-                />
-
-            </div> */}
 
             <div className=' serviceBannerSection'>
                 <img src="assets/images/home-appliaces.webp" alt='Service Banner' className='serviceBanner'  />

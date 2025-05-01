@@ -119,9 +119,16 @@ const CheckOut = () => {
                 // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
                 localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
           localStorage.setItem('cart_total_price', data.total_price == null ? 0 : data.total_price);
+          if(quantity===0){
+            const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+            const updatedCartItems = oldCartItems.filter(id => id !== service_id);
+            localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+            console.log(service_id,oldCartItems);
+           
+          }
                 displayCartData();
                 toast.success(data.msg);
-    
+                
     
             } else {
                 toast.success(data.msg);
