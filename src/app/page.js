@@ -31,7 +31,7 @@ function home() {
                     </div>
 
                     <div className='heroContact'>
-                        <span>Call us now at <a href="tel:+91 931158774"><b>931158774</b></a>  for reliable home appliance care that protects what matters most</span>
+                        <span>Call us now at <a href="tel:+91 9311587744"><b>9311587744</b></a>  for reliable home appliance care that protects what matters most</span>
                     </div>
                 </div>
             </div>
