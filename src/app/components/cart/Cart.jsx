@@ -177,8 +177,8 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
       ) : (
         <>
           {cartDataArray?.map((service) => (
-  <div key={service.cart_id}>
-    <p>{service.leadtype_name}</p>
+  <div key={service.cart_id} className="max-h-90 overflow-x-auto">
+    <p className="ml-2.5">{service.leadtype_name}</p>
 
     {/* Assuming service.innerArray is the nested array */}
     {service.cart_dtls?.map((item, index) => (
