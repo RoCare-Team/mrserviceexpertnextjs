@@ -44,8 +44,10 @@ function ServiceSection() {
                        <Link href={`/${Service.link}`} className="text-black">  <div className="imgSection">
                             <img
                                 src={Service.image}
-                                alt={Service.name}
+                                alt={`${Service.name} services`}
                                 className="serviceImg w-28 h-28"
+                                height="auto"
+                                width={128}
                             />
                         </div>
                            <p className="text-2xs text-wrap mb-1 text-center serviceSectionName text-black"><b>{Service.name}</b></p></Link> 

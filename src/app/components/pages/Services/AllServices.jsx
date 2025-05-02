@@ -6,14 +6,14 @@ import React, { useState, useEffect, useCallback } from "react";
 
 const serviceL = [
 //   { id: "ro-service", name: "RO Service", image: RoService },
-  { id: "ac", service_name: "Air Conditioner", image: "/assets/images/ro-service/ro repair.webp",link:"ac"},
-  {id:"washing-machine",service_name:"Washing Machine",image:"/assets/images/ro-service/ro repair.webp",link:"washing-machine-repair"},
-  { id: "water-purifier", service_name: "Water Purifier", image: "/assets/images/serviceBrands/RoInstallation.png",link:"" },
-  { id: "gyeser", service_name: "Gyeser", image: "/assets/images/serviceBrands/geyser icon 70x70.png",link:"geyser-repair" },
-  { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png",link:"refrigerator-repair" },
-  { id: "led", service_name: "Led", image: "/assets/images/servicesImages/led.png",link:"led-tv-repair" },
- { id: "microwav-repair", service_name: "Microwave", image: "/assets/images/servicesImages/microWave.png",link:"microwav-repair" },
-  {id:"vaccum-cleaner",service_name:"Vaccum Cleaner",image: "/assets/images/servicesImages/vacuum cleaner.png",link:"vacuum-cleaner-repair"}
+  { id: "ac", service_name: "Air Conditioner", image: "/assets/serviceTabIcons/ac uninstalltion.webp",link:"ac"},
+  {id:"washing-machine",service_name:"Washing Machine",image:"/assets/serviceTabIcons/washing machine installation.webp",link:"washing-machine-repair"},
+  { id: "water-purifier", service_name: "Ro Water Purifier", image: "/assets/serviceTabIcons/ro installation.webp",link:"" },
+  { id: "gyeser", service_name: "Gyeser", image: "/assets/serviceTabIcons/geyser uninstallation.webp",link:"geyser-repair" },
+  { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/serviceTabIcons/refrigerator installation.webp",link:"refrigerator-repair" },
+  { id: "led-tv-repair", service_name: "Led", image: "/assets/serviceTabIcons/led tv reapair.webp",link:"led-tv-repair" },
+  { id: "microwav-repair", service_name: "Microwave", image: "/assets/serviceTabIcons/microwave installation.webp",link:"microwav-repair" },
+  {id:"vaccum-cleaner",service_name:"Vaccum Cleaner",image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp",link:"vacuum-cleaner-repair"}
 
 ];
 
