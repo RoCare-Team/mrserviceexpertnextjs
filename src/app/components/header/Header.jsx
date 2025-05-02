@@ -177,7 +177,7 @@ export default function Header() {
           {/* Logo */}
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <div onClick={() => handleNavigation('/')} style={{ cursor: 'pointer' }}>
-              <Link href={'/'}>
+              <Link href={'/'} title="Home Services">
               <img
                 src="/assets/images/serviceLogo.png"
                 alt="service logo"
@@ -196,10 +196,10 @@ export default function Header() {
           >
             <div className="flex items-center mobileNumber">
               <span className="w-10 h-10">
-                <img src="/assets/images/Call (2).png" alt="urname" className="w-100" />
+                <img src="/assets/images/Call (2).png" alt="Call For Services" title='For calling contact +91 9311587744' className="w-100" />
               </span>
-              <a href="tel:+91-9311587744" className="text-black">
-                <button className="text-black">+91-9311587744</button>
+              <a href="tel:+91-9311587744" className="text-black" title='For calling contact +91 9311587744'>
+                <button className="text-black" title="Call for services">+91-9311587744</button>
               </a>
             </div>
 
@@ -207,8 +207,9 @@ export default function Header() {
 
            
 
-            <Link href='/ro-water-purifier'>
+            <Link href='/ro-water-purifier' title="ro water purifier services">
               <Button
+              title="Services"
                 style={{ color: 'white' }}
                 sx={{ textTransform: "none", fontSize: "16px" }}
               >
@@ -218,7 +219,7 @@ export default function Header() {
 
             {/* Cart Icon */}
             <div className="cartLink relative">
-              <a href="/checkout">
+              <a href="/checkout" title="Checkout">
                 <FontAwesomeIcon icon={faCartShopping} style={{ fontSize: "24px", cursor: "pointer" }} />
               </a>
               {cartCount > 0 ? (<span className='cartCountStyle absolute '>{cartCount}</span>): (<></>)}
@@ -255,6 +256,7 @@ export default function Header() {
 
                         <Link
                          href="/profile"
+                         title="profile section"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => setIsPopupVisible(false)}
                         >
@@ -265,6 +267,7 @@ export default function Header() {
 
                         <Link
                          href="/help-center"
+                         title="help center for any issue related to services"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => setIsPopupVisible(false)}
                         >
@@ -274,6 +277,7 @@ export default function Header() {
                         </Link>
                         <Link
                          href="/booking"
+                         title="previous and upcoming services booking section"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => getbookingdata()}
                         >
@@ -283,6 +287,7 @@ export default function Header() {
                         </Link>
                         <li style={{ padding: '8px 4px' }}>
                           <button
+                          title="Logout"
                             onClick={handleLogout}
                             style={{
                               background: 'none',
@@ -307,6 +312,7 @@ export default function Header() {
                     ) : (
                       <li style={{ padding: '8px 4px' }}>
                         <button
+                        title="login"
                           onClick={handlePopup}
                           style={{
                             background: 'none',
@@ -349,7 +355,7 @@ export default function Header() {
         >
           <List>
             <ListItem>
-              <img src="/assets/images/serviceLogo.png" alt='Online Customer Service' />
+              <img src="/assets/images/serviceLogo.png" alt='Mr Service Expert all services' />
             </ListItem>
 
             <ListItem button onClick={() => handleNavigation('/')}>

@@ -141,7 +141,7 @@ function RepairView() {
                   component="img"
                   src={brand.src}
                   alt={`${brand.name}`}
-                 
+                 title={`${brand.name}`}
                   sx={{
                     height:"auto",
                     width:"128px",

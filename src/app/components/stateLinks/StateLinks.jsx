@@ -23,7 +23,7 @@ function StateLinks() {
                         key={city}
                         href={`/${city.toLowerCase().replace(/\s+/g, "-")}/ro-water-purifier`}
                         className="state-link  "
-                       
+                       title={`${city.toLowerCase().replace(/\s+/g, " ")} ro water purifier ` }
                     >
                         {city}
                     </Link>
