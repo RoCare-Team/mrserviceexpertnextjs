@@ -574,6 +574,9 @@ margin-bottom: 24px;
   position: relative;
 }
 
+.mobileBanner{
+  display: none;
+}
 
 .briefInfo {
   background-color: #fff1e5;
@@ -581,9 +584,10 @@ margin-bottom: 24px;
 }
 
 .briefInfo2 {
-  /* padding: 0px 16px; */
   color: gray;
   font-size: 12px;
+  width: 100%;
+  padding-left: 10px;
 }
 
 .serviceTime {
@@ -2068,6 +2072,9 @@ padding-block: 13px;
   .hoverServiceInfo {
     display: none;
   }
+  .desktopBanner{
+    display: none;
+  }
 
   /* .forMb {
     position: fixed;
@@ -2173,6 +2180,9 @@ padding-block: 13px;
   .infoSpan {
     font-size: 12px;
   }
+  .mobileBanner{
+    display: flex;
+  }
 
   .cart-footer {
     position: fixed;
@@ -2194,13 +2204,29 @@ padding-block: 13px;
 
 
 /* media queries for devices having width between 600px and 767px */
-@media only screen and (min-width: 600px) and (max-width: 767px) {}
+@media only screen and (min-width: 600px) and (max-width: 767px) {
+  .mobileBanner{
+    display: none;
+  }
+}
 
 /* media queries for devices having width between 768px and 991px */
-@media only screen and (min-width:768px) and (max-width: 991px) {}
+@media only screen and (min-width:768px) and (max-width: 991px) {
+  .mobileBanner{
+    display: none;
+  }
+}
 
 /* media queries for devices having width between 992px and 1199px */
-@media only screen and (min-width: 992px) and (max-width: 1199px) {}
+@media only screen and (min-width: 992px) and (max-width: 1199px) {
+  .mobileBanner{
+    display: none;
+  }
+}
 
 /* media queries for devices having width more than 1200px  */
-@media only screen and (min-width: 1200px) {}
+@media only screen and (min-width: 1200px) {
+  .mobileBanner{
+    display: none;
+  }
+}

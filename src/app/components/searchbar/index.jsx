@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, InputAdornment, Box, Typography, List, ListItem } from '@mui/material';
 import { styled } from '@mui/system';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 const SearchBarWrapper = styled('div')({
   position: 'relative',
@@ -84,16 +84,18 @@ const SearchBar = () => {
   const [searchValue, setSearchValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  const navigate=useRouter();
+
 
 
   // Mock data for services and popular searches
   const popularServices = [
-    { name: 'RO Service', icon: '🔧',URL:'/service/ro-service?category=ro-service' },
-    { name: 'RO Repair', icon: '💧',URL:'/service/ro-service?category=ro-repair' },
-    { name: 'Ro Installation', icon: '🧹',URL:'/service/ro-service?category=ro-installation' },
-    {name:'RO Un-Installation',icon:'🔧',URL:'/service/ro-service?category=ro-installation'},
-    { name: 'AC Repair', icon: '❄️',URL:'/service/ro-service' },
-    { name: 'Washing Service', icon: '❄️',URL:'/service/washing-service' },
+    { name: 'RO Service', icon: '🔧',URL:'/ro-water-purifier' },
+    // { name: 'Vaccum Cleaner', icon: '',URL:'/service/ro-service?category=ro-repair' },
+    // { name: 'Ro Installation', icon: '🧹',URL:'/service/ro-service?category=ro-installation' },
+    {name:'Geyser',icon:'🔧',URL:'/geyser-repair'},
+    { name: 'AC Repair', icon: '❄️',URL:'/ac' },
+    { name: 'Washing Service', icon: '❄️',URL:'/washing-machine-repair' },
   ];
 
   // new page become vendor ,job,blog,contact
@@ -121,9 +123,9 @@ const SearchBar = () => {
     setShowSuggestions(false);
 
     if(suggestion.URL){
-      navigate(suggestion.URL);
+      navigate.push(suggestion.URL);
     }
-    console.log(suggestion.URL);
+    // console.log(suggestion.URL);
     
   };
 

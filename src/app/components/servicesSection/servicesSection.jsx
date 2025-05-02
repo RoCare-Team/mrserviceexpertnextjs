@@ -45,6 +45,7 @@ function ServiceSection() {
                             <img
                                 src={Service.image}
                                 alt={`${Service.name} services`}
+                                title={`${Service.name} services`}
                                 className="serviceImg w-28 h-28"
                                 height="auto"
                                 width={128}
