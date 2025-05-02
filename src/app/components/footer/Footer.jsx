@@ -11,7 +11,7 @@ const Footer = () => {
 
 
         {/* Useful Links */}
-        <div>
+        <div className="hidden">
           <h3 className="text-lg font-semibold ">Useful Links</h3>
           <ul className="space-y-2 p-0  flex items-center gap-4 mb-0 flex-wrap ">
             <li className="text-xl hover:text-purple-400 transition mb-0"><strong>Services</strong></li>
@@ -81,17 +81,18 @@ const Footer = () => {
 
           </div>
           <div className="flex space-x-3 socialLinks">
-          {/* https://www.facebook.com/MrServiceExpert/ */}
-            <a href="https://twitter.com/mrserviceexper4/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter.png" alt="" className="w-10 h-10" /></a>
-            <a href="https://www.instagram.com/rocareindia/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/insta.svg" alt="" className="w-10 h-10" /></a>
-            <a href="https://www.linkedin.com/company/mr-service-expert/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkdnn.svg" alt="" className="w-10 h-10" /></a>
+          {/* https://www.facebook.com/MrServiceExpert/  className="w-10 h-10"  */}
+          <a href="https://www.facebook.com/MrServiceExpert/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/fb.webp" alt="Facebook mr service expert"  height="auto" width={40} /></a>
+            <a href="https://twitter.com/mrserviceexper4/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter.png" alt="twitter mr service expert"  height="auto" width={40} /></a>
+            <a href="https://www.instagram.com/rocareindia/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/insta.svg" alt="Instagram mr service expert" height="auto" width={40} /></a>
+            <a href="https://www.linkedin.com/company/mr-service-expert/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkdnn.svg" alt="Linkedin mr service expert"  height="auto" width={40} /></a>
           </div>
         </div>
 
       </div>
       {/* Footer Bottom */}
       <div className="mt-10 text-center text-sm border-t border-gray-500 pt-6">
-        © {new Date().getFullYear()} RO Customer Care |
+        © {new Date().getFullYear()} Mr Service Expert |
         <a href="/" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition mx-2">Home</a> |
         <a href="/terms-and-conditions" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition mx-2">Terms</a> |
         <a href="/privacy-and-policy" target='_blank' rel="noopener noreferrer" className="hover:text-yellow-400 transition mx-2">Privacy Policy</a> |

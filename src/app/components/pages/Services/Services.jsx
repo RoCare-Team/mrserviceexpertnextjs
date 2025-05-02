@@ -21,7 +21,8 @@ const serviceCategories = [
     { id: "gyeser", name: "Gyeser", showImage: true },
     { id: "refrigerator", name: 'Refrigerator', showImage: true },
     { id: "microwav-repair", name: "Microwave", showImage: true },
-    { id: "vaccum-cleaner", name: "Vaccum Cleaner", showImage: true }
+    { id: "vaccum-cleaner", name: "Vaccum Cleaner", showImage: true },
+    {id:"led-tv-repair",name:"Led",showImage:true}
 ];
 
 
@@ -37,12 +38,12 @@ const Services = () => {
         
         {
             id: 1,
-            name: "Water Purifier",
+            name: " Ro Water Purifier",
             
             category: "water-purifier",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/ro repair service.webp",
             link: 'ro-water-purifier',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
@@ -53,7 +54,7 @@ const Services = () => {
             category: "vaccum-cleaner",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp",
             link: 'vacuum-cleaner-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
@@ -64,7 +65,7 @@ const Services = () => {
             category: "ac",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/ac repair and service.webp",
             link: 'ac',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
@@ -75,7 +76,7 @@ const Services = () => {
             category: "gyeser",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/geyser repair service.webp",
             link: 'geyser-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
@@ -86,18 +87,18 @@ const Services = () => {
             category: "washing-machine",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/washing machine repair & service.webp",
             link: 'washing-machine-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
         {
             id: 6,
-            name: "Refrigator",
+            name: "Refrigerator",
             
             category: "refrigerator",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/refrigerator repair service.webp",
             link: 'refrigerator-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         },
@@ -107,7 +108,7 @@ const Services = () => {
             category: "kitchen-chimney",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/kitchen chimney installaiton.webp",
             link: 'kitchen-chimney-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
         }
@@ -118,9 +119,19 @@ const Services = () => {
             category: "microwav-repair",
             reviews: 57,
             rating: 4.8,
-            image: "/assets/images/serviceListImages/ro service.webp",
+            image: "/assets/serviceTabIcons/microwave installation.webp",
             link: 'microwav-repair',
             briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
+        },{
+            id: 9,
+            name: "Led",
+            category: "led-tv-repair",
+            reviews: 57,
+            rating: 4.8,
+            image: "/assets/serviceTabIcons/led tv reapair.webp",
+            link: 'led-tv-repair',
+            briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
+
         }
     ];
 
@@ -157,7 +168,7 @@ const Services = () => {
                                         <div className="serviceImgContainer">
                                             {showImage && service.image && (
                                                 <div className="serviceDetailsImg mb-0.5">
-                                                    <img src={service.image} alt={service.name} />
+                                                    <img src={service.image} alt={service.name} height={72} width={72} />
                                                 </div>
                                             )}
                                             <div className=" ">

@@ -155,6 +155,12 @@ a:hover {
   right: 0;
 }
 
+.book-btn-style{
+  background: #8429d8;
+  border-radius: 9px;
+  padding: 4px 6px;
+  color: white;
+}
 .thirdSection {
   display: flex;
   padding: 0px 20px;
@@ -1997,6 +2003,7 @@ padding-block: 13px;
 
   .rightHeroDetails {
     gap: 18px;
+    text-align: center;
   }
 
   .servicesHero {
