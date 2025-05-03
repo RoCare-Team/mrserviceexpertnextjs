@@ -17,7 +17,7 @@ function Assurance() {
                 </div>
                 <div>
 
-                    <img src="/assets/images/quality-assurance.png" alt="Assured Quality" className="assuredImg" />
+                    <img src="/assets/images/quality-assurance.webp" alt="Assured Quality" className="assuredImg" />
                 </div>
             </div>
         </div>

@@ -274,7 +274,7 @@ window.scrollTo(0, 0);
                     
                   <div className="flex flex-wrap">
                   <div className='lg:w-1/2  py-3.5 px-7'>
-                        <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon'  className=' w-full '  />
+                        <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' width={629}  height="auto" title="Faq ro Services" className=' w-full '  />
                     </div>
                     <div className="space-y-4 lg:w-1/2">
                       

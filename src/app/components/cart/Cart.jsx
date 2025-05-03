@@ -171,7 +171,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
       {cartDataArray.length === 0 ? (
         <div className="emptyStyle">
-          <img src="/assets/images/emptyCart.png" alt="Empty Cart" className="emptyImg" />
+          <img src="/assets/images/emptyCart.webp" alt="Empty Cart" className="emptyImg" height="auto" width={72} />
           <p className="text-center">No services added.</p>
         </div>
       ) : (

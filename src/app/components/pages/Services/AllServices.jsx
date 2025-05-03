@@ -131,6 +131,9 @@ console.log("hisidd" +serviceList);
                 src={service.image}
                 alt={service.service_name}
                 className="w-11 h-auto object-contain mb-2"
+                width={44}
+                height="auto"
+                title={service.service_name}
               />
               <span className="text-xs font-medium text-gray-700 text-center text-wrap">{service.service_name}</span>
            
