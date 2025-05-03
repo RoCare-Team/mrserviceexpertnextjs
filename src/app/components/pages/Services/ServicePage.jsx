@@ -17,6 +17,7 @@ export default function ServicePage({ city, cat }) {
   const [totalAmount, setTotalAmount] = useState(0);
   const [cartChanged, setCartChanged] = useState(false);
   const [cartLoaded, setCartLoaded] = useState(false);
+  const [imageLoader,setImageLoader]=useState(false);
 
 
 
@@ -219,12 +220,25 @@ window.scrollTo(0, 0);
                       <div className="lg:w-1/2">
                           <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
                           <div className="mb-3.5 flex items-center justify-center ">
-                          <img src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} width={475} height={345}
-                          title={`${pagedata.city_name}  Services`}
-                          style={{
-                              borderRadius:'17px',width:'100%'
-                          }}/></div>
-  
+                          {!imageLoader && ( 
+                              <img src={`/assets/cityBanner/Front Banner.webp`} alt={`Our Services`} width={475} height={345}
+                            title={`Our Services`}
+                            style={{
+                                borderRadius:'17px',width:'100%',
+                                transition: 'opacity 0.5s ease-in-out',
+                            }}/>
+                          )}
+                            <img src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} width={475} height={345}
+                            title={`${pagedata.city_name}  Services`}
+                            onLoad={()=>setImageLoader(true)}
+                            style={{
+                                borderRadius:'17px',width:'100%',
+                                opacity: imageLoader ? 1 : 0,
+                                transition: 'opacity 0.5s ease-in-out',
+                            }}
+                          />
+                          </div>
+                  
                           <ServicesList 
                               // onAddToCart={handleAddToCart} 
                               // addedServices={addedServices}

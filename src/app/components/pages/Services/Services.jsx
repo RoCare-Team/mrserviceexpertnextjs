@@ -7,11 +7,6 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-
-
-
-
-
 // Updated serviceCategories to match the Tabs component
 const serviceCategories = [
     { id: "ro-service", name: "RO Service", showImage: true },
@@ -25,15 +20,12 @@ const serviceCategories = [
     { id: "led-tv-repair", name: "Led", showImage: true }
 ];
 
-
-
 const Services = () => {
 
     const [showModal, setShowModal] = useState(false);
-
     const { city } = useParams();
-    // const [city_name,setCity]
 
+    // const [city_name,setCity]
     const services = [
 
         {
@@ -104,7 +96,7 @@ const Services = () => {
                 "We do not service gas geysers",
                 "Geyser Installation",
                 "Geyser unInstallation",
-                "Service Within 24 Hour",  
+                "Service Within 24 Hour",
             ]
         },
         {
@@ -199,16 +191,14 @@ const Services = () => {
 
                 return (
                     <div key={id} id={id} className="common-service-style ">
-                        <h2>{title}</h2>
+                        {/* <h1>{title}</h1> */}
                         {filteredServices.map((service) => {
-
-
                             return (
                                 <div className="servicePortionDetails flex-col" key={service.id}>
                                     <div className="flex serviceWiseContainer">
                                         <div className="serviceDetails">
 
-                                            <h3 className="serviceVarities">{service.name}</h3>
+                                            <h1 className="serviceVarities"><b>{service.name}</b></h1>
                                             <div>
                                                 <span className="serviceReview">
                                                     <FontAwesomeIcon icon={faStar} /> {service.rating} ({service.reviews}k reviews)

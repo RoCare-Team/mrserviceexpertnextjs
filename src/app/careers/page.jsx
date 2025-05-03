@@ -1,15 +1,21 @@
 "use client";
 
 import React from 'react';
+import { toast, ToastContainer } from 'react-toastify';
 
 function Jobs() {
+
+  const handleClick=()=>{
+    toast.info("Comming soon.......");
+  }
   return (
     <div className='bg-white py-13'>
+      <ToastContainer/>
       <div className='container mx-auto px-3'>
         <div className='flex flex-col gap-6 mb-10'>
-          <div className='border-t-2 border-dashed border-gray-200'></div>
+          <div className='border-t-2 border-dashed border-purple-300'></div>
           <h2 className='text-3xl font-bold text-center text-gray-800'>Career Opportunities</h2>
-          <div className='border-t-2 border-dashed border-gray-200'></div>
+          <div className='border-t-2 border-dashed border-purple-300'></div>
           
           <p className='text-lg text-gray-600 text-center max-w-4xl mx-auto'>
            Join our dynamic team and be part of something extraordinary. We're looking for talented individuals ready to transform ideas into reality and make a meaningful impact.
@@ -39,7 +45,7 @@ function Jobs() {
                   Posted: 10/Mar/2023
                 </div>
               </div>
-              <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition duration-300">
+              <button onClick={handleClick} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded transition duration-300">
                 Apply Now
               </button>
             </div>

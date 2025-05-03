@@ -13,6 +13,7 @@ const City = () => {
     const { city } = useParams();
     // const [cityName,setCityName]=useState(""); // Extract city ,brands from URL
     const [cityData, setCityData] = useState([]);
+    const [cityImageLoad,setImageLoad]=useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -63,9 +64,9 @@ const City = () => {
                     <div className="right-side lg:w-3/4">
                         <div className="rightSidePortion justify-center">
                             <div className="lg:w-1/2">
-                                <h2 className="ml-2.5 mt-1.5 text-3xl">Services All Over {cityData.city_name}</h2>
+                                <h2 className="ml-2.5 mt-1.5 text-3xl">Services All Over {cityData?.city_name}</h2>
                                 <div className="mb-3.5 flex items-center justify-center desktopBanner ">
-                                    <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' width={475} height={345} style={{
+                                    <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our Services in ${cityData?.city_name}`} width={475} height={345} loading="eager" style={{
                                         borderRadius: '17px', width: '100%'
                                     }} /></div>
                                 <AllServicesList />
@@ -152,21 +153,22 @@ const City = () => {
                         {/* <p className="catgoreyContent" >{cityData?.categorydetail?.category_content   }</p> */}
                     </div>
                 </div>
-                <div className="bg-white common-spacing">
-                    <h3 className="catgoreyTitle">Popular City in India</h3>
+                {/* <div className="bg-white common-spacing">
+                    <h3 className="catgoreyTitle">Popular Brands of {cityData?.categorydetail?.category_name}</h3>
                     <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
-                        {cityData.recent_cities?.map((city) => (
+                        {cityData.brands?.map((city) => (
+                            // brands
                             <div className='brandsServices '>
-                                <a href={`${city.city_url}`}>
+                                <a href={`${city.brand_url}`}>
                                     <li className='brand-btn-style'>
-                                        {city.city_name}
+                                        {city.brand_name}
                                         <span></span>
                                     </li>
                                 </a>
                             </div>
                         ))}
                     </div>
-                </div>
+                </div> */}
 
 
             </div>
