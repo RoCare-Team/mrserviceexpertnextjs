@@ -122,7 +122,7 @@ const City = () => {
                     <div className="right-side lg:w-3/4">
                         <div className="rightSidePortion justify-center">
                             <div className="lg:w-1/2">
-                                <h2 className="ml-2.5 mt-1.5 text-3xl">{cityData?.categorydetail?.category_name}</h2>
+                                <h2 className="ml-2.5 mt-1.5 text-3xl"><b>{cityData?.categorydetail?.category_name}</b></h2>
                                 <div className="mb-3.5 flex items-center justify-center ">
                                     <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'

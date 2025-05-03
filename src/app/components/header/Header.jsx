@@ -341,6 +341,7 @@ export default function Header() {
           <IconButton
             sx={{ display: { xs: "flex", md: "none" } }}
             onClick={toggleDrawer(true)}
+            title="Menu View"
           >
             <MenuIcon />
           </IconButton>

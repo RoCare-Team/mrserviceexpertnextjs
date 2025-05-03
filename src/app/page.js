@@ -19,7 +19,8 @@ function home() {
 
                 <div className="rightHeroDetails w-5/12 flex flex-col items-start justify-between  pl-2 pr-2">
                     <div>
-                        <h1 className='heroHeading'>Fast, Reliable Home Appliance Service – Right at Your Doorstep</h1>
+                        <h1 className='heroHeading'><b>Fast, Trusted Home Appliance service -  Mr. Service Expert</b></h1>
+                        <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a> for reliable home appliance care that protects what matters most  </span>
                         <p className='text-xl'>Ensuring your familys comfort and convenience with expert installation and repair services</p>
                         <div className="benifits">
                            <ul>
@@ -31,9 +32,9 @@ function home() {
                         </div>
                     </div>
 
-                    <div className='heroContact'>
-                        <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a> for reliable home appliance care that protects what matters most  </span>
-                    </div>
+                    {/* <div className='heroContact'>
+                         <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a> for reliable home appliance care that protects what matters most  </span> 
+                    </div> */}
                 </div>
             </div>
 

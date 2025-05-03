@@ -1,0 +1,20 @@
+User-agent: *
+Disallow: /popper/
+Disallow: /beli/
+Disallow: /assets/
+Disallow: /includes/
+Disallow: /reqwest/
+Disallow: /private/
+Disallow: /track-order/
+Disallow: /logs/
+Disallow: /admin/
+Disallow: /cgi-bin/
+
+Disallow: /cart/
+Disallow: /cart-checkout/
+Disallow: /shop-saringan-udara/
+Disallow: /login/
+Disallow: /jual/
+Disallow: /index/
+
+Sitemap: https://www.mrserviceexpert.com/sitemap.xml
