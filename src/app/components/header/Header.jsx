@@ -179,7 +179,7 @@ export default function Header() {
             <div onClick={() => handleNavigation('/')} style={{ cursor: 'pointer' }}>
               <Link href={'/'} title="Home Services">
               <img
-                src="/assets/images/serviceLogo.png"
+                src="/assets/images/serviceLogo.webp"
                 alt="service logo"
                 style={{ height: "50px" }}
               /></Link>
@@ -356,7 +356,7 @@ export default function Header() {
         >
           <List>
             <ListItem>
-              <img src="/assets/images/serviceLogo.png" alt='Mr Service Expert all services' />
+              <img src="/assets/images/serviceLogo.webp" alt='Mr Service Expert all services' />
             </ListItem>
 
             <ListItem button onClick={() => handleNavigation('/')}>
