@@ -83,10 +83,10 @@ const Footer = () => {
           </div>
           <div className="flex space-x-3 socialLinks">
           {/* https://www.facebook.com/MrServiceExpert/  className="w-10 h-10"  */}
-          <a href="https://www.facebook.com/MrServiceExpert/" target='_blank' rel="noopener noreferrer" title="Facebook mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/fb.webp" alt="Facebook mr service expert"  height="auto" width={40} /></a>
-            <a href="https://twitter.com/mrserviceexper4/" target='_blank' rel="noopener noreferrer" title="twitter mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter.png" alt="twitter mr service expert"  height="auto" width={40} /></a>
+          <a href="https://www.facebook.com/MrServiceExpert/" target='_blank' rel="noopener noreferrer" title="Facebook mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/facebook logo.webp" alt="Facebook mr service expert"  height="auto" width={40} /></a>
+            <a href="https://twitter.com/mrserviceexper4/" target='_blank' rel="noopener noreferrer" title="twitter mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/twitter logo.webp" alt="twitter mr service expert"  height="auto" width={40} /></a>
             {/* <a href="https://www.instagram.com/rocareindia/" target='_blank' rel="noopener noreferrer" title="Instagram mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/insta.svg" alt="Instagram mr service expert" height="auto" width={40} /></a> */}
-            <a href="https://www.linkedin.com/company/mr-service-expert/" target='_blank' rel="noopener noreferrer" title="Linkedin mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkdnn.svg" alt="Linkedin mr service expert"  height="auto" width={40} /></a>
+            <a href="https://www.linkedin.com/company/mr-service-expert/" target='_blank' rel="noopener noreferrer" title="Linkedin mr service expert" className="hover:text-yellow-400 transition text-xl"><img src="/assets/images/socialIcons/linkedin logo.webp" alt="Linkedin mr service expert"  height="auto" width={40} /></a>
           </div>
         </div>
 

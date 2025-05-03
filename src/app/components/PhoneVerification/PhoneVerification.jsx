@@ -279,7 +279,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                   Continue
                 </button>
                 
-                <div className="w-full text-center mt-4">
+                <div className="w-full text-center mt-4 contactStyle">
                   <span className='text-gray-400'>By continuing, you agree to our <a href="/terms-and-conditions" className="text-gray-600 font-bold">T&C</a> and <a href="/privacy-and-policy" className="text-gray-600 font-bold">Privacy policy</a>.</span>
                 </div>
               </div>

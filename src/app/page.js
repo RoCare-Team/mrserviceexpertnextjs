@@ -25,7 +25,8 @@ function home() {
             <div className="hero-section flex items-center  justify-around">
 
                 <div className="leftHeroPortion w-7/12 py-2.5 flex items-center justify-end">
-                    <img src="/assets/images/BannerImg.webp" alt="Our Services" width={600} height='auto' title='Our Services' />
+                    {/* <img src="/assets/images/BannerImg.webp" alt="Our Services" width={600} height='auto' title='Our Services' /> */}
+                    <img src="/assets/images/homeBanner.webp" alt="Our Services" width={600} height='auto' title='Our Services' />
                 </div>
 
                 <div className="rightHeroDetails w-5/12 flex flex-col items-start justify-between  pl-2 pr-2">
