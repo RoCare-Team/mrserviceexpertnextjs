@@ -408,6 +408,14 @@ window.scrollTo(0, 0);
                     </div>
                   </div>
                   </div>
+
+                  <div className="common-spacing">
+                    <div className=" bg-white aboutStyle">
+                        <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {pagedata.city_name}</h3>
+                        <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" />
+                        {/* <p className="catgoreyContent" >{cityData?.categorydetail?.category_content   }</p> */}
+                    </div>
+                </div>
   
                   <div className="bg-white common-spacing">
                               <h3>Popular Brand in {pagedata.city_name}</h3>
@@ -430,6 +438,7 @@ window.scrollTo(0, 0);
                                   )} */}
                               </div>
                           </div>
+                          
           </div>
   );
 }
