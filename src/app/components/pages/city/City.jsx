@@ -13,7 +13,7 @@ const City = () => {
     const { city } = useParams();
     // const [cityName,setCityName]=useState(""); // Extract city ,brands from URL
     const [cityData, setCityData] = useState([]);
-    const [cityImageLoad,setImageLoad]=useState(false);
+    const [cityImageLoad, setImageLoad] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -51,10 +51,10 @@ const City = () => {
         return (
             <div>
                 <div className="services-page common-spacing">
-                <div className="mobileBanner">
-                                    <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' width={475} height={345} style={{
-                                        borderRadius: '17px', width: '100%'
-                                    }} /></div>
+                    <div className="mobileBanner">
+                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' width={475} height={345} style={{
+                            borderRadius: '17px', width: '100%'
+                        }} /></div>
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
                             <h1 className="cityHeadings">Most Loved Services by Our Customers!</h1>
@@ -66,9 +66,17 @@ const City = () => {
                             <div className="lg:w-1/2">
                                 <h2 className="ml-2.5 mt-1.5 text-3xl">Services All Over {cityData?.city_name}</h2>
                                 <div className="mb-3.5 flex items-center justify-center desktopBanner ">
-                                    <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our Services in ${cityData?.city_name}`} width={475} height={345} loading="eager" style={{
-                                        borderRadius: '17px', width: '100%'
-                                    }} /></div>
+                                    {/* {!cityImageLoad && (
+                                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our All Services`} width={475} height="auto"  style={{
+                                            borderRadius: '17px', width: '100%'
+                                        }} />
+                                    )} */}
+
+                                    <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our Services in ${cityData?.city_name}`} width={475} height="auto" style={{
+                                        borderRadius: '17px', width: '100%',
+                                    }} />
+
+                                </div>
                                 <AllServicesList />
                             </div>
                             <div className="lg:w-5/12 cartContainer">
