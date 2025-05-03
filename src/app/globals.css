@@ -12,6 +12,23 @@ body {
   padding: 35px;
 }
 
+.termsSection{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.contactStyle a{
+  color: rgb(85, 85, 85);
+}
+.contactStyle a:hover{
+  color: #6e11b0;
+}
+.termsSection a{
+  color: black;
+}
+.termsSection a:hover{
+  color: #6e11b0;
+}
 .scrollUpBtn {
   position: fixed;
   bottom: 1.5rem;
