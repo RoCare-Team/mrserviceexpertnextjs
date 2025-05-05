@@ -235,7 +235,7 @@ setBrandName(cat);
                     <div className="serviceImgContainer">
                      
                         <div className="serviceDetailsImg mb-0.5">
-                          <img src={service.image} alt={service.category_name}  height={72} width={72} title={service.category_name}/>
+                          <img src={service.image} alt={service.category_name || service.service_name}  height={72} width={72} title={service.category_name || service.service_name}/>
                         </div>
                      
                       <div className=" ">
