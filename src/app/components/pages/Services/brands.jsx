@@ -254,7 +254,7 @@ export default function ServicePage({ city, brand, cat }) {
 
         <div className="flex flex-wrap">
           <div className='lg:w-1/2  py-3.5 px-7'>
-            <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' className=' w-full ' width="629" height="auto" title="faq of our services" />
+            <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' width={629} height="auto" title="Faq ro Services" className=' w-full ' />
           </div>
           <div className="space-y-4 lg:w-1/2">
 
@@ -263,7 +263,7 @@ export default function ServicePage({ city, brand, cat }) {
                 onClick={() => setOpenItem(openItem === 1 ? null : 1)}
                 className={`w-full p-4 text-left flex justify-between items-center `}
               >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion1 || "faq1"}
+                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion1 || "Do you provide AC repair for all brands in Delhi?"}
                 </span>
                 <svg
                   className={`w-5 h-5 text-purple-600 transform transition-transform `}
@@ -278,7 +278,7 @@ export default function ServicePage({ city, brand, cat }) {
               {openItem == 1 && (
                 <div className="p-4 bg-white border-t border-purple-100">
                   <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer1 || "faq1"}
+                    {pagedata?.content?.faqanswer1 || " Yes, we repair all major AC brands including LG, Samsung, Voltas, Daikin, Blue Star, and more."}
                   </p>
                 </div>
               )}
@@ -288,7 +288,7 @@ export default function ServicePage({ city, brand, cat }) {
                 onClick={() => setOpenItem(openItem === 2 ? null : 2)}
                 className={`w-full p-4 text-left flex justify-between items-center `}
               >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion2 || "faq1"}
+                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion2 || "Is gas refilling available for split and window ACs?"}
                 </span>
                 <svg
                   className={`w-5 h-5 text-purple-600 transform transition-transform `}
@@ -303,7 +303,7 @@ export default function ServicePage({ city, brand, cat }) {
               {openItem == 2 && (
                 <div className="p-4 bg-white border-t border-purple-100">
                   <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer2 || "faq1"}
+                    {pagedata?.content?.faqanswer2 || " Yes, we offer AC gas refilling, servicing, and installation for both split and window ACs."}
                   </p>
                 </div>
               )}
@@ -313,7 +313,7 @@ export default function ServicePage({ city, brand, cat }) {
                 onClick={() => setOpenItem(openItem === 3 ? null : 3)}
                 className={`w-full p-4 text-left flex justify-between items-center `}
               >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion3 || "faq1"}
+                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion3 || " What types of washing machines do you repair?"}
                 </span>
                 <svg
                   className={`w-5 h-5 text-purple-600 transform transition-transform `}
@@ -328,7 +328,7 @@ export default function ServicePage({ city, brand, cat }) {
               {openItem == 3 && (
                 <div className="p-4 bg-white border-t border-purple-100">
                   <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer3 || "faq1"}
+                    {pagedata?.content?.faqanswer3 || " We repair front load, top load, semi-automatic, and fully automatic washing machines."}
                   </p>
                 </div>
               )}
@@ -338,7 +338,7 @@ export default function ServicePage({ city, brand, cat }) {
                 onClick={() => setOpenItem(openItem === 4 ? null : 4)}
                 className={`w-full p-4 text-left flex justify-between items-center `}
               >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion4 || "faq1"}
+                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion4 || " Do you use genuine spare parts?"}
                 </span>
                 <svg
                   className={`w-5 h-5 text-purple-600 transform transition-transform `}
@@ -353,7 +353,7 @@ export default function ServicePage({ city, brand, cat }) {
               {openItem == 4 && (
                 <div className="p-4 bg-white border-t border-purple-100">
                   <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer4 || "faq1"}
+                    {pagedata?.content?.faqanswer4 || " Yes, we use 100% original and brand-certified parts for all washing machine repairs."}
                   </p>
                 </div>
               )}
@@ -363,7 +363,7 @@ export default function ServicePage({ city, brand, cat }) {
                 onClick={() => setOpenItem(openItem === 5 ? null : 5)}
                 className={`w-full p-4 text-left flex justify-between items-center `}
               >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion5 || "faq1"}
+                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion5 || "How often should I get my RO serviced?"}
                 </span>
                 <svg
                   className={`w-5 h-5 text-purple-600 transform transition-transform `}
@@ -378,7 +378,7 @@ export default function ServicePage({ city, brand, cat }) {
               {openItem == 5 && (
                 <div className="p-4 bg-white border-t border-purple-100">
                   <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer5 || "faq1"}
+                    {pagedata?.content?.faqanswer5 || " It’s recommended every 3–6 months to ensure water purity and machine efficiency."}
                   </p>
                 </div>
               )}

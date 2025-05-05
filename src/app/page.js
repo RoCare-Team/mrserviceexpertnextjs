@@ -32,15 +32,15 @@ function home() {
                 <div className="rightHeroDetails w-5/12 flex flex-col items-start justify-between  pl-2 pr-2">
                     <div className='flex flex-col gap-4'>
                         <h1 className='heroHeading'><b>Fast, Trusted Home Appliance Service -  Mr. Service Expert</b></h1>
-                        <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a> for reliable home appliance care that protects what matters most  </span>
-                        <p className='text-xl'>Ensuring your familys comfort and convenience with expert installation and repair services</p>
-                        <div className="benifits">
+                        <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a></span>
+                        <p className='text-xl hidden lg:block'>Ensuring your familys comfort and convenience with expert installation and repair services</p>
+                        <div className="benifits hidden lg:block">
                             <ul>
                                 <li>✓<strong>Advanced RO system maintenance</strong></li>
                                 <li>✓<strong>Same-day emergency repairs</strong></li>
                                 <li>✓<strong>Professional technicians at your doorstep</strong></li>
                             </ul>
-                            {/* <button className='book-btn-style'> Book Now</button> */}
+                           
                         </div>
                     </div>
 
@@ -54,7 +54,7 @@ function home() {
                 <img src="assets/images/home-appliaces.webp" alt='home-appliances' className='serviceBanner'  title='home-appliances' height="auto" width={1314} />
             </div> */}
 
-            <div className='my-6'>
+            <div className='my-8'>
                 <ServiceSection />
             </div>
 
