@@ -6,7 +6,7 @@ function Assurance() {
     return (
         <div className="assuredContainer">
             <h5 className='flex '>
-                Doorstep Service in <img src="/assets/images/thirtyMin.webp" alt="30 min" className="timeIcon" /> minutes
+                Doorstep Service in <img src="/assets/images/thirtyMin.webp" alt="30 min" title='30 min services' height="auto" width={40} className="timeIcon" /> minutes
             </h5>
             <div className="assureBody">
                 <div className="assureList">
@@ -17,7 +17,7 @@ function Assurance() {
                 </div>
                 <div>
 
-                    <img src="/assets/images/quality-assurance.webp" alt="Assured Quality" className="assuredImg" />
+                    <img src="/assets/images/quality-assurance.webp" alt="Assured Quality" height="auto" title='Assured quality services' width={72} className="assuredImg" />
                 </div>
             </div>
         </div>
