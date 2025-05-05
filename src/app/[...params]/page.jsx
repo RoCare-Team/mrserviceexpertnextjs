@@ -5,6 +5,14 @@ import { notFound } from 'next/navigation';
 
 
 export async function generateMetadata({ params }) {
+
+  if (!params.params || params.params.length !== 3) {
+    return {
+      title: 'Page Not Found',
+      description: 'The page you are looking for does not exist.',
+      robots: 'noindex, nofollow',
+    };
+  }
     const [city, brand, cat] = params.params || [];
 
   const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
@@ -30,7 +38,17 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
 //   const { city,brand, cat } = params;
-const [city, brand, cat] = params.params || [];
+// const [city, brand, cat] = params.params || [];
+
+const { params: pathParams } = params;
+
+  if (!pathParams || pathParams.length !== 3) {
+    // using this logic as we will make it return to 404 page whenever 
+    return notFound();
+  }
+
+  const [city, brand, cat] = pathParams;
+
  
   
    try {

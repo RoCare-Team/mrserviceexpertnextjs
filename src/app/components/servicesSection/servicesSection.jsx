@@ -9,7 +9,7 @@ function ServiceSection() {
     const [showAllServices, setShowAllServices] = useState(false);
 
     const Services = [
-        { id: 1, name: 'Ro Service', image: "/assets/images/serviceBrands/RoInstallation.png", info: 'Complete maintenance to keep your purifier running smoothly',link:"ro-water-purifier" },
+        { id: 1, name: 'Ro Service', image: "/assets/images/serviceBrands/ro-cat.webp", info: 'Complete maintenance to keep your purifier running smoothly',link:"ro-water-purifier" },
         { id: 9, name: 'Washing Machine', image: "/assets/images/servicesImages/washing machine.png", info: '',link:"washing-machine-repair" },
         { id: 6, name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png", info: 'Keep your food fresh and beverages cool with our energy-efficient refrigerators, designed with advanced cooling technology and spacious interiors.',link:"refrigerator-repair" },
         { id: 7, name: 'Air Conditioners', image: "/assets/images/servicesImages/ac.png", info: 'Stay cool during the hottest days with our powerful and silent air conditioners. Fast cooling, energy-saving, and built for long-lasting comfort.',link:"ac" },

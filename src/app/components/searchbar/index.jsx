@@ -155,7 +155,7 @@ const SearchBar = () => {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <img src="/assets/images/search_normal.svg" alt="Search Icon" style={{ width: '24px', height: '24px' }} />
+              <img src="/assets/images/search_normal.svg" alt="Search Icon" title='Search all home appliances services' style={{ width: '24px', height: '24px' }} />
             </InputAdornment>
           ),
         }}

@@ -216,7 +216,7 @@ setBrandName(cat);
                   <div className="flex serviceWiseContainer">
                     <div className="serviceDetails">
 
-                      <h1 className="serviceVarities">{service.service_name}</h1>
+                      <h3 className="serviceVarities">{service.service_name}</h3>
                       <div>
                         <span className="serviceReview">
                           <FontAwesomeIcon icon={faStar} /> {4.5} (30K+ reviews)
@@ -235,7 +235,7 @@ setBrandName(cat);
                     <div className="serviceImgContainer">
                      
                         <div className="serviceDetailsImg mb-0.5">
-                          <img src={service.image} alt={service.name}  height={72} width={72} title={service.name}/>
+                          <img src={service.image} alt={service.category_name}  height={72} width={72} title={service.category_name}/>
                         </div>
                      
                       <div className=" ">
