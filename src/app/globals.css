@@ -185,10 +185,16 @@ a:hover {
 
 .book-btn-style{
   background: #8429d8;
-  border-radius: 9px;
-  padding: 4px 6px;
+  border-radius: 15px;
+  padding: 8px 20px;
   color: white;
+  cursor: pointer;
 }
+
+.book-btn-style:hover{
+  background: #6a20b3;
+}
+
 .thirdSection {
   display: flex;
   padding: 0px 20px;
