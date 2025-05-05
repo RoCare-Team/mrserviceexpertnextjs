@@ -6,6 +6,9 @@ import ServiceProcedure from '../../serviceProcedure';
 import AllServicesList from "../Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 import { useParams } from "next/navigation";
+import { toast } from "react-toastify";
+
+
 
 
 const City = () => {
@@ -14,13 +17,18 @@ const City = () => {
     // const [cityName,setCityName]=useState(""); // Extract city ,brands from URL
     const [cityData, setCityData] = useState([]);
     const [cityImageLoad, setImageLoad] = useState(false);
+    const [catBanner,setCatBanner]=useState(false);
+
+   
+    
+    
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [city]);
 
     useEffect(() => {
-
+        setImageLoad(true);
         fetch('https://mannubhai.in/web_api/get_city_page_data.php', {
             method: 'POST',
             headers: {
@@ -32,18 +40,31 @@ const City = () => {
             .then(res => res.json())
             .then(data => {
                 console.log("Backend Response:", data);
+                 
 
                 // console.log(JSON.stringify(data));
                 // console.log("brands name"+data.brands[2].brand_url);
-
+ 
                 if (!data.error) {
                     // setCategoryName()
+            
                     setCityData(data);
                 }
+                // console.log(cityData?.categorydetail?.category_name);
+                
             })
             .catch(err => console.error("Error sending city to backend:", err));
-
+            // setImageLoad(false);
     }, [city]);
+
+    useEffect(() => {
+    if (city === 'ro-water-purifier') {
+       
+    }
+    setImageLoad(false);
+    
+}, [city]);
+
 
     // console.log(cityData);
 
@@ -52,7 +73,7 @@ const City = () => {
             <div>
                 <div className="services-page common-spacing">
                     <div className="mobileBanner">
-                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' width={475} height={345} style={{
+                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title="All Services in india" width={475} height={345} style={{
                             borderRadius: '17px', width: '100%'
                         }} /></div>
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
@@ -105,7 +126,7 @@ const City = () => {
                     <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
                         {cityData.recent_cities?.map((city) => (
                             <div className='brandsServices '>
-                                <a href={`${city.city_url}`}>
+                                <a href={`${city.city_url}`} title={`${city.city_url}`}>
                                     <li className='brand-btn-style'>
                                         {city.city_name}
                                         <span></span>
@@ -132,10 +153,12 @@ const City = () => {
                         <div className="rightSidePortion justify-center">
                             <div className="lg:w-1/2">
                                 <h2 className="ml-2.5 mt-1.5 text-3xl"><b>{cityData?.categorydetail?.category_name}</b></h2>
-                                <div className="mb-3.5 flex items-center justify-center ">
+                               
+                                    <div className="mb-3.5 flex items-center justify-center ">
                                     <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
                                     }} /></div>
+                               
 
                                 <ServicesList category={city} status={cityData.status} />
                             </div>

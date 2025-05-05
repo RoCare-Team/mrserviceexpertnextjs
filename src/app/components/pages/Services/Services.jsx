@@ -198,13 +198,12 @@ const Services = () => {
                                     <div className="flex serviceWiseContainer">
                                         <div className="serviceDetails">
 
-                                            <h1 className="serviceVarities"><b>{service.name}</b></h1>
+                                            <h3 className="serviceVarities"><b>{service.name}</b></h3>
                                             <div>
                                                 <span className="serviceReview">
                                                     <FontAwesomeIcon icon={faStar} /> {service.rating} ({service.reviews}k reviews)
                                                 </span>
                                                 <div className="dashedLine"></div>
-
                                             </div>
                                         </div>
                                         <div className="serviceImgContainer">

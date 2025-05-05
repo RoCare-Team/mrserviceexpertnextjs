@@ -181,6 +181,7 @@ export default function Header() {
               <img
                 src="/assets/images/serviceLogo.webp"
                 alt="service logo"
+                title="Mr Service Expert"
                 style={{ height: "50px" }}
               /></Link>
             </div>
@@ -356,7 +357,7 @@ export default function Header() {
         >
           <List>
             <ListItem>
-              <img src="/assets/images/serviceLogo.webp" alt='Mr Service Expert all services' />
+              <img src="/assets/images/serviceLogo.webp" alt='Mr Service Expert all services'   title="Mr Service Expert"/>
             </ListItem>
 
             <ListItem button onClick={() => handleNavigation('/')}>

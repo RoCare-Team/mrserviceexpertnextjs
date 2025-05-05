@@ -12,6 +12,17 @@ body {
   padding: 35px;
 }
 
+.reviewerBody{
+  border-radius: 14px;
+  border: 0.8px solid #6e11b0;
+  box-shadow:   0 5px 5px rgba(0, 0, 0, 0.3);
+}
+
+.reviewerBody:hover{
+  box-shadow:   0 5px 5px rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+
 .termsSection{
   display: flex;
   flex-direction: column;
