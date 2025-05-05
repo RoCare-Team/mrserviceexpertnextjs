@@ -254,7 +254,7 @@ export default function ServicePage({ city, brand, cat }) {
 
         <div className="flex flex-wrap">
           <div className='lg:w-1/2  py-3.5 px-7'>
-            <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' className=' w-full ' />
+            <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' className=' w-full ' width="629" height="auto" title="faq of our services" />
           </div>
           <div className="space-y-4 lg:w-1/2">
 
