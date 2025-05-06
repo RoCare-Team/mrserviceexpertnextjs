@@ -1,9 +1,9 @@
 "use client"
 import React, { useState, useEffect, useCallback } from "react";
-import Tabs from "../Services/AllServices";
-import Assurance from "../../Assurance/Assurance";
-import ServiceProcedure from '../../serviceProcedure';
-import AllServicesList from "../Services/Services";
+import Tabs from "@/app/components/pages/Services/AllServices";
+import Assurance from "@/app/components/Assurance/Assurance";
+import ServiceProcedure from '@/app/components/serviceProcedure/index';
+import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 import { useParams } from "next/navigation";
 import { toast } from "react-toastify";
@@ -17,11 +17,6 @@ const City = () => {
     // const [cityName,setCityName]=useState(""); // Extract city ,brands from URL
     const [cityData, setCityData] = useState([]);
     const [cityImageLoad, setImageLoad] = useState(false);
-    const [catBanner,setCatBanner]=useState(false);
-
-   
-    
-    
 
     useEffect(() => {
         window.scrollTo(0, 0);

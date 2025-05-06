@@ -2,13 +2,6 @@
 import CityPage from "@/app/components/pages/city/City";
 import { notFound } from 'next/navigation';
 
-// export async function generateMetadata({ params }) {
-//   const { city } = params;
-//   return {
-//     title: `Service in ${city}  | Your Brand`,
-//     description: `Find the best services in ${city}. Book now!`,
-//   };
-// }
 
 export async function generateMetadata({ params }) {
   const { city } = params;
