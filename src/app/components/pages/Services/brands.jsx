@@ -208,7 +208,7 @@ export default function ServicePage({ city, brand, cat }) {
         <div className="right-side lg:w-3/4">
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
-              <h2 className="ml-2.5 mt-1.5"><b>{pagedata?.categoryname}({pagedata?.brandname}) Services in {pagedata?.cityname}</b></h2>
+              <h1 className="ml-2.5 mt-1.5"><b>{pagedata?.categoryname}({pagedata?.brandname}) Services in {pagedata?.cityname}</b></h1>
               <div className="mb-3.5 flex items-center justify-center ">
                 {!brandLoader && (
                   <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
