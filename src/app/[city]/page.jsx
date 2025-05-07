@@ -3,7 +3,7 @@ import CityPage from "@/app/components/pages/city/City";
 import { notFound } from 'next/navigation';
 
 
-export async function generateMetadata({ params }) {
+export const generateMetadata = async ({ params }) => {
   const { city } = params;
 
   try {
@@ -17,52 +17,47 @@ export async function generateMetadata({ params }) {
     const data = await response.json();
 
     const cityDetail = data?.city_detail;
-    const categoryDetail = data?.categorydetail;
 
     return {
-      title: cityDetail?.meta_title || categoryDetail?.meta_title || `Service in ${city} | Your Brand`,
-      description: cityDetail?.meta_description || categoryDetail?.meta_description || `Find the best services in ${city}. Book now!`,
-      keywords: cityDetail?.meta_keywords || categoryDetail?.meta_keywords || `services in ${city}, ${city} services`,
+      title: cityDetail?.meta_title || `Services in ${city}`,
+      description: cityDetail?.meta_description || `Find services in ${city}`,
+      keywords: cityDetail?.meta_keywords || `services, ${city}`,
       robots: 'index, follow',
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}`,
       },
     };
-
   } catch (error) {
-    console.error('Error generating metadata:', error);
+    console.error('generateMetadata error:', error);
     return {
-      title: `Service in ${city} | Your Brand`,
-      description: `Find the best services in ${city}. Book now!`,
-      keywords: `services in ${city}, ${city} services`,
-      alternates: {
-        canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
-      },
-      robots: 'index, follow',
+      title: `Services in ${city}`,
+      description: `Find services in ${city}`,
     };
   }
-}
+};
+
+
 
 export default async function Page({ params }) {
   const { city } = params;
 
   try {
-    const response = await fetch('https://mannubhai.in/web_api/get_city_page_data.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("https://mannubhai.in/web_api/get_city_page_data.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ city }),
-      cache: 'no-store',
+      cache: "no-store",
     });
 
     const data = await response.json();
 
     if (data.error) {
-      notFound(); // <-- This will show the Next.js built-in 404 page
+      notFound();
     }
 
     return <CityPage city={city} />;
   } catch (error) {
-    console.error('Error fetching city page:', error);
-    notFound(); // if API fails or wrong city, go to 404
+    console.error("Error fetching city page:", error);
+    notFound();
   }
 }

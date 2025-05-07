@@ -19,19 +19,24 @@ export const metadata = {
   alternates: {
     canonical: "https://www.mrserviceexpert.com/",
   },
+  verification: {
+    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY', // <- This line adds the tag
+  },
   robots: 'index, follow',
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header/>
+        <Header />
         {children}
-        <Footer/>
+        <Footer />
       </body>
     </html>
   );
 }
+
