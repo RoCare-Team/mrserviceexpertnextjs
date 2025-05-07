@@ -22,6 +22,9 @@ export const metadata = {
   verification: {
     google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY', // <- This line adds the tag
   },
+  icons: {
+    icon: '/favicon.ico', // or '/favicon.png'
+  },
   robots: 'index, follow',
 };
 
