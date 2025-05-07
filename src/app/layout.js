@@ -20,10 +20,10 @@ export const metadata = {
     canonical: "https://www.mrserviceexpert.com/",
   },
   verification: {
-    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY', // <- This line adds the tag
+    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY', 
   },
   icons: {
-    icon: '/favicon.ico', // or '/favicon.png'
+    icon: '/favicon.ico', 
   },
   robots: 'index, follow',
 };
