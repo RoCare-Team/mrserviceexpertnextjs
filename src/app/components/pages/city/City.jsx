@@ -1,67 +1,17 @@
-"use client"
-import React, { useState, useEffect, useCallback } from "react";
+
 import Tabs from "@/app/components/pages/Services/AllServices";
 import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from '@/app/components/serviceProcedure/index';
 import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
-import { useParams } from "next/navigation";
-import { toast } from "react-toastify";
 
 
+const City = ({city,cityData}) => {
 
-
-const City = () => {
-
-    const { city } = useParams();
-    // const [cityName,setCityName]=useState(""); // Extract city ,brands from URL
-    const [cityData, setCityData] = useState([]);
-    const [cityImageLoad, setImageLoad] = useState(false);
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, [city]);
-
-    useEffect(() => {
-        setImageLoad(true);
-        fetch('https://mannubhai.in/web_api/get_city_page_data.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ city })
-
-        })
-            .then(res => res.json())
-            .then(data => {
-                console.log("Backend Response:", data);
-                 
-
-                // console.log(JSON.stringify(data));
-                // console.log("brands name"+data.brands[2].brand_url);
- 
-                if (!data.error) {
-                    // setCategoryName()
-            
-                    setCityData(data);
-                }
-                // console.log(cityData?.categorydetail?.category_name);
-                
-            })
-            .catch(err => console.error("Error sending city to backend:", err));
-            // setImageLoad(false);
-    }, [city]);
-
-    useEffect(() => {
-    if (city === 'ro-water-purifier') {
-       
-    }
-    setImageLoad(false);
     
-}, [city]);
 
 
-    // console.log(cityData);
+    console.log("test"+cityData);
 
     if (cityData.status === "1")
         return (

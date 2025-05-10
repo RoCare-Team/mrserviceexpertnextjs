@@ -1,5 +1,5 @@
 // import React from 'react';
-import Link from 'next/link';
+"use client"
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
 

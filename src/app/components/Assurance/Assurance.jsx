@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 // import AssurdImg from '../../assets/images/quality-assurance.png';
 // import TimeIcon from '../../assets/images/thirtyMin.png';

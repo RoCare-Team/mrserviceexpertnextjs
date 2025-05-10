@@ -1,7 +1,5 @@
-// app/[city]/[cat]/page.tsx
 import CityPage from "@/app/components/pages/city/City";
-import { notFound } from 'next/navigation';
-
+import { notFound } from "next/navigation";
 
 export const generateMetadata = async ({ params }) => {
   const { city } = params;
@@ -15,7 +13,6 @@ export const generateMetadata = async ({ params }) => {
     });
 
     const data = await response.json();
-
     const cityDetail = data?.city_detail;
 
     return {
@@ -28,15 +25,13 @@ export const generateMetadata = async ({ params }) => {
       },
     };
   } catch (error) {
-    console.error('generateMetadata error:', error);
+    console.error("generateMetadata error:", error);
     return {
       title: `Services in ${city}`,
       description: `Find services in ${city}`,
     };
   }
 };
-
-
 
 export default async function Page({ params }) {
   const { city } = params;
@@ -52,12 +47,13 @@ export default async function Page({ params }) {
     const data = await response.json();
 
     if (data.error) {
-      notFound();
+      return notFound();
     }
+console.log(data);
 
-    return <CityPage city={city} />;
+    return <CityPage cityData ={data} />;
   } catch (error) {
     console.error("Error fetching city page:", error);
-    notFound();
+    return notFound();
   }
 }
