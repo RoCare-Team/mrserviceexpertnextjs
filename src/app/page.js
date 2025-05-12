@@ -108,9 +108,9 @@ function home() {
         <div className=" bg-white aboutStyle">
           <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT </h3>
             
-      <h1 className="text-primary mb-4">India's Trusted Home Appliance Service Brand</h1>
+      <h1 className="text-primary mb-4">{"India's Trusted Home Appliance Service Brand</h1"}>
       <p>
-        Mr Service Expert is one of India's most trusted names in home appliance repair and maintenance.
+        Mr Service Expert is one of India most trusted names in home appliance repair and maintenance.
         We are committed to delivering high-quality service for all major home appliances right at your doorstep.
         With a network spread across every major Indian city, we aim to make appliance care simple, affordable and accessible for every home.
       </p>
