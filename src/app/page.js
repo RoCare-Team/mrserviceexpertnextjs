@@ -107,54 +107,68 @@ function home() {
              <div className="common-spacing chooseUs mt-2">
         <div className=" bg-white aboutStyle">
           <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT </h3>
-            
-      <h1 className="text-primary mb-4">{"India's Trusted Home Appliance Service Brand</h1"}</h1>
-      <p>
-        Mr Service Expert is one of India most trusted names in home appliance repair and maintenance.
-        We are committed to delivering high-quality service for all major home appliances right at your doorstep.
-        With a network spread across every major Indian city, we aim to make appliance care simple, affordable and accessible for every home.
-      </p>
-      <p>
-        We specialize in service and repair of RO water purifiers, air conditioners, refrigerators, washing machines,
-        kitchen chimneys, geysers, microwaves and many other appliances. Whether it's a regular checkup or an emergency breakdown,
-        our expert technicians are just a call away.
-      </p>
+    
+  <h1 className="text-primary mb-4">{"India's Trusted Home Appliance Service Brand"}</h1>
 
-      <h2 className="mt-5">Why choose Mr Service Expert</h2>
-      <ul>
-        <li><strong>Doorstep Service in 1500+ Cities:</strong> Fast, reliable home appliance repair services across India with prompt local technician assistance.</li>
-        <li><strong>Trained and Verified Technicians:</strong> Professionally trained, background-verified experts skilled in repairing all major brands.</li>
-        <li><strong>Quick Turnaround with Easy Booking:</strong> Book easily via website or phone. Most services completed within 24 hours.</li>
-        <li><strong>Affordable Prices with No Hidden Charges:</strong> Transparent pricing. No surprises—pay only for what you get.</li>
-        <li><strong>Genuine Spare Parts and Approved Tools:</strong> Only original parts and company-approved tools used for quality and warranty protection.</li>
-        <li><strong>Service Guarantee for Customer Satisfaction:</strong> Limited warranty on services with free follow-ups if the issue persists.</li>
-      </ul>
+  <p>
+    Mr Service Expert is one of India&#39;s most trusted names in home appliance repair and maintenance.
+    We are committed to delivering high-quality service for all major home appliances right at your doorstep.
+    With a network spread across every major Indian city, we aim to make appliance care simple, affordable and accessible for every home.
+  </p>
 
-      <h2 className="mt-5"><b>Why People Trust Mr Service Expert</b></h2>
-      <p>
-        Millions of households across India trust Mr Service Expert because we prioritize quality, safety, and professionalism.
-        Our customer-first approach, combined with industry expertise and modern service systems allow us to deliver a seamless and satisfying experience every time.
-      </p>
-      <p>
-        From fixing a leaking RO system to installing a new air conditioner, our team handles every job with care, skill, and dedication.
-      </p>
+  <p>
+    We specialize in service and repair of RO water purifiers, air conditioners, refrigerators, washing machines,
+    kitchen chimneys, geysers, microwaves and many other appliances. Whether it&#39;s a regular checkup or an emergency breakdown,
+    our expert technicians are just a call away.
+  </p>
 
-      <h2 className="mt-5"><b>Our Coverage</b></h2>
-      <p>
-        We proudly serve customers in <strong>Delhi, Mumbai, Bangalore, Hyderabad, Chennai, Kolkata, Pune, Noida, Gurgaon, Jaipur,
-        Chandigarh, Bhopal, Indore, Lucknow, Patna</strong>, and all major Indian cities. Wherever you are, Mr. Service Expert is ready to help you.
-      </p>
+  <h2 className="mt-5">Why choose Mr Service Expert</h2>
+  <ul>
+    <li><strong>Doorstep Service in 1500+ Cities:</strong> Fast, reliable home appliance repair services across India with prompt local technician assistance.</li>
+    <li><strong>Trained and Verified Technicians:</strong> Professionally trained, background-verified experts skilled in repairing all major brands.</li>
+    <li><strong>Quick Turnaround with Easy Booking:</strong> Book easily via website or phone. Most services completed within 24 hours.</li>
+    <li><strong>Affordable Prices with No Hidden Charges:</strong> Transparent pricing. No surprises—pay only for what you get.</li>
+    <li><strong>Genuine Spare Parts and Approved Tools:</strong> Only original parts and company-approved tools used for quality and warranty protection.</li>
+    <li><strong>Service Guarantee for Customer Satisfaction:</strong> Limited warranty on services with free follow-ups if the issue persists.</li>
+  </ul>
 
-      <h2 className="mt-5"><b>Contact Us</b></h2>
-      <p>
-        Need quick and professional service for your RO, AC, refrigerator, washing machine, or kitchen chimney?
-        <br />
-        <strong>Mr Service Expert</strong> is just a call away. We provide doorstep service in all major Indian cities.
-      </p>
-      <p>
-        <strong>Call Us:</strong> <a href="tel:+919311587744" style={{ color: '#007bff', textDecoration: 'underline' }}>+91-9311587744</a><br />
-        <strong>Book Online:</strong> <a href="https://www.mrserviceexpert.com" target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'underline' }}>www.mrserviceexpert.com</a>
-      </p>
+  <h2 className="mt-5"><b>Why People Trust Mr Service Expert</b></h2>
+  <p>
+    Millions of households across India trust Mr Service Expert because we prioritize quality, safety, and professionalism.
+    Our customer-first approach, combined with industry expertise and modern service systems allow us to deliver a seamless and satisfying experience every time.
+  </p>
+  <p>
+    From fixing a leaking RO system to installing a new air conditioner, our team handles every job with care, skill, and dedication.
+  </p>
+
+  <h2 className="mt-5"><b>Our Coverage</b></h2>
+  <p>
+    We proudly serve customers in <strong>Delhi, Mumbai, Bangalore, Hyderabad, Chennai, Kolkata, Pune, Noida, Gurgaon, Jaipur,
+    Chandigarh, Bhopal, Indore, Lucknow, Patna</strong>, and all major Indian cities. Wherever you are, Mr. Service Expert is ready to help you.
+  </p>
+
+  <h2 className="mt-5"><b>Contact Us</b></h2>
+  <p>
+    Need quick and professional service for your RO, AC, refrigerator, washing machine, or kitchen chimney?
+    <br />
+    <strong>Mr Service Expert</strong> is just a call away. We provide doorstep service in all major Indian cities.
+  </p>
+  <p>
+    <strong>Call Us:</strong>{' '}
+    <a href="tel:+919311587744" style={{ color: '#007bff', textDecoration: 'underline' }}>+91-9311587744</a>
+    <br />
+    <strong>Book Online:</strong>{' '}
+    <a
+      href="https://www.mrserviceexpert.com"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{ color: '#007bff', textDecoration: 'underline' }}
+    >
+      www.mrserviceexpert.com
+    </a>
+  </p>
+
+
     </div>
         </div>
      
