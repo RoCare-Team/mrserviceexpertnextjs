@@ -1,6 +1,5 @@
 'use client';
 
-import Head from "next/head";
 import React, { useState, useEffect } from "react";
 import Tabs from "@/app/components/pages/Services/AllServices";
 import ServicesList from "../../service/ServicesList";
@@ -81,21 +80,7 @@ export default function ServicePage({ city, cat }) {
     loadCartFromLocalStorage();
   }, []);
 
-  // Get the category from URL parameters when component mounts
-  // useEffect(() => {
-  //     const params = new URLSearchParams(location.search);
-  //     const category = params.get('category');
 
-  //     if (category) {
-  //         // Give time for the component to render before scrolling
-  //         setTimeout(() => {
-  //             const element = document.getElementById(category);
-  //             if (element) {
-  //                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  //             }
-  //         }, 500);
-  //     }
-  // }, [location.search]);
 
   const handleAddToCart = (service) => {
     // Update selectedServices state
@@ -188,7 +173,6 @@ export default function ServicePage({ city, cat }) {
     }
   }, [selectedServices]);
 
-  console.log(setData);
 
   // Debug logging
   useEffect(() => {
