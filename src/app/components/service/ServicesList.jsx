@@ -101,7 +101,7 @@ useEffect(()=>{
   }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair"|| cate === "air-purifier-repair") {
     lead_type = 18;
   }else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
-      lead_type = 10;
+      lead_type = 32;
     }else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
       lead_type = 29;
     }else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
