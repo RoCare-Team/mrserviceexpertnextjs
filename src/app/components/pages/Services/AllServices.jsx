@@ -61,6 +61,18 @@ const AllServices = (cater) => {
       lead_type = 10;
     }else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
       lead_type = 29;
+    }else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
+      lead_type = 33;
+    }else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
+      lead_type = 34;
+    }else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
+      lead_type = 39;
+    }else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
+      lead_type = 35;
+    }else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
+      lead_type = 30;
+    }else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
+      lead_type = 31;
     }
 
 
