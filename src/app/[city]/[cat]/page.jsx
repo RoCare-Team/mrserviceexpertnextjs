@@ -51,7 +51,7 @@ export default async function Page({ params }) {
         notFound(); // <-- This will show the Next.js built-in 404 page
       }
   
-      return <ServicePage city={city} cat={cat} />;
+      return <ServicePage  pagedata={data} city={city} cat={cat}  />;
     } catch (error) {
       console.error('Error fetching city page:', error);
       notFound(); // if API fails or wrong city, go to 404

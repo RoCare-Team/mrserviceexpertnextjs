@@ -8,9 +8,9 @@ import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 
 
-export default function ServicePage({ city, cat }) {
+export default function ServicePage({ pagedata,city, cat }) {
   const [openItem, setOpenItem] = useState(0)
-  const [pagedata, setData] = useState("");
+  // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -18,33 +18,6 @@ export default function ServicePage({ city, cat }) {
   const [cartLoaded, setCartLoaded] = useState(false);
   const [imageLoader, setImageLoader] = useState(false);
 
-
-
-  useEffect(() => {
-
-    fetch('https://mannubhai.in/web_api/get_page_data.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ city, cat })
-
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Backend Response:", data);
-
-        if (!data.error) {
-          // setCategoryName()
-          setData(data);
-
-
-        }
-      })
-      .catch(err => console.error("Error sending city to backend:", err));
-    // setData(data);
-    // setCategoryName(cat);
-  }, [city, cat]);
 
   const handleCartLoading = () => {
     setCartLoaded(prevState => prevState + 1);
