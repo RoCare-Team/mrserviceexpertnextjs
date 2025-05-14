@@ -32,6 +32,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
        <head>
+         <link rel="amphtml" href="" />
         {/* <Script
           id="localBusiness-schema"
           type="application/ld+json"
