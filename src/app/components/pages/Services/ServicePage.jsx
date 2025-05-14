@@ -176,14 +176,20 @@ export default function ServicePage({ pagedata,city, cat }) {
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
               <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
-              <div className="mb-3.5 flex items-center justify-center ">
+              <div className="mb-3.5 flex items-center justify-center relative ">
                 {!imageLoader && (
-                  <img src={`/assets/cityBanner/Front Banner.webp`} alt={`Our Services`} width={475} height={345}
-                    title={`Our Services`}
-                    style={{
-                      borderRadius: '17px', width: '100%',
-                      transition: 'opacity 0.5s ease-in-out',
-                    }} />
+                 <div className="absolute inset-0 flex items-center justify-center">
+                    <img 
+                      src="/assets/cityBanner/Front Banner.webp" 
+                      alt="Loading" 
+                      width={475} 
+                      height={345}
+                      style={{
+                        borderRadius: '17px', 
+                        width: '100%',
+                      }} 
+                    />
+                  </div>
                 )}
                 <img src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} width={475} height={345}
                   title={`${pagedata.city_name}  Services`}
