@@ -33,7 +33,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-       <Head>
+       <head>
         <Script
           id="localBusiness-schema"
           type="application/ld+json"
@@ -233,7 +233,7 @@ export default function RootLayout({ children }) {
             })
           }}
         />
-      </Head>
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
