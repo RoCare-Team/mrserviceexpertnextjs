@@ -1,5 +1,5 @@
 
-import Head from 'next/head';
+// import Head from 'next/head';
 import React from 'react';
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
@@ -190,7 +190,7 @@ const home = () => {
 
   return (
     <>
-      <Head>
+      {/* <Head> */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
@@ -203,7 +203,7 @@ const home = () => {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
-      </Head>
+      {/* </Head> */}
       <div className='common-spacing'>
             {/*=================hero section================================== */}
             <div className="hero-section flex items-center  justify-around">
