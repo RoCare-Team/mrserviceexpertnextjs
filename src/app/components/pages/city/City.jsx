@@ -6,24 +6,25 @@ import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 
 
-const City = ({city,cityData}) => {
-
-    
+const City = ({ city, cityData }) => {
 
 
-    console.log("test"+cityData);
+
+
+    console.log("test" + cityData);
 
     if (cityData.status === "1")
         return (
             <div>
                 <div className="services-page common-spacing">
-                    <div className="mobileBanner">
-                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title="All Services in india" width={475} height={345} style={{
-                            borderRadius: '17px', width: '100%'
-                        }} /></div>
+
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
                             <h1 className="cityHeadings">Most Loved Services by Our Customers!</h1>
+                            <div className=" mb-3 mobileBanner">
+                                <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title="All Services in india" width={475} height={345} style={{
+                                    borderRadius: '17px', width: '100%'
+                                }} /></div>
                             <Tabs />
                         </div>
                     </div>
@@ -32,12 +33,6 @@ const City = ({city,cityData}) => {
                             <div className="lg:w-1/2">
                                 <h2 className="ml-2.5 mt-1.5 text-3xl">Services All Over {cityData?.city_name}</h2>
                                 <div className="mb-3.5 flex items-center justify-center desktopBanner ">
-                                    {/* {!cityImageLoad && (
-                                        <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our All Services`} width={475} height="auto"  style={{
-                                            borderRadius: '17px', width: '100%'
-                                        }} />
-                                    )} */}
-
                                     <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our Services in ${cityData?.city_name}`} width={475} height="auto" style={{
                                         borderRadius: '17px', width: '100%',
                                     }} />
@@ -91,10 +86,12 @@ const City = ({city,cityData}) => {
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
                             <h3 className="cityHeadings">Most Loved Services by Our Customers!</h3>
-                       <div className="mb-3  mobileBanner ">
-                                    <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
-                                        borderRadius: '17px', width: '100%'
-                                    }} /></div>
+                            <div className="mobileBanner mb-3   ">
+                                <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
+                                    borderRadius: '17px', width: '100%'
+                                }}
+                                />
+                            </div>
                             <Tabs cat={city} />
                         </div>
                     </div>
@@ -102,12 +99,14 @@ const City = ({city,cityData}) => {
                         <div className="rightSidePortion justify-center">
                             <div className="lg:w-1/2">
                                 <h2 className="ml-2.5 mt-1.5 text-3xl"><b>{cityData?.categorydetail?.category_name}</b></h2>
-                               
-                                    <div className="mb-3.5 flex items-center justify-center desktopBanner ">
+
+                                <div className=" desktopBanner mb-3.5 flex items-center justify-center">
                                     <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
-                                    }} /></div>
-                               
+                                    }}
+                                    />
+                                </div>
+
 
                                 <ServicesList category={city} status={cityData.status} />
                             </div>
@@ -130,7 +129,6 @@ const City = ({city,cityData}) => {
                     <div className=" bg-white aboutStyle">
                         <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {cityData.city_name}</h3>
                         <div dangerouslySetInnerHTML={{ __html: cityData?.categorydetail?.category_content }} className="serviceContentStyle" />
-                        {/* <p className="catgoreyContent" >{cityData?.categorydetail?.category_content   }</p> */}
                     </div>
                 </div>
                 {/* <div className="bg-white common-spacing">
