@@ -91,7 +91,7 @@ const City = ({city,cityData}) => {
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
                             <h3 className="cityHeadings">Most Loved Services by Our Customers!</h3>
-                       <div className="mb-3 mobileBanner ">
+                       <div className="mb-3  mobileBanner ">
                                     <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
                                     }} /></div>
