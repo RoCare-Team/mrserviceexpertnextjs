@@ -39,7 +39,7 @@ const SiteLoader = ({
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
       <img 
-        src="/assets/images/serviceLogo.png" 
+        src="/assets/images/serviceLogo.webp" 
         className="mb-6" 
         width={200} 
         height={100} 
