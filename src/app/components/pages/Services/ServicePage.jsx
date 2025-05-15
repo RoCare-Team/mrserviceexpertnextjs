@@ -170,6 +170,34 @@ export default function ServicePage({ pagedata, city, cat }) {
         <div className="left-side lg:w-1/4 flex-col mb-1.5">
           <div className="sticky top-20">
             <h1 className="cityHeadings"> {pagedata.city_name}'s Top Picks: Most Loved Services by Our Customers!</h1>
+            <div className="mb-3.5  items-center justify-center relative mobileBanner ">
+                {!imageLoader && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                      src="/assets/cityBanner/Front Banner.webp"
+                      alt="Loading"
+                      width={475}
+                      height={345}
+                      // priority
+                      // fetchPriority='high'
+                      style={{
+                        borderRadius: '17px',
+                        width: '100%',
+                      }}
+                    />
+                  </div>
+                )}
+                <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+                  loading="eager" width={475} height={345}
+                  title={`${pagedata.city_name}  Services`}
+                  onLoad={() => setImageLoader(true)}
+                  style={{
+                    borderRadius: '17px', width: '100%',
+                    opacity: imageLoader ? 1 : 0,
+                    transition: 'opacity 0.5s ease-in-out',
+                  }}
+                />
+              </div>
             <Tabs />
           </div>
         </div>
@@ -177,7 +205,7 @@ export default function ServicePage({ pagedata, city, cat }) {
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
               <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
-              <div className="mb-3.5 flex items-center justify-center relative ">
+              <div className="mb-3.5 flex items-center justify-center relative desktopBanner ">
                 {!imageLoader && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <Image

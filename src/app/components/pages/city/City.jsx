@@ -91,6 +91,10 @@ const City = ({city,cityData}) => {
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
                             <h3 className="cityHeadings">Most Loved Services by Our Customers!</h3>
+                       <div className="mb-3 mobileBanner ">
+                                    <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
+                                        borderRadius: '17px', width: '100%'
+                                    }} /></div>
                             <Tabs cat={city} />
                         </div>
                     </div>
@@ -99,7 +103,7 @@ const City = ({city,cityData}) => {
                             <div className="lg:w-1/2">
                                 <h2 className="ml-2.5 mt-1.5 text-3xl"><b>{cityData?.categorydetail?.category_name}</b></h2>
                                
-                                    <div className="mb-3.5 flex items-center justify-center ">
+                                    <div className="mb-3.5 flex items-center justify-center desktopBanner ">
                                     <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
                                     }} /></div>
