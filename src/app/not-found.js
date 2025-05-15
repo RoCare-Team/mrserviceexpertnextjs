@@ -1,13 +1,7 @@
 "use client"
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 const NotFoundPage = () => {
-
-  const navigate=useRouter();
-  setTimeout(()=>{
-  navigate.push('/');
-  },4000)
 
   return (
     <div className="common-spacing bg-white">
