@@ -66,7 +66,7 @@ const { params: pathParams } = params;
         notFound(); // <-- This will show the Next.js built-in 404 page
       }
   
-      return <ServicePage city={city} brand={brand} cat={cat} />;
+      return <ServicePage city={city} brand={brand} pagedata={data} cat={cat} />;
     } catch (error) {
       console.error('Error fetching city page:', error);
       notFound(); // if API fails or wrong city, go to 404
