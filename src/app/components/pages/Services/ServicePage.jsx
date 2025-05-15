@@ -6,9 +6,10 @@ import ServicesList from "../../service/ServicesList";
 import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
+import Image from "next/image";
 
 
-export default function ServicePage({ pagedata,city, cat }) {
+export default function ServicePage({ pagedata, city, cat }) {
   const [openItem, setOpenItem] = useState(0)
   // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
@@ -178,17 +179,18 @@ export default function ServicePage({ pagedata,city, cat }) {
               <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
               <div className="mb-3.5 flex items-center justify-center relative ">
                 {!imageLoader && (
-                 <div className="absolute inset-0 flex items-center justify-center">
-                    <img 
-                      src="/assets/cityBanner/Front Banner.webp" 
-                      alt="Loading" 
-                      width={475} 
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                      src="/assets/cityBanner/Front Banner.webp"
+                      alt="Loading"
+                      width={475}
                       height={345}
-                    fetchPriority='high'
+                      priority
+                      fetchPriority='high'
                       style={{
-                        borderRadius: '17px', 
+                        borderRadius: '17px',
                         width: '100%',
-                      }} 
+                      }}
                     />
                   </div>
                 )}
