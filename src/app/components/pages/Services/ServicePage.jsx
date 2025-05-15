@@ -185,8 +185,8 @@ export default function ServicePage({ pagedata, city, cat }) {
                       alt="Loading"
                       width={475}
                       height={345}
-                      priority
-                      fetchPriority='high'
+                      // priority
+                      // fetchPriority='high'
                       style={{
                         borderRadius: '17px',
                         width: '100%',
@@ -194,7 +194,8 @@ export default function ServicePage({ pagedata, city, cat }) {
                     />
                   </div>
                 )}
-                <img src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} width={475} height={345}
+                <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`}  fetchPriority="high"
+  loading="eager" width={475} height={345}
                   title={`${pagedata.city_name}  Services`}
                   onLoad={() => setImageLoader(true)}
                   style={{
