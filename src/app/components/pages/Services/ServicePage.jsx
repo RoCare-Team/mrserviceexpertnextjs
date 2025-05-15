@@ -184,6 +184,7 @@ export default function ServicePage({ pagedata,city, cat }) {
                       alt="Loading" 
                       width={475} 
                       height={345}
+                    fetchPriority='high'
                       style={{
                         borderRadius: '17px', 
                         width: '100%',
