@@ -149,12 +149,12 @@ export default function ServicePage({ pagedata, city, cat }) {
 
 
   // Debug logging
-  useEffect(() => {
-    console.log("Current selectedServices:", selectedServices);
-    console.log("Current totalAmount:", totalAmount);
+  // useEffect(() => {
+  //   console.log("Current selectedServices:", selectedServices);
+  //   console.log("Current totalAmount:", totalAmount);
 
 
-  }, [selectedServices, totalAmount]);
+  // }, [selectedServices, totalAmount]);
 
   // Scroll to top on route change
   useEffect(() => {
