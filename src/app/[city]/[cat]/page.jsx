@@ -21,7 +21,7 @@ export async function generateMetadata({ params }) {
   });
 
   const data = await response.json();
-console.log(data);
+// console.log(data);
 
   return {
     title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
@@ -48,12 +48,29 @@ export default async function Page({ params }) {
       const data = await response.json();
   
       if (data.error) {
-        notFound(); // <-- This will show the Next.js built-in 404 page
+        notFound(); 
       }
+
+      // console.log(JSON.stringify(data?.category)+'category and service data');
+
+      // Filter only matching category
+    const matchedCategory = data?.category?.filter(catItem =>
+      catItem.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
+    );
+
+    // if (!matchedCategory || matchedCategory.length === 0) {
+    //   notFound(); // If no matching category found
+    // }
+
+    data.category = matchedCategory; 
+    console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
+      
+
+
   
       return <ServicePage  pagedata={data} city={city} cat={cat}  />;
     } catch (error) {
-      console.error('Error fetching city page:', error);
+      // console.error('Error fetching city page:', error);
       notFound(); // if API fails or wrong city, go to 404
     }
 
