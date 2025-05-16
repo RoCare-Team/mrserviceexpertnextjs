@@ -2,6 +2,7 @@
 import React from 'react';
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
+import HomeCareService from './components/servicesSection/homeCareService';
 
 const home = () => {
   
@@ -239,6 +240,10 @@ const home = () => {
 
             <div className='my-8'>
                 <ServiceSection />
+            </div>
+
+            <div className='my-8'>
+              <HomeCareService/>
             </div>
 
              {/* <div className='my-8'>
