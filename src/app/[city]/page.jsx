@@ -13,12 +13,22 @@ export const generateMetadata = async ({ params }) => {
     });
 
     const data = await response.json();
+    // console.log(JSON.stringify(data)+'addsdsd');
+    // const dipper=JSON.stringify(data);
+
+    // console.log(json.parse(dipper)+'fdsfasdfasdg');
+    
+    
     const cityDetail = data?.city_detail;
+    const categorydetail=data?.categorydetail;
+    // console.log(JSON.stringify(cityDetail)+'yahan tu mare jayege');
+    
 
     return {
-      title: cityDetail?.meta_title || `Services in ${city}`,
-      description: cityDetail?.meta_description || `Find services in ${city}`,
-      keywords: cityDetail?.meta_keywords || `services, ${city}`,
+    
+      title: cityDetail?.meta_title || categorydetail?.meta_title || `Services in ${city}`,
+      description: cityDetail?.meta_description || categorydetail?.meta_description || `Find services in ${city}`,
+      keywords: cityDetail?.meta_keywords ||categorydetail?.meta_keywords || `services, ${city}`,
       robots: 'index, follow',
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}`,

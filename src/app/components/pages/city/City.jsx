@@ -11,7 +11,7 @@ const City = ({ city, cityData }) => {
 
 
 
-    console.log("test" + cityData);
+    // console.log("test" + JSON.stringify(cityData));
 
     if (cityData.status === "1")
         return (
