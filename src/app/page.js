@@ -241,6 +241,9 @@ const home = () => {
                 <ServiceSection />
             </div>
 
+             {/* <div className='my-8'>
+                <ServiceSection />
+            </div> */}
 
             <div>
                 {/* <h3>Explore Our Services</h3> */}
