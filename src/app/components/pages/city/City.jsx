@@ -54,7 +54,7 @@ const City = ({ city, cityData }) => {
                 </div>
 
                 <div className="common-spacing">
-                     <ServiceSection/>
+                     {/* <ServiceSection/> */}
                     <HomeCareService />
                 </div>
                 <div className="common-spacing">
