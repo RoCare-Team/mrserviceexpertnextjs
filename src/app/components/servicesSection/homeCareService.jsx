@@ -21,7 +21,7 @@ function HomeCareService() {
         { id: 12, name: 'Pest Control', image: "/assets/HomeCare/PEST-CONTROL.webp", info: '', link: "pest-control" },
     ];
 
-    const is_city_url = urlPath;
+    // const is_city_url = urlPath;
     // console.log(is_city_url);
     // Toggle function to show/hide all services
     const toggleAllServices = (e) => {
@@ -34,7 +34,9 @@ function HomeCareService() {
             <h3 className="serviceHeadings ">Home Care Services</h3>
             <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 servicesHero">
                 {Services.map((Service) => {
-                    const href = is_city_url ? `${urlPath}/${Service.link}` : `/${Service.link}`;
+                    // const href = is_city_url ? `${urlPath}/${Service.link}` : `/${Service.link}`;
+                    const basePath = urlPath === "/" ? "" : urlPath;
+    const href = `${basePath}/${Service.link}`;
                     return (
                         <div
                             key={Service.id}

@@ -216,7 +216,7 @@ const home = () => {
                 <div className="rightHeroDetails w-5/12 flex flex-col items-start justify-between  pl-2 pr-2">
                     <div className='flex flex-col gap-4'>
                         <h1 className='heroHeading'><b>Fast, Trusted Home Appliance Service -  Mr. Service Expert</b></h1>
-                        <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a></span>
+                        <span><a href="tel:+91 9311587715" title='For calling contact +91 9311587715'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a></span>
                         <p className='text-xl hidden lg:block'>Ensuring your familys comfort and convenience with expert installation and repair services</p>
                         <div className="benifits hidden lg:block">
                             <ul>
@@ -346,7 +346,7 @@ const home = () => {
   </p>
   <p>
     <strong>Call Us:</strong>{' '}
-    <a href="tel:+919311587744" style={{ color: '#007bff', textDecoration: 'underline' }}>+91-9311587744</a>
+    <a href="tel:+919311587715" style={{ color: '#007bff', textDecoration: 'underline' }}>+91-9311587715</a>
     <br />
     <strong>Book Online:</strong>{' '}
     <a

@@ -40,7 +40,10 @@ function ServiceSection() {
             <h3 className="serviceHeadings">Explore Our Services</h3>
             <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 servicesHero">
               {Services.map((Service) => {
-                    const href = urlPath ? `${urlPath}/${Service.link}` : `/${Service.link}`;
+                    // const href = urlPath ? `${urlPath}/${Service.link}` : `${Service.link}`;
+                    // // const href = `${urlPath}/${Service.link}`;
+                    const basePath = urlPath === "/" ? "" : urlPath;
+    const href = `${basePath}/${Service.link}`;
                     return (
                         <div
                             key={Service.id}
