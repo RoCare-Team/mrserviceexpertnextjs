@@ -4,6 +4,8 @@ import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from '@/app/components/serviceProcedure/index';
 import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
+import HomeCareService from "../../servicesSection/homeCareService";
+import ServiceSection from "../../servicesSection/servicesSection";
 
 
 const City = ({ city, cityData }) => {
@@ -51,9 +53,9 @@ const City = ({ city, cityData }) => {
                     </div>
                 </div>
 
-                <div className="common-spacing bg-white">
-
-
+                <div className="common-spacing">
+                     <ServiceSection/>
+                    <HomeCareService />
                 </div>
                 <div className="common-spacing">
                     <div className=" bg-white aboutStyle">
@@ -87,6 +89,9 @@ const City = ({ city, cityData }) => {
                         <div className="sticky top-20">
                             <h3 className="cityHeadings">Most Loved Services by Our Customers!</h3>
                             <div className="mobileBanner mb-3   ">
+                                 {/* <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
+                                    borderRadius: '17px', width: '100%'
+                                }} */}
                                 <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
                                 }}
@@ -105,6 +110,10 @@ const City = ({ city, cityData }) => {
                                         borderRadius: '17px', width: '100%'
                                     }}
                                     />
+                                     {/* <img src={`https://www.waterpurifierservicecenter.in/inet/img/service_img/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
+                                        borderRadius: '17px', width: '100%'
+                                    }}
+                                    /> */}
                                 </div>
 
 
