@@ -2,11 +2,18 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 
 function ServiceSection() {
    
     const [showAllServices, setShowAllServices] = useState(false);
+    const urlPath=usePathname();
+
+    // console.log(urlPath+"all services things");
+
+    
+    
 
     const Services = [
         { id: 1, name: 'Ro Service', image: "/assets/images/serviceBrands/ro-cat.webp", info: 'Complete maintenance to keep your purifier running smoothly',link:"ro-water-purifier" },
@@ -32,29 +39,32 @@ function ServiceSection() {
         <div className="">
             <h3 className="serviceHeadings">Explore Our Services</h3>
             <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 servicesHero">
-                {Services.map((Service) => (
-                    <div
-                        key={Service.id}
-                        className={`flex items-center flex-col serviceSectionn relative ${
-                            !showAllServices && Service.id > 10 ? 'hidden sm:flex' : ''
-                        }`}
-                       
-                    >
-                       
-                       <Link href={`/${Service.link}`} className="text-black">  <div className="imgSection">
-                            <img
-                                src={Service.image}
-                                alt={`${Service.name} services`}
-                                title={`${Service.name} services`}
-                                className="serviceImg w-28 h-28"
-                                height="auto"
-                                width={128}
-                            />
+              {Services.map((Service) => {
+                    const href = urlPath ? `${urlPath}/${Service.link}` : `/${Service.link}`;
+                    return (
+                        <div
+                            key={Service.id}
+                            className={`flex items-center flex-col serviceSectionn relative ${!showAllServices && Service.id > 10 ? 'hidden sm:flex' : ''
+                                }`}
+                        >
+                            <Link href={href} className="text-black">
+                                <div className="imgSection">
+                                    <img
+                                        src={Service.image}
+                                        alt={`${Service.name} services`}
+                                        title={`${Service.name} services`}
+                                        className="serviceImg w-28 h-28"
+                                        height="auto"
+                                        width={128}
+                                    />
+                                </div>
+                                <p className="text-2xs text-wrap mb-1 text-center serviceSectionName text-black">
+                                    <b>{Service.name}</b>
+                                </p>
+                            </Link>
                         </div>
-                           <p className="text-2xs text-wrap mb-1 text-center serviceSectionName text-black"><b>{Service.name}</b></p></Link> 
-                       
-                    </div>
-                ))}
+                    );
+                })}
             </div>
             <div className="text-center mt-4 mb-4 block sm:hidden">
                 <button

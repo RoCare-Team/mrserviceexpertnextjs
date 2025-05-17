@@ -63,7 +63,7 @@ export default async function Page({ params }) {
     // }
 
     data.category = matchedCategory; 
-    console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
+    // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
       
 
 
