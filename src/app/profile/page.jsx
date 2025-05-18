@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react'
 import EditDetails from '../components/modals/EditDetails';
 import { toast, ToastContainer } from 'react-toastify';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 function Profile() {
     const [userPhone, setUserPhone] = useState('');
@@ -12,6 +13,14 @@ function Profile() {
     const [userName, setUserName] = useState('');
     const [userEmail, setUserEmail] = useState('');
     const [updateOpen, setUpdateOpen] = useState(false);
+    const router=useRouter();
+
+    useEffect(()=>{
+        const user = JSON.parse(localStorage.getItem("user")); 
+        if (!user || !user.token) { 
+            router.push('/'); 
+        }
+    },[])
 
     // Load user data from localStorage
     const loadUserData = () => {
@@ -65,7 +74,7 @@ function Profile() {
              <ToastContainer/>
 
             <div className='flex items-start justify-start text-left gap-0.5 mb-2.5 col-4'>
-                <Link href={'/'} className='mb-0 text-black'><span className='mb-0 '>Home</span></Link>
+                <Link href={'/'} className='mb-0 text-black'><span className='mb-0 text-black'>Home</span></Link>
                 <span className='mb-0 text-black'> {'>'}</span>
                 <span className='mb-0 text-purple-600'>Profile</span>
             </div>
