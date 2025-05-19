@@ -11,17 +11,17 @@ import { notFound } from 'next/navigation';
 // }
 
 export async function generateMetadata({ params }) {
-  const { city , cat } =  await params;
+  const { city, cat } = await params;
 
   const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ city,cat }),
+    body: JSON.stringify({ city, cat }),
     cache: 'no-store',
   });
 
   const data = await response.json();
-// console.log(data);
+  // console.log(data);
 
   return {
     title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
@@ -36,24 +36,24 @@ export async function generateMetadata({ params }) {
 
 export default async function Page({ params }) {
   const { city, cat } = await params;
-  
-   try {
-      const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ city, cat }),
-        cache: 'no-store',
-      });
-  
-      const data = await response.json();
-  
-      if (data.error) {
-        notFound(); 
-      }
 
-      // console.log(JSON.stringify(data?.category)+'category and service data');
+  try {
+    const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ city, cat }),
+      cache: 'no-store',
+    });
 
-      // Filter only matching category
+    const data = await response.json();
+
+    if (data.error) {
+      notFound();
+    }
+
+    // console.log(JSON.stringify(data?.category)+'category and service data');
+
+    // Filter only matching category
     const matchedCategory = data?.category?.filter(catItem =>
       catItem.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
     );
@@ -62,19 +62,22 @@ export default async function Page({ params }) {
     //   notFound(); // If no matching category found
     // }
 
-    data.category = matchedCategory; 
+    data.category = matchedCategory;
     // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
-      
+    // making the cities for empty as right now getting different description
+    data.cities = [];
+    // console.log(data.cities);
+    // console.log(data);
 
-// const filteredServices = data?.services?.filter(service =>
-//   service.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
-// );
-// data.services = filteredServices;
-  
-      return <ServicePage  pagedata={data} city={city} cat={cat}  />;
-    } catch (error) {
-      // console.error('Error fetching city page:', error);
-      notFound(); // if API fails or wrong city, go to 404
-    }
+    // const filteredServices = data?.services?.filter(service =>
+    //   service.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
+    // );
+    // data.services = filteredServices;
 
-    }
+    return <ServicePage pagedata={data} city={city} cat={cat} />;
+  } catch (error) {
+    // console.error('Error fetching city page:', error);
+    notFound(); // if API fails or wrong city, go to 404
+  }
+
+}
