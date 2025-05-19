@@ -60,7 +60,7 @@ const { params: pathParams } = params;
       });
   
       const data = await response.json();
-  console.log(data);
+  // console.log(data);
   
       if (data.error) {
         notFound(); // <-- This will show the Next.js built-in 404 page

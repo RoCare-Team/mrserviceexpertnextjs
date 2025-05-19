@@ -2,7 +2,7 @@ import CityPage from "@/app/components/pages/city/City";
 import { notFound } from "next/navigation";
 
 export const generateMetadata = async ({ params }) => {
-  const { city } = params;
+  const { city } = await params;
 
   try {
     const response = await fetch('https://mannubhai.in/web_api/get_city_page_data.php', {
@@ -44,7 +44,7 @@ export const generateMetadata = async ({ params }) => {
 };
 
 export default async function Page({ params }) {
-  const { city } = params;
+  const { city } = await params;
 
   try {
     const response = await fetch("https://mannubhai.in/web_api/get_city_page_data.php", {
@@ -59,7 +59,7 @@ export default async function Page({ params }) {
     if (data.error) {
       return notFound();
     }
-console.log(data);
+// console.log(data);
 
     return <CityPage cityData ={data} />;
   } catch (error) {
