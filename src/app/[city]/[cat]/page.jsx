@@ -64,9 +64,9 @@ export default async function Page({ params }) {
 
     data.category = matchedCategory;
     // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
-    // making the cities for empty as right now getting different description
+    // making the cities  and category_services empty as right now getting different description which is not good for seo purposes
     data.cities = [];
-    // console.log(data.cities);
+    data.category_services=[];
     // console.log(data);
 
     // const filteredServices = data?.services?.filter(service =>
