@@ -414,7 +414,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         <h3>Popular Brand in {pagedata.city_name}</h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.brands?.map((brand) => (
-            <div className='brandsServices '>
+            <div className='brandsServices ' key={brand.id}>
               <a href={`${brand.brand_url}/${cat}`} title={`${brand.brand_url} ${cat} services`}>
                 <li className='brand-btn-style'>
                   {brand.brand_name}

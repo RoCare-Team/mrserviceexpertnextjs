@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation';
 // }
 
 export async function generateMetadata({ params }) {
-  const { city , cat } = params;
+  const { city , cat } =  await params;
 
   const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
     method: 'POST',
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { city, cat } = params;
+  const { city, cat } = await params;
   
    try {
       const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
@@ -66,7 +66,10 @@ export default async function Page({ params }) {
     // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
       
 
-
+// const filteredServices = data?.services?.filter(service =>
+//   service.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
+// );
+// data.services = filteredServices;
   
       return <ServicePage  pagedata={data} city={city} cat={cat}  />;
     } catch (error) {
