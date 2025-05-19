@@ -8,10 +8,8 @@ import HomeCareService from "../../servicesSection/homeCareService";
 import ServiceSection from "../../servicesSection/servicesSection";
 
 
+
 const City = ({ city, cityData }) => {
-
-
-
 
     // console.log("test" + JSON.stringify(cityData));
 
@@ -92,6 +90,7 @@ const City = ({ city, cityData }) => {
                                  {/* <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
                                 }} */}
+                                 {/* /assets/cityBanner/Front Banner.webp */}
                                 <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
                                 }}
