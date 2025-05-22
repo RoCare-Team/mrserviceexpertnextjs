@@ -168,35 +168,35 @@ export default function ServicePage({ pagedata, city, cat }) {
           <div className="sticky top-20">
             <h1 className="cityHeadings"> {pagedata.city_name}'s Top Picks: Most Loved Services by Our Customers!</h1>
             <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
-                {!imageLoader && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image
-                      src="/assets/cityBanner/Front Banner.webp"
-                      alt="Loading"
-                      width={475}
-                      height={345}
-                      // priority
-                      // fetchPriority='high'
-                      style={{
-                        borderRadius: '17px',
-                        width: '100%',
-                      }}
-                    />
-                  </div>
-                )}
-                <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
-                  loading="eager" width={475} height={345}
-                  title={`${pagedata.city_name}  Services`}
-                  onLoad={() => setImageLoader(true)}
-                  style={{
-                    borderRadius: '17px', width: '100%',
-                    opacity: imageLoader ? 1 : 0,
-                    transition: 'opacity 0.5s ease-in-out',
-                  }}
+              {!imageLoader && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Image
+                    src="/assets/cityBanner/Front Banner.webp"
+                    alt="Loading"
+                    width={475}
+                    height={345}
+                    // priority
+                    // fetchPriority='high'
+                    style={{
+                      borderRadius: '17px',
+                      width: '100%',
+                    }}
+                  />
+                </div>
+              )}
+              <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+                loading="eager" width={475} height={345}
+                title={`${pagedata.city_name}  Services`}
+                onLoad={() => setImageLoader(true)}
+                style={{
+                  borderRadius: '17px', width: '100%',
+                  opacity: imageLoader ? 1 : 0,
+                  transition: 'opacity 0.5s ease-in-out',
+                }}
 
-                />
+              />
 
-              </div>
+            </div>
             <Tabs />
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         </div>
       </div>
 
-<div className="bg-white common-spacing">
+      {pagedata?.related_cities?.length > 0 ? (<div className="bg-white common-spacing">
         <h3 className="text-2xl"><b>Popular Cities in {pagedata.city_name}</b></h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.related_cities?.map((city) => (
@@ -424,7 +424,8 @@ export default function ServicePage({ pagedata, city, cat }) {
             </div>
           ))}
         </div>
-      </div>
+      </div>) : (<></>)}
+
 
       <div className="bg-white common-spacing">
         <h3 className="text-2xl"><b>Popular Brand in {pagedata.city_name}</b></h3>
