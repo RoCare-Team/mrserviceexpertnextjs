@@ -410,8 +410,24 @@ export default function ServicePage({ pagedata, city, cat }) {
         </div>
       </div>
 
+<div className="bg-white common-spacing">
+        <h3 className="text-2xl"><b>Popular Cities in {pagedata.city_name}</b></h3>
+        <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
+          {pagedata.related_cities?.map((city) => (
+            <div className='brandsServices ' key={city.id}>
+              <a href={`${city.url}`} title={`${city.url}  services`}>
+                <li className='brand-btn-style'>
+                  {city.locality_name}
+                  <span></span>
+                </li>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="bg-white common-spacing">
-        <h3>Popular Brand in {pagedata.city_name}</h3>
+        <h3 className="text-2xl"><b>Popular Brand in {pagedata.city_name}</b></h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.brands?.map((brand) => (
             <div className='brandsServices ' key={brand.id}>
