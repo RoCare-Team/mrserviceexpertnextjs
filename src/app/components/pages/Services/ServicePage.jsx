@@ -415,9 +415,9 @@ export default function ServicePage({ pagedata, city, cat }) {
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.related_cities?.map((city) => (
             <div className='brandsServices ' key={city.id}>
-              <a href={`${city.url}`} title={`${city.url}  services`}>
+              <a href={`/${city.city_url}/${cat}`} title={`${city.city_url}  ${cat}   services`}>
                 <li className='brand-btn-style'>
-                  {city.locality_name}
+                  {city.city_name}
                   <span></span>
                 </li>
               </a>
