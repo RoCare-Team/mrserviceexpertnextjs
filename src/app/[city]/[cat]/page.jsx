@@ -66,7 +66,19 @@ export default async function Page({ params }) {
     // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
     // making the cities  and category_services empty as right now getting different description which is not good for seo purposes
     data.cities = [];
-    data.category_services=[];
+    data.category_services = [];
+
+    if (data.related_cities && Array.isArray(data.related_cities)) {
+      data.related_cities = data.related_cities.map(city => ({
+        id: city.id,
+        city_id: city.city_id,
+        parent_city: city.parent_city,
+        url: city.url,
+        city_name: city.city_name,
+        city_url: city.city_url,
+      }));
+    }
+
     // console.log(data);
 
     // const filteredServices = data?.services?.filter(service =>
