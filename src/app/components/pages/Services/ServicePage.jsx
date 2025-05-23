@@ -410,7 +410,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         </div>
       </div>
 
-      {pagedata?.related_cities?.length > 0 ? (<div className="bg-white common-spacing">
+      {pagedata?.related_cities?.length > 0 ? (<div className="bg-white px-8 py-2">
         <h3 className="text-2xl"><b>Popular Cities in {pagedata.city_name}</b></h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.related_cities?.map((city) => (
@@ -427,7 +427,7 @@ export default function ServicePage({ pagedata, city, cat }) {
       </div>) : (<></>)}
 
 
-      <div className="bg-white common-spacing">
+      <div className="bg-white px-8 py-2">
         <h3 className="text-2xl"><b>Popular Brand in {pagedata.city_name}</b></h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.brands?.map((brand) => (
