@@ -1,6 +1,5 @@
 'use client';
 
-import Head from "next/head";
 import React, { useState, useEffect } from "react";
 import Tabs from "@/app/components/pages/Services/AllServices";
 import ServicesList from "@/app/components/service/ServicesList";
@@ -9,39 +8,39 @@ import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 
 
-export default function ServicePage({ city, brand, cat }) {
+export default function ServicePage({ city, brand, cat,pagedata }) {
   const [openItem, setOpenItem] = useState(0)
-  const [pagedata, setData] = useState("");
+  // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [brandLoader, setBrandLoader] = useState(false);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ city, brand, cat })
+  //   fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json'
+  //     },
+  //     body: JSON.stringify({ city, brand, cat })
 
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Backend Response:", data);
+  //   })
+  //     .then(res => res.json())
+  //     .then(data => {
+  //       console.log("Backend Response:", data);
 
-        if (!data.error) {
-          // setCategoryName()
-          setData(data);
+  //       if (!data.error) {
+  //         // setCategoryName()
+  //         setData(data);
 
 
-        }
-      })
-      .catch(err => console.error("Error sending city to backend:", err));
-    // setData(data);
-    // setCategoryName(cat);
-  }, [city, cat]);
+  //       }
+  //     })
+  //     .catch(err => console.error("Error sending city to backend:", err));
+  //   // setData(data);
+  //   // setCategoryName(cat);
+  // }, [city, cat]);
 
 
 
@@ -181,7 +180,7 @@ export default function ServicePage({ city, brand, cat }) {
     }
   }, [selectedServices]);
 
-  console.log(setData);
+  // console.log(setData);
 
   // Debug logging
   useEffect(() => {

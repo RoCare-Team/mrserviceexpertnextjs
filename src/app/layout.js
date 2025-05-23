@@ -15,15 +15,15 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "Home Appliance Repair & Services | Mr. Service Expert",
   description: "Expert repair and maintenance services for ACs, water purifiers, and home appliances. Book reliable technicians across India with Mr. Service Expert.",
-  keywords:"ac repair service,water purifier repair,home appliance repair,refrigerator repair service,washing machine repair,air conditioner maintenance,ro service near me,microwave oven repair,geyser installation service,appliance service center",
+  keywords: "ac repair service,water purifier repair,home appliance repair,refrigerator repair service,washing machine repair,air conditioner maintenance,ro service near me,microwave oven repair,geyser installation service,appliance service center",
   alternates: {
     canonical: "https://www.mrserviceexpert.com/",
   },
   verification: {
-    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY', 
+    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY',
   },
   icons: {
-    icon: '/favicon.ico', 
+    icon: '/favicon.ico',
   },
   robots: 'index, follow',
 };
@@ -31,7 +31,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head />
+       <head>
+         <link rel="amphtml" href="" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

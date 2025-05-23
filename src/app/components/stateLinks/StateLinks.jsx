@@ -13,11 +13,6 @@ function StateLinks() {
         <div className="ro-service-cities">
             <h2>RO Service in Popular Cities</h2>
             <div className="state-links flex flex-wrap gap-2.5 ">
-
-
-               
-
-
                 {State.map((city) => (
                     <Link
                         key={city}

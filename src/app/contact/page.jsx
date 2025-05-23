@@ -199,7 +199,7 @@ export default function ContactPage() {
                     <h4 className="text-lg font-semibold text-purple-700 flex items-center">
                       <Phone className="mr-2" /> Business Phone Numbers
                     </h4>
-                    <p className="text-gray-700 ml-6" ><a href="tel:+91-9311587744" title='+91-9311587744'>+91-9311587744</a></p>
+                    <p className="text-gray-700 ml-6" ><a href="tel:+91-9311587715" title='+91-9311587715'>+91-9311587715</a></p>
                     {/* <p className="text-gray-700 ml-6">+91-92 6666 8507</p> */}
                   </div>
 
@@ -237,7 +237,7 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 contactStyle">
                   <div className="flex flex-col">
                     <span className="font-medium text-purple-600">Service Query</span>
-                    <span className="text-gray-700"><a href="tel:+91-9311587744" title='+91-9311587744'>+91-9311587744</a></span>
+                    <span className="text-gray-700"><a href="tel:+91-9311587715" title='+91-9311587715'>+91-9311587715</a></span>
                   </div>
 
                   <div className="flex flex-col">

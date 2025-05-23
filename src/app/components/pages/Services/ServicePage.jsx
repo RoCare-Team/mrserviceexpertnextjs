@@ -6,11 +6,12 @@ import ServicesList from "../../service/ServicesList";
 import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
+import Image from "next/image";
 
 
-export default function ServicePage({ city, cat }) {
+export default function ServicePage({ pagedata, city, cat }) {
   const [openItem, setOpenItem] = useState(0)
-  const [pagedata, setData] = useState("");
+  // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -18,33 +19,6 @@ export default function ServicePage({ city, cat }) {
   const [cartLoaded, setCartLoaded] = useState(false);
   const [imageLoader, setImageLoader] = useState(false);
 
-
-
-  useEffect(() => {
-
-    fetch('https://mannubhai.in/web_api/get_page_data.php', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ city, cat })
-
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Backend Response:", data);
-
-        if (!data.error) {
-          // setCategoryName()
-          setData(data);
-
-
-        }
-      })
-      .catch(err => console.error("Error sending city to backend:", err));
-    // setData(data);
-    // setCategoryName(cat);
-  }, [city, cat]);
 
   const handleCartLoading = () => {
     setCartLoaded(prevState => prevState + 1);
@@ -175,12 +149,12 @@ export default function ServicePage({ city, cat }) {
 
 
   // Debug logging
-  useEffect(() => {
-    console.log("Current selectedServices:", selectedServices);
-    console.log("Current totalAmount:", totalAmount);
+  // useEffect(() => {
+  //   console.log("Current selectedServices:", selectedServices);
+  //   console.log("Current totalAmount:", totalAmount);
 
 
-  }, [selectedServices, totalAmount]);
+  // }, [selectedServices, totalAmount]);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -189,13 +163,40 @@ export default function ServicePage({ city, cat }) {
 
   return (
     <div className=" ">
-
-
-
       <div className="services-page common-spacing">
         <div className="left-side lg:w-1/4 flex-col mb-1.5">
           <div className="sticky top-20">
             <h1 className="cityHeadings"> {pagedata.city_name}'s Top Picks: Most Loved Services by Our Customers!</h1>
+            <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
+              {!imageLoader && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Image
+                    src="/assets/cityBanner/Front Banner.webp"
+                    alt="Loading"
+                    width={475}
+                    height={345}
+                    // priority
+                    // fetchPriority='high'
+                    style={{
+                      borderRadius: '17px',
+                      width: '100%',
+                    }}
+                  />
+                </div>
+              )}
+              <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+                loading="eager" width={475} height={345}
+                title={`${pagedata.city_name}  Services`}
+                onLoad={() => setImageLoader(true)}
+                style={{
+                  borderRadius: '17px', width: '100%',
+                  opacity: imageLoader ? 1 : 0,
+                  transition: 'opacity 0.5s ease-in-out',
+                }}
+
+              />
+
+            </div>
             <Tabs />
           </div>
         </div>
@@ -203,16 +204,25 @@ export default function ServicePage({ city, cat }) {
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
               <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
-              <div className="mb-3.5 flex items-center justify-center ">
+              <div className="desktopBanner mb-3.5 flex items-center justify-center relative  ">
                 {!imageLoader && (
-                  <img src={`/assets/cityBanner/Front Banner.webp`} alt={`Our Services`} width={475} height={345}
-                    title={`Our Services`}
-                    style={{
-                      borderRadius: '17px', width: '100%',
-                      transition: 'opacity 0.5s ease-in-out',
-                    }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Image
+                      src="/assets/cityBanner/Front Banner.webp"
+                      alt="Loading"
+                      width={475}
+                      height={345}
+                      style={{
+                        borderRadius: '17px',
+                        width: '100%',
+                      }}
+
+                    />
+
+                  </div>
                 )}
-                <img src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} width={475} height={345}
+                <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+                  loading="eager" width={475} height={345}
                   title={`${pagedata.city_name}  Services`}
                   onLoad={() => setImageLoader(true)}
                   style={{
@@ -397,15 +407,31 @@ export default function ServicePage({ city, cat }) {
         <div className=" bg-white aboutStyle">
           <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {pagedata.city_name}</h3>
           <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" />
-          {/* <p className="catgoreyContent" >{cityData?.categorydetail?.category_content   }</p> */}
         </div>
       </div>
 
+      {pagedata?.related_cities?.length > 0 ? (<div className="bg-white common-spacing">
+        <h3 className="text-2xl"><b>Popular Cities in {pagedata.city_name}</b></h3>
+        <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
+          {pagedata.related_cities?.map((city) => (
+            <div className='brandsServices ' key={city.id}>
+              <a href={`/${city.city_url}/${cat}`} title={`${city.city_url}  ${cat}   services`}>
+                <li className='brand-btn-style'>
+                  {city.city_name}
+                  <span></span>
+                </li>
+              </a>
+            </div>
+          ))}
+        </div>
+      </div>) : (<></>)}
+
+
       <div className="bg-white common-spacing">
-        <h3>Popular Brand in {pagedata.city_name}</h3>
+        <h3 className="text-2xl"><b>Popular Brand in {pagedata.city_name}</b></h3>
         <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
           {pagedata.brands?.map((brand) => (
-            <div className='brandsServices '>
+            <div className='brandsServices ' key={brand.id}>
               <a href={`${brand.brand_url}/${cat}`} title={`${brand.brand_url} ${cat} services`}>
                 <li className='brand-btn-style'>
                   {brand.brand_name}
@@ -415,11 +441,6 @@ export default function ServicePage({ city, cat }) {
             </div>
           ))}
 
-          {/* {!visibleBrands && (
-                                      <div>
-                                          <button onClick={handleLoadMore} className='readMore'>Read More</button>
-                                      </div>
-                                  )} */}
         </div>
       </div>
 

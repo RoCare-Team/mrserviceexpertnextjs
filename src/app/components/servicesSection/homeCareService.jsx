@@ -5,30 +5,24 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 
-function ServiceSection() {
-   
+function HomeCareService() {
     const [showAllServices, setShowAllServices] = useState(false);
-    const urlPath=usePathname();
-
-    // console.log(urlPath+"all services things");
-
+    const urlPath = usePathname();
+//    console.log(urlPath+'current');
     
-    
-
     const Services = [
-        { id: 1, name: 'Ro Service', image: "/assets/images/serviceBrands/ro-cat.webp", info: 'Complete maintenance to keep your purifier running smoothly',link:"ro-water-purifier" },
-        { id: 9, name: 'Washing Machine', image: "/assets/images/servicesImages/washing machine.png", info: '',link:"washing-machine-repair" },
-        { id: 6, name: 'Refrigerator', image: "/assets/images/servicesImages/refrigerator.png", info: 'Keep your food fresh and beverages cool with our energy-efficient refrigerators, designed with advanced cooling technology and spacious interiors.',link:"refrigerator-repair" },
-        { id: 7, name: 'Air Conditioners', image: "/assets/images/servicesImages/ac.png", info: 'Stay cool during the hottest days with our powerful and silent air conditioners. Fast cooling, energy-saving, and built for long-lasting comfort.',link:"ac" },
-        { id: 8, name: 'Geyser', image: "/assets/images/serviceBrands/geyser icon 70x70.png", info: 'Enjoy instant hot water with our high-performance geysers. Designed for safety, durability, and efficient heating to keep your winters warm and cozy.',link:"geyser-repair" },
-        { id: 10, name: 'Microwave', image: "/assets/images/servicesImages/microWave.png", info: '',link:"microwav-repair" },
-        { id: 11, name: 'Led', image: "/assets/images/servicesImages/led.png", info: '',link:"led-tv-repair" },
-        { id: 12, name: 'kitchen Chimney', image: "/assets/images/servicesImages/kitchen chimney.png", info: '',link:"kitchen-chimney-repair" },
-        { id: 13, name: 'Air Purifier', image: "/assets/images/servicesImages/air cooler.png", info: '',link:"air-purifier-repair" },
-        { id: 14, name: 'Vaccum Cleaner', image: "/assets/images/servicesImages/vacuum cleaner.png", info: '',link:"vacuum-cleaner-repair" }
+        { id: 1, name: 'Kitchen Cleaning', image: "/assets/HomeCare/KITCHEN-CLEANING.webp", info: 'Complete maintenance to keep your purifier running smoothly', link: "kitchen-cleaning-service" },
+        { id: 9, name: 'Home Deep Cleaning', image: "/assets/HomeCare/HOME-DEEP-CLEANING.webp", info: '', link: "home-deep-cleaning-service" },
+        { id: 6, name: 'House Painting', image: "/assets/HomeCare/PAINTER.webp", info: 'Keep your food fresh and beverages cool with our energy-efficient refrigerators, designed with advanced cooling technology and spacious interiors.', link: "house-painting" },
+        { id: 7, name: 'Bathroom Cleaning', image: "/assets/HomeCare/BATHROOM-CLEANING.webp", info: 'Stay cool during the hottest days with our powerful and silent air conditioners. Fast cooling, energy-saving, and built for long-lasting comfort.', link: "bathroom-cleaning-service" },
+        { id: 8, name: 'Sofa Cleaning', image: "/assets/HomeCare/SOFA-CLEANING.webp", info: 'Enjoy instant hot water with our high-performance geysers. Designed for safety, durability, and efficient heating to keep your winters warm and cozy.', link: "sofa-cleaning-service" },
+        { id: 10, name: 'Tank Cleaning', image: "/assets/HomeCare/TANK-CLEANING.webp", info: '', link: "tank-cleaning" },
+        { id: 11, name: 'Mason Service', image: "/assets/HomeCare/masons.webp", info: '', link: "mason-service" },
+        { id: 12, name: 'Pest Control', image: "/assets/HomeCare/PEST-CONTROL.webp", info: '', link: "pest-control" },
     ];
 
-
+    // const is_city_url = urlPath;
+    // console.log(is_city_url);
     // Toggle function to show/hide all services
     const toggleAllServices = (e) => {
         e.preventDefault();
@@ -37,11 +31,10 @@ function ServiceSection() {
 
     return (
         <div className="">
-            <h3 className="serviceHeadings">Explore Our Services</h3>
+            <h3 className="serviceHeadings ">Home Care Services</h3>
             <div className="grid grid-cols-3 md:grid-cols-3 lg:grid-cols-5 servicesHero">
-              {Services.map((Service) => {
-                    // const href = urlPath ? `${urlPath}/${Service.link}` : `${Service.link}`;
-                    // // const href = `${urlPath}/${Service.link}`;
+                {Services.map((Service) => {
+                    // const href = is_city_url ? `${urlPath}/${Service.link}` : `/${Service.link}`;
                     const basePath = urlPath === "/" ? "" : urlPath;
     const href = `${basePath}/${Service.link}`;
                     return (
@@ -68,6 +61,7 @@ function ServiceSection() {
                         </div>
                     );
                 })}
+
             </div>
             <div className="text-center mt-4 mb-4 block sm:hidden">
                 <button
@@ -81,4 +75,4 @@ function ServiceSection() {
     );
 }
 
-export default ServiceSection;
+export default HomeCareService;

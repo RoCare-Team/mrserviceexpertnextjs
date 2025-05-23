@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-
+import { useRouter } from 'next/navigation';
 
 import Link from 'next/link';
 import PaymentModal from '../components/modals/paymentModal';
@@ -11,6 +11,18 @@ function Booking() {
     const [open, setOpen] = useState(false);
     const [leadDetails,setLeadDetails]=useState([]);     
     const [currentServices, setCurrentServices] = useState([]); // New state banayi ha  
+    const router=useRouter();
+
+     useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user")); 
+        if (!user || !user.token) { 
+            router.push('/'); 
+        } else {
+            const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
+            setCurrentServices(allServices);
+        }
+    }, []);
+
     const getcmpldetls = async(lead_id) => {
         const user_no=lead_id;
         const payload={lead_id:user_no}
@@ -48,12 +60,12 @@ function Booking() {
 
     
     // const currentServices = serviceData[activeTab] || [];
-    useEffect(() => {
-        if (typeof window !== "undefined") {
-            const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
-            setCurrentServices(allServices);
-        }
-    }, []);
+    // useEffect(() => {
+    //     if (typeof window !== "undefined") {
+    //         const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
+    //         setCurrentServices(allServices);
+    //     }
+    // }, []);
     // serviceData[activeTab] || []
 
     return (

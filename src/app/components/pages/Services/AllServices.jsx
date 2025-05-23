@@ -57,21 +57,21 @@ const AllServices = (cater) => {
       lead_type = 8;
     } else if (cat === "air-purifier-repair" || city === "air-purifier-repair" || cate === "air-purifier-repair") {
       lead_type = 18;
-    }else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
+    } else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
       lead_type = 32;
-    }else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
+    } else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
       lead_type = 29;
-    }else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
+    } else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
       lead_type = 33;
-    }else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
+    } else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
       lead_type = 34;
-    }else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
+    } else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
       lead_type = 39;
-    }else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
+    } else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
       lead_type = 35;
-    }else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
+    } else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
       lead_type = 30;
-    }else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
+    } else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
       lead_type = 31;
     }
 
@@ -122,11 +122,18 @@ const AllServices = (cater) => {
         setIsLoading(false)
 
       }, [])
-     
+
 
   }, [cat])
 
-  // console.log("hisidd" +serviceList);
+  //   const handleTabService = serviceList;
+  // const names = handleTabService.map(service => 
+  //   service.service_name.split(" ").slice(0, 2).join(" ") + "....."
+  // );
+
+  // console.log(names);
+
+
 
 
   return (
@@ -136,45 +143,57 @@ const AllServices = (cater) => {
           <h3 className=" font-semibold mb-0 text-center">Select a Service</h3>
           <span className='serviceHorizontal'></span>
         </div>
-         {isLoading ? (<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="flex flex-col items-center justify-center h-20 bg-gray-100 rounded-lg animate-pulse">
-                <div className="w-11 h-11 bg-gray-200 rounded-full mb-2"></div>
-                <div className="w-16 h-3 bg-gray-200 rounded"></div>
-              </div>
-            ))}
-          </div>):(
-          
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
-           {serviceList.map((service) => (
-            //  <Link href={`/${service.id}`} >
-            <button
-              key={service.id}
-              onClick={() => scrollToSection(service.id)}
-              className="flex flex-col items-center justify-center  tabCards sm:w-xs bg-gray-100 rounded-lg hover:bg-white transition-all shadow-md hover:shadow-lg border border-gray-300 hover:ring-2 hover:ring-purple-300 p-1"
-            >
-
-              <div>
-                <img
-                  src={service.image}
-                  alt={service.service_name}
-                  className="w-11 h-auto object-contain mb-2"
-                  width={44}
-                  height="auto"
-                  title={service.service_name}
-                />
-              </div>
-              <span className="text-xs font-medium text-gray-700 text-center text-wrap">{service.service_name}</span>
-
-            </button>
-
+        {isLoading ? (<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="flex flex-col items-center justify-center h-20 bg-gray-100 rounded-lg animate-pulse">
+              <div className="w-11 h-11 bg-gray-200 rounded-full mb-2"></div>
+              <div className="w-16 h-3 bg-gray-200 rounded"></div>
+            </div>
           ))}
-          </div>
-         )}
-        </div>
+        </div>) : (
 
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
+            {serviceList.map((service) => (
+              //  <Link href={`/${service.id}`} >
+              <button
+                title={service.service_name}
+                key={service.id}
+                onClick={() => scrollToSection(service.id)}
+                className="flex flex-col items-center justify-center  tabCards sm:w-xs bg-gray-100 rounded-lg hover:bg-white transition-all shadow-md hover:shadow-lg border border-gray-300 hover:ring-2 hover:ring-purple-300 p-1"
+              >
+
+                <div>
+                  <img
+                    src={service.image}
+                    alt={service.service_name}
+                    className="w-11 h-auto object-contain mb-2"
+                    width={44}
+                    height="auto"
+                    title={service.service_name}
+                  />
+                </div>
+                {/* first convert the strings to arrays using splits then length to make it ... if more than 2  */}
+
+                {/* Desktop version: Truncated */}
+                <span className="hidden md:inline text-xs font-medium text-gray-700 text-center text-wrap">
+                  {service?.service_name?.split(" ").length > 2
+                    ? service.service_name.split(" ").slice(0, 2).join(" ") + "....."
+                    : service.service_name}
+                </span>
+
+                {/* Mobile version: Full name */}
+                <span className="inline md:hidden text-xs font-medium text-gray-700 text-center text-wrap">
+                  {service.service_name}
+                </span>
+              </button>
+
+            ))}
+          </div>
+        )}
       </div>
-     
+
+    </div>
+
   );
 };
 

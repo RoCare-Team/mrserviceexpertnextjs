@@ -9,6 +9,8 @@ Disallow: /logs/
 Disallow: /admin/
 Disallow: /cgi-bin/
 Disallow: /amp/
+Disallow: /amp/
+
 Disallow: /cart/
 Disallow: /cart-checkout/
 Disallow: /shop-saringan-udara/

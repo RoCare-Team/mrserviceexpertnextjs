@@ -368,22 +368,22 @@ a:hover {
 
 /* scroll bar releated styling  */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 7px;
+  height: auto;
 }
 
 ::-webkit-scrollbar-track {
-  background: blueviolet;
+  background: rgb(186, 126, 242);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: gray;
+  background: blueviolet;
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: gray;
+  background: blueviolet;
 }
 
 
@@ -1977,7 +1977,7 @@ padding-block: 13px;
 
   .blog-card-style {
     width: 300px;
-    height: 320px;
+    height: auto;
   }
 
   .blog-img {
@@ -2175,7 +2175,7 @@ padding-block: 13px;
   }
 
   .serviceHeadings {
-    text-align: left;
+    text-align: center;
     font-size: 24px;
     margin-bottom: 20px;
   }
