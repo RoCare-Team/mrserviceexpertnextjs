@@ -3,6 +3,9 @@ import ServicePage from "@/app/components/pages/Services/brands";
 import { notFound } from 'next/navigation';
 
 
+// const API= https://mannubhai.in/web_api;
+// await fetch(GET_BRAND_PAGE)
+// singelton pattern const GET_BRAND_PAGE=`API/${get_drand_page_data.php}`;
 
 export async function generateMetadata({ params }) {
 
