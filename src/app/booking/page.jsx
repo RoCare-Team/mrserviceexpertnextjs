@@ -41,6 +41,12 @@ function Booking() {
 
     const handleClose = () => setOpen(false);
 
+    // console.log(+"fdfsg");
+    // const dippperrrr=JSON.stringify(allLeadData);
+    // console.log(JSON.parse(dippperrrr));
+    
+    
+
     useEffect(() => {
         if (allLeadData.length > 0) {
             let filtered = [];
@@ -110,7 +116,7 @@ function Booking() {
                             leadStatus.map((service) => (
                                 <div key={service.lead_id} onClick={() => getcmpldetls(service.lead_id)} className="tabDetails services-section flex items-center gap-2 border border-gray-200 rounded-md cursor-pointer">
                                     <div className="w-14 h-14 tabImgService">
-                                        <img src={service.image} alt={service.lead_type} className='w-full h-full object-cover rounded' />
+                                        <img src={service.image || "/assets/images/no-photos.webp"} alt={service.lead_type} className='w-full h-full object-cover rounded' />
                                     </div>
                                     <div className="serviceCard flex-1 flex flex-row justify-between">
                                         <div className="flex service_info sm:flex-row sm:justify-between">
