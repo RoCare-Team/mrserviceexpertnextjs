@@ -15,33 +15,14 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
   const [addedServices, setAddedServices] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [brandLoader, setBrandLoader] = useState(false);
+    const [cartChanged, setCartChanged] = useState(false);
+    const [cartLoaded, setCartLoaded] = useState(false);
 
-  // useEffect(() => {
-
-  //   fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json'
-  //     },
-  //     body: JSON.stringify({ city, brand, cat })
-
-  //   })
-  //     .then(res => res.json())
-  //     .then(data => {
-  //       console.log("Backend Response:", data);
-
-  //       if (!data.error) {
-  //         // setCategoryName()
-  //         setData(data);
-
-
-  //       }
-  //     })
-  //     .catch(err => console.error("Error sending city to backend:", err));
-  //   // setData(data);
-  //   // setCategoryName(cat);
-  // }, [city, cat]);
-
+ 
+ const handleCartLoading = () => {
+    setCartLoaded(prevState => prevState + 1);
+    setCartChanged(prev => !prev);
+  };
 
 
   useEffect(() => {
@@ -73,22 +54,7 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
     loadCartFromLocalStorage();
   }, []);
 
-  // Get the category from URL parameters when component mounts
-  // useEffect(() => {
-  //     const params = new URLSearchParams(location.search);
-  //     const category = params.get('category');
-
-  //     if (category) {
-  //         // Give time for the component to render before scrolling
-  //         setTimeout(() => {
-  //             const element = document.getElementById(category);
-  //             if (element) {
-  //                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  //             }
-  //         }, 500);
-  //     }
-  // }, [location.search]);
-
+  
   const handleAddToCart = (service) => {
     // Update selectedServices state
     setSelectedServices((prev) => {
@@ -224,9 +190,13 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
               </div>
 
               <ServicesList
-                onAddToCart={handleAddToCart}
+                // onAddToCart={handleAddToCart}
+                // addedServices={addedServices}
+                // cate={cat}
+                  handleCartLoading={handleCartLoading}
                 addedServices={addedServices}
                 cate={cat}
+                state={cartChanged}
               />
             </div>
             <div className="lg:w-5/12 cartContainer">
@@ -234,10 +204,12 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
                 <Cart
                   // selectedServices={selectedServices}
                   // total={totalAmount}
-                  onRemove={handleRemoveFromCart}
-                  onIncrement={handleIncrementService}
-                  onDecrement={handleDecrementService}
+                  // onRemove={handleRemoveFromCart}
+                  // onIncrement={handleIncrementService}
+                  // onDecrement={handleDecrementService}
                 // onCartLoad={handleCartLoad}
+                 cartLoaded={cartLoaded}
+                  cartLoadedToggle={handleCartLoading}
                 />
                 <Assurance />
                 <ServiceProcedure />
