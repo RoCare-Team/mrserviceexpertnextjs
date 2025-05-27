@@ -5,13 +5,19 @@ import ServiceProcedure from '@/app/components/serviceProcedure/index';
 import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 import HomeCareService from "../../servicesSection/homeCareService";
-import ServiceSection from "../../servicesSection/servicesSection";
 
 
 
 const City = ({ city, cityData }) => {
 
-    // console.log("test" + JSON.stringify(cityData));
+    
+
+    
+    // console.log(categoryContent);
+    
+
+    // console.log("test" + JSON.stringify(cityData?.city_detail?.city_content));
+    // const cleanContent = he.decode(cityData?.categorydetail?.category_content);
 
     if (cityData.status === "1")
         return (
@@ -58,7 +64,8 @@ const City = ({ city, cityData }) => {
                 <div className="common-spacing">
                     <div className=" bg-white aboutStyle">
                         <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {cityData.city_name}</h3>
-                        <p className="catgoreyContent">{cityData?.city_detail?.city_content}</p>
+                        <div dangerouslySetInnerHTML={{ __html: cityData?.city_detail?.city_content }} className="serviceContentStyle" />
+                        {/* <p className="catgoreyContent">{cityData?.city_detail?.city_content}</p> */}
                     </div>
                 </div>
                 <div className="bg-white common-spacing">

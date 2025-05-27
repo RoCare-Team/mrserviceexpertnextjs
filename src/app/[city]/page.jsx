@@ -1,6 +1,7 @@
 import CityPage from "@/app/components/pages/city/City";
 import { notFound } from "next/navigation";
 
+
 export const generateMetadata = async ({ params }) => {
   const { city } = await params;
 
