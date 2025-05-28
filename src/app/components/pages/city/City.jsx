@@ -182,7 +182,7 @@ const City = ({ city, cityData }) => {
                                 {/* handleCartLoading={handleCartLoading} */}
                                 {/* addedServices={addedServices} */}
                                 {/* state={cartChanged} */}
-                                <ServicesList category={city} status={cityData.status} state={cartChanged} addedServices={addedServices}  handleCartLoading={handleCartLoading}/>
+                                <ServicesList category={city} status={cityData.status} state={cartChanged} addedServices={addedServices} handleCartLoading={handleCartLoading} />
                             </div>
                             <div className="lg:w-5/12 cartContainer">
                                 <div className="cart-body-section">
