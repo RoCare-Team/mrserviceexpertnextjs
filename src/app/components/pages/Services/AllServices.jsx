@@ -6,13 +6,15 @@ import React, { useState, useEffect, useCallback } from "react";
 
 const serviceL = [
   //   { id: "ro-service", name: "RO Service", image: RoService },
+
+  // RO Water Purifier, Air Conditioner, Washing Machine, then Other Services (Geyser, Microwave, Refrigerator, LED TV )
+  { id: "water-purifier", service_name: "Ro Water Purifier", image: "/assets/serviceTabIcons/ro installation.webp", link: "" },
   { id: "ac", service_name: "Air Conditioner", image: "/assets/serviceTabIcons/ac uninstalltion.webp", link: "ac" },
   { id: "washing-machine", service_name: "Washing Machine", image: "/assets/serviceTabIcons/washing machine installation.webp", link: "washing-machine-repair" },
-  { id: "water-purifier", service_name: "Ro Water Purifier", image: "/assets/serviceTabIcons/ro installation.webp", link: "" },
+  { id: "microwav-repair", service_name: "Microwave", image: "/assets/serviceTabIcons/microwave installation.webp", link: "microwav-repair" },
   { id: "gyeser", service_name: "Gyeser", image: "/assets/serviceTabIcons/geyser uninstallation.webp", link: "geyser-repair" },
   { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/serviceTabIcons/refrigerator installation.webp", link: "refrigerator-repair" },
   { id: "led-tv-repair", service_name: "Led", image: "/assets/serviceTabIcons/led tv reapair.webp", link: "led-tv-repair" },
-  { id: "microwav-repair", service_name: "Microwave", image: "/assets/serviceTabIcons/microwave installation.webp", link: "microwav-repair" },
   { id: "vaccum-cleaner", service_name: "Vaccum Cleaner", image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp", link: "vacuum-cleaner-repair" }
 
 ];
