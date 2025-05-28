@@ -285,8 +285,8 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
           </Typography>
 
           <Grid container spacing={2}>
-
-          <Grid item xs={12} sm={6}>
+            {/* size={{  xs:6 ,sm:4, md:3,lg:2 }}  item xs={12} sm={6} */}
+          <Grid  size={{  xs:12 ,sm:6 }} >
              <TextField
              id='name'
              label='Name'
@@ -300,7 +300,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
 
             </Grid>
         
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
              <TextField
              id='phone'
              label='Phone Number'
@@ -314,7 +314,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
 
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
              <TextField
              id='alt_address_mob'
              label='Alternate Phone'
@@ -327,7 +327,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
             </Grid>
 
 
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <TextField
                 id="pincode"
                 label="PinCode"
@@ -342,7 +342,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 helperText={message || "Enter 6-digit pincode to auto-fill location"}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <FormControl fullWidth required>
                 <InputLabel id="state-label">State</InputLabel>
                 <Select
@@ -360,7 +360,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <FormControl fullWidth required>
                 <InputLabel id="city-label">City</InputLabel>
                 <Select
@@ -378,7 +378,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <TextField
                 id="houseNo"
                 label="House No"
@@ -389,7 +389,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <TextField
                 id="street"
                 label="Street"
@@ -400,7 +400,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <TextField
                 id="landmark"
                 label="Famous Landmark"
@@ -411,7 +411,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{  xs:12 ,sm:6 }}>
               <TextField
                 id="full_address"
                 label="Full Address"
