@@ -16,9 +16,9 @@ function Profile() {
     const router=useRouter();
 
     useEffect(()=>{
-        const user = JSON.parse(localStorage.getItem("user")); 
-        if (!user || !user.token) { 
-            router.push('/'); 
+        const userVerified = JSON.parse(localStorage.getItem("userPhone"));
+        if (!userVerified) {
+            router.push('/');
         }
     },[])
 

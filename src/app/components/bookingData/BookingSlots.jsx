@@ -14,10 +14,19 @@ function BookingSlots({ phoneNumber }) {
   const [userName, setUserName] = useState(false);
   const [userEmail, setUserEmail] = useState(false);
 
+  // useEffect(() => {
+  //   setUserEmail(localStorage.getItem('email'));
+  //   setUserName(localStorage.getItem('name'));
+  // }, [])
+
   useEffect(() => {
-    setUserEmail(localStorage.getItem('email'));
-    setUserName(localStorage.getItem('name'));
-  }, [])
+  // Try both key variations to handle all cases
+  const email = localStorage.getItem('userEmail') || localStorage.getItem('email');
+  const name = localStorage.getItem('userName') || localStorage.getItem('name');
+  
+  setUserEmail(email);
+  setUserName(name);
+}, [])
 
 
   // State to track completion status of each step

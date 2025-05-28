@@ -1853,6 +1853,15 @@ hr {
    gap: 10px;
 }
 
+.serviceContentStyle h2{
+  color: #000000;
+  font-weight: bold;
+}
+ 
+.serviceContentStyle h3{
+  font-weight: 600;
+}
+
 .serviceContentStyle a {
  color: #333;
 }
