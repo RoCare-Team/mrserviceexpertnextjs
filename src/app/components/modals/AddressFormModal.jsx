@@ -196,9 +196,9 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
   // console.log(formData.alt_address_mob+'hphph');
   
   const data = await res.json();
-  console.log(data);
+  // console.log(data);
   
-  console.log(JSON.stringify(data.full_address));
+  // console.log(JSON.stringify(data.full_address));
   localStorage.setItem("RecentAddress",JSON.stringify(data.address));
   localStorage.setItem("booking_ads",data.full_address);
   localStorage.setItem("address_id",JSON.stringify(data.address_id));
