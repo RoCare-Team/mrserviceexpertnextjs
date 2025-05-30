@@ -153,16 +153,39 @@ const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_custo
 
 const data = await res.json();
 // console.log(data);
-if(data.error==false){
+// if(data.error==false){
   
-  toast.success(data.msg);
-  localStorage.removeItem("address_id")
-  localStorage.removeItem("bookingTimeSlot")
-  localStorage.removeItem("bookingAddress")
-  localStorage.removeItem("checkoutState")
-  localStorage.removeItem("time_slot")
-  localStorage.removeItem("cart_total_price")
-  window.location.href = `${data.lead_id_for_payment}`
+//   toast.success(data.msg);
+//   localStorage.removeItem("address_id")
+//   localStorage.removeItem("bookingTimeSlot")
+//   localStorage.removeItem("bookingAddress")
+//   localStorage.removeItem("checkoutState")
+//   localStorage.removeItem("time_slot")
+//   localStorage.removeItem("cart_total_price")
+//   window.location.href = `${data.lead_id_for_payment}`
+// }
+if(data.error == false) {
+    toast.success(data.msg);
+    
+  
+    const itemsToRemove = [
+        "address_id",
+        "bookingTimeSlot", 
+        "bookingAddress",
+        "checkoutState",
+        "time_slot",
+        "cart_total_price",
+        "cartItems",
+    ];
+    
+    itemsToRemove.forEach(item => {
+        localStorage.removeItem(item);
+    });
+    
+    setTimeout(() => {
+        window.location.href = data.lead_id_for_payment;
+    }, 100);
+    
 }
 
 

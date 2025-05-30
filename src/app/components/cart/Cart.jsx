@@ -20,12 +20,11 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     const cartdata = localStorage.getItem('checkoutState');
     // console.log(cartdata.leadtype_name[5].cart_dtls[5]);
 
-    console.log(cartdata+'heres all details');
+    // console.log(cartdata+'heres all details');
     
-
     const cartDataArray = cartdata ? JSON.parse(cartdata) || [] : [];
 
-    console.log(cartDataArray);
+    // console.log(cartDataArray);
 
 
     // console.log(cartDataArray.cart_dtls[5]);
@@ -78,10 +77,6 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
     }
 
   };
-
-
-
-
   const onDecrement = async (service_id, type, qunt) => {
     const cid = localStorage.getItem("customer_id");
     const num = Number(qunt);
@@ -161,7 +156,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
   };
 
 
-  console.log(finalTotal);
+  // console.log(finalTotal);
 
 
   return (
@@ -178,7 +173,8 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
       ) : (
         <>
           {cartDataArray?.map((service) => (
-  <div key={service.cart_id} className="max-h-90 overflow-x-auto">
+            // key={service.cart_id}
+  <div key={service.service_id} className="max-h-90 overflow-x-auto">
     <p className="ml-2.5">{service.leadtype_name}</p>
 
     {/* Assuming service.innerArray is the nested array */}
