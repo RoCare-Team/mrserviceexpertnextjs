@@ -184,7 +184,7 @@ export default function ServicePage({ pagedata, city, cat }) {
                   />
                 </div>
               )}
-              <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+              {/* <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
                 loading="eager" width={475} height={345}
                 title={`${pagedata.city_name}  Services`}
                 onLoad={() => setImageLoader(true)}
@@ -194,7 +194,23 @@ export default function ServicePage({ pagedata, city, cat }) {
                   transition: 'opacity 0.5s ease-in-out',
                 }}
 
+              /> */}
+
+              <img
+                src={`/assets/categorybanner/${pagedata.banner}`}
+                alt={`${pagedata.city_name} Services`}
+                width={475}
+                height={345}
+                loading="eager"
+                onLoad={() => setImageLoader(true)}
+                style={{
+                  borderRadius: '17px',
+                  width: '100%',
+                  opacity: imageLoader ? 1 : 0,
+                  transition: 'opacity 0.5s ease-in-out',
+                }}
               />
+
 
             </div>
             <Tabs />
@@ -221,7 +237,7 @@ export default function ServicePage({ pagedata, city, cat }) {
 
                   </div>
                 )}
-                <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
+                {/* <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
                   loading="eager" width={475} height={345}
                   title={`${pagedata.city_name}  Services`}
                   onLoad={() => setImageLoader(true)}
@@ -230,7 +246,22 @@ export default function ServicePage({ pagedata, city, cat }) {
                     opacity: imageLoader ? 1 : 0,
                     transition: 'opacity 0.5s ease-in-out',
                   }}
+                /> */}
+                <img
+                  src={`/assets/categorybanner/${pagedata.banner}`}
+                  alt={`${pagedata.city_name} Services`}
+                  width={475}
+                  height={345}
+                  loading="eager"
+                  onLoad={() => setImageLoader(true)}
+                  style={{
+                    borderRadius: '17px',
+                    width: '100%',
+                    opacity: imageLoader ? 1 : 0,
+                    transition: 'opacity 0.5s ease-in-out',
+                  }}
                 />
+
               </div>
 
               <ServicesList

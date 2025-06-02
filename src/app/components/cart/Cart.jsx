@@ -32,11 +32,14 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
 setFinalTotal(localStorage.getItem('cart_total_price'));
 
-    // const finalTotal = cartDataArray
-    //   .map(item => Number(item.total_cart_price)) // Convert string to number
-    //   .reduce((acc, price) => acc + price, 0); // Sum up prices
+    const finalTotal = cartDataArray
+      .map(item => Number(item.total_main)) // Convert string to number
+      .reduce((acc, price) => acc + price, 0); // Sum up prices
 
-    // setFinalTotal(finalTotal);
+    setFinalTotal(finalTotal);
+
+    // const price_discount=cartDataArray.map(item => Number(item.total_cart_price)).reduce((acc, price) => acc + price, 0);
+    // alert(price_discount)
 
     setCartDataArray(cartDataArray);
   }
@@ -66,7 +69,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
       const data = await res.json();
       localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_price);
+      localStorage.setItem('cart_total_price',data.total_main);
 
       displayCartData();
       toast.success(data.msg);
@@ -96,7 +99,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
       const data = await res.json();
       // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
       localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_price== null ? 0 : data.total_price);
+      localStorage.setItem('cart_total_price',data.total_main== null ? 0 : data.total_main);
       if(quantity===0){
         const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
         const updatedCartItems = oldCartItems.filter(id => id !== service_id);
@@ -138,7 +141,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
     // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
    
     localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_price== null ? 0 : data.total_price);
+      localStorage.setItem('cart_total_price',data.total_main== null ? 0 : data.total_main);
       const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
       const updatedCartItems = oldCartItems.filter(id => id !== service_id);
       console.log("cart remove" + updatedCartItems);

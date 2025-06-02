@@ -162,14 +162,14 @@ function AddressModal({ onAddressSelected, addressOpen, setAddressOpen }) {
                 sx={{ mb: 2 }}
               />
 
-              <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap={'wrap'}>
-                <Button
+              <Box display="flex" justifyContent="end" alignItems="center" flexWrap={'wrap'}>
+                {/* <Button
                   startIcon={<LocationOnIcon />}
                   onClick={handleCurrentLocation}
                   sx={{ color: '#8a2be2', textTransform: 'none' }}
                 >
                   Use Current Location
-                </Button>
+                </Button> */}
 
                 <Button
                   variant="outlined"
@@ -190,34 +190,11 @@ function AddressModal({ onAddressSelected, addressOpen, setAddressOpen }) {
               </Typography>
 
               <Grid container spacing={2}>
-                {/* <Grid item xs={12}>
-                  <Paper 
-                    elevation={0}
-                    variant="outlined"
-                    sx={{ 
-                      p: 2, 
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: '#f5f5f5' }
-                    }}
-                    
-                  > */}
-                {/* <Typography variant="subtitle1" fontWeight={500}>
-                      Home
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                     
-                    </Typography> */}
-
-
-                {/* </Paper>
-                </Grid> */}
+              
 
                 {RecentAddress.map((city, index) => {
                   return (
-                    //       <Typography variant='span' key={index}>
-                    //       {city.address}  sx={{marginBottom:'20px'}}
-                    // </Typography>
-                    <Grid item xs={12} md={12} lg={12} key={index}   >
+                    <Grid   size={{xs:12,md:12,lg:12}}  key={index}   >
                       <Paper
                         elevation={0}
                         variant="outlined"
@@ -238,48 +215,23 @@ function AddressModal({ onAddressSelected, addressOpen, setAddressOpen }) {
                           sx={{
                             p: 1,
                             cursor: 'pointer',
-                            // border: '1px solid gray',
-                            // borderRadius: '15px',
-                            // marginBottom: '10px',
-
-                            // gap: '30px',
-
-                            // '&:hover': { backgroundColor: '#f5f5f5' },
-                            // '&:focus':{background:'#f5f5f5'}
+                           
                           }}>
 
                           {city.flat_no},{city.landmark},{city.area},{city.state},{city.city},{city.pincode},{city.address_id}
                         </Typography>
-                        <Typography variant='span' sx={{
+                        {/* <Typography variant='span' sx={{
                             p: 1,
                             cursor: 'pointer',
                           }}>
                           Edit
-                        </Typography>
+                        </Typography> */}
                       </Paper>
                     </Grid>
                   )
                 })}
 
-                {/* <Grid item xs={12}>
-                  <Paper 
-                    elevation={0}
-                    variant="outlined"
-                    sx={{ 
-                      p: 2, 
-                      cursor: 'pointer',
-                      '&:hover': { backgroundColor: '#f5f5f5' }
-                    }}
-                    onClick={() => handleSelectAddress(savedAddresses.office)}
-                  >
-                    <Typography variant="subtitle1" fontWeight={500}>
-                      Office
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {savedAddresses.office}
-                    </Typography>
-                  </Paper>
-                </Grid> */}
+               
               </Grid>
             </Box>
           </DialogContent>
