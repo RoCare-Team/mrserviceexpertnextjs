@@ -216,9 +216,9 @@ export default function ServicePage({ pagedata, city, cat }) {
             <Tabs />
           </div>
         </div>
-        <div className="right-side lg:w-3/4">
+        <div className="right-side lg:w-3/4 w-full">
           <div className="rightSidePortion justify-center">
-            <div className="lg:w-1/2">
+            <div className="lg:w-1/2 w-full">
               <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
               <div className="desktopBanner mb-3.5 flex items-center justify-center relative  ">
                 {!imageLoader && (
