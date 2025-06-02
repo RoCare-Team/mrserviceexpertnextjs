@@ -30,107 +30,107 @@ const CheckOut = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [bookingAddress, setBookingAddress] = useState(false);
     const [bookingTimeSlot, setBookingTimeSlot] = useState(false);
-     const [cartDataArray, setCartDataArray] = useState([]);
-      const [finalTotal, setFinalTotal] = useState(0);
+    const [cartDataArray, setCartDataArray] = useState([]);
+    const [finalTotal, setFinalTotal] = useState(0);
 
-    const displayCartData=()=>{
+    const displayCartData = () => {
         const cartdata = localStorage.getItem('checkoutState');
-    
+
         // console.log(cartdata);
-    
+
         const cartDataArray = cartdata ? JSON.parse(cartdata) : [];
         setCartDataArray(cartDataArray);
-    
-    
+
+
         setFinalTotal(localStorage.getItem('cart_total_price'));
     }
-    
-    
-    
-    
-        // Load initial data
-        useEffect(() => {
-            // loadCartData();
+
+
+
+
+    // Load initial data
+    useEffect(() => {
+        // loadCartData();
+        displayCartData();
+
+        // Check login status
+        const userToken = localStorage.getItem('userToken');
+        const userPhone = localStorage.getItem('userPhone');
+
+        setIsLoggedIn(!!userToken);
+        if (userPhone) setPhoneNumber(userPhone);
+    }, []);
+
+
+
+
+
+
+
+
+    // Increment and Decrement handlers
+    const onIncrement = async (service_id, type, qunt) => {
+        const cid = localStorage.getItem("customer_id");
+        const num = Number(qunt);
+        const quantity = num + 1;
+
+        if (quantity <= 5) {
+            const payload = { service_id, type, cid, quantity };
+            // console.log(JSON.stringify(payload));
+
+            const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+            localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
+            localStorage.setItem('cart_total_price', data.total_price);
+            // window.location.reload();
+            // console.log(data);
+
             displayCartData();
-    
-            // Check login status
-            const userToken = localStorage.getItem('userToken');
-            const userPhone = localStorage.getItem('userPhone');
-    
-            setIsLoggedIn(!!userToken);
-            if (userPhone) setPhoneNumber(userPhone);
-        }, []);
-    
-      
-      
-    
-      
-    
-    
-    
-        // Increment and Decrement handlers
-        const onIncrement = async (service_id, type, qunt) => {
-            const cid = localStorage.getItem("customer_id");
-            const num = Number(qunt);
-            const quantity = num + 1;
-    
-            if (quantity <= 5) {
-                const payload = { service_id, type, cid, quantity };
-                // console.log(JSON.stringify(payload));
-    
-                const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-    
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-    
-                const data = await res.json();
-                localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-                localStorage.setItem('cart_total_price',data.total_price);
-                // window.location.reload();
-                // console.log(data);
-    
-                displayCartData();
-                toast.success(data.msg);
-            } else {
-                toast.error("You can't add more than 5 items");
-            }
-    
-        };
-    
-    
-    
-    
-        const onDecrement = async (service_id, type, qunt) => {
-            const cid = localStorage.getItem("customer_id");
-            const num = Number(qunt);
-            const quantity = num - 1;
-    
-            if (quantity <= 5) {
-                const payload = { service_id, type, cid, quantity };
-                // console.log(JSON.stringify(payload));
-    
-                const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-    
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-    
-                const data = await res.json();
-                // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
-                localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
-          localStorage.setItem('cart_total_price', data.total_price == null ? 0 : data.total_price);
-                displayCartData();
-                toast.success(data.msg);
-    
-    
-            } else {
-                toast.success(data.msg);
-            }
-    
-        };
+            toast.success(data.msg);
+        } else {
+            toast.error("You can't add more than 5 items");
+        }
+
+    };
+
+
+
+
+    const onDecrement = async (service_id, type, qunt) => {
+        const cid = localStorage.getItem("customer_id");
+        const num = Number(qunt);
+        const quantity = num - 1;
+
+        if (quantity <= 5) {
+            const payload = { service_id, type, cid, quantity };
+            // console.log(JSON.stringify(payload));
+
+            const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await res.json();
+            // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
+            localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+            localStorage.setItem('cart_total_price', data.total_price == null ? 0 : data.total_price);
+            displayCartData();
+            toast.success(data.msg);
+
+
+        } else {
+            toast.success(data.msg);
+        }
+
+    };
 
     // //   console.log(updatedServices+'this being increase');
 
@@ -268,21 +268,21 @@ const CheckOut = () => {
                         {cartDataArray?.length > 0 ? (
                             <div className="checkOutOrder">
                                 <div>
-                                {cartDataArray?.map((service) => (
-  <div key={service.cart_id}>
-    <p>{service.leadtype_name}</p>
-                                    {service.cart_dtls.map((service) => (
-                                        <div key={service.service_id} className="checkout-item service-card2 flex items-center">
-                                            <div className="problemIcon">
-                                                <img src={service.image} alt={service.service_name} />
-                                            </div>
-                                            <div>
-                                                <p className="mb-0">{service.service_name}</p>
-                                                {/* <p className="text-xs text-gray-300">{service.briefInfo}</p> */}
-                                                <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: service.description }}></p>
+                                    {cartDataArray?.map((service) => (
+                                        <div key={service.cart_id}>
+                                            <p>{service.leadtype_name}</p>
+                                            {service.cart_dtls.map((service) => (
+                                                <div key={service.service_id} className="checkout-item service-card2 flex items-center">
+                                                    <div className="problemIcon">
+                                                        <img src={service.image} alt={service.service_name} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="mb-0">{service.service_name}</p>
+                                                        {/* <p className="text-xs text-gray-300">{service.briefInfo}</p> */}
+                                                        <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: service.description }}></p>
 
 
-                                                {/* {service.details && (
+                                                        {/* {service.details && (
                                                     <div className="appliance-details text-sm text-gray-600 mt-1 flex flex-wrap gap-2">
                                                         {service.details.brand && (
                                                             <span><strong>Brand:</strong> {service.details.brand},</span>
@@ -318,30 +318,30 @@ const CheckOut = () => {
                                                         )}
                                                     </div>
                                                 )} */}
-                                            </div>
-                                            <div className="flex items-center flex-col">
+                                                    </div>
+                                                    <div className="flex items-center flex-col">
 
-                                                <div>
-                                                    <p className="text-xs text-gray-700 mb-1"> ₹{service.price}</p>
-                                                    {/* <p className="text-xs text-gray-700"> ₹{service.price} x {service.quantity || 1}</p> */}
+                                                        <div>
+                                                            <p className="text-xs text-gray-700 mb-1"> ₹{service.price}</p>
+                                                  
+                                                        </div>
+                                                        <div className="quantity-control">
+                                                            <button className="IncrementDcrementBtn" onClick={() => onDecrement(service.service_id, 'delete', service.quantity)}>
+                                                                -
+                                                            </button>
+                                                            <span>{service.quantity || 1}</span>
+                                                            <button className="IncrementDcrementBtn" onClick={() => onIncrement(service.service_id, 'add', service.quantity)}>
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+
+
                                                 </div>
-                                                <div className="quantity-control">
-                                                    <button className="IncrementDcrementBtn" onClick={() => onDecrement(service.service_id, 'delete', service.quantity)}>
-                                                        -
-                                                    </button>
-                                                    <span>{service.quantity || 1}</span>
-                                                    <button className="IncrementDcrementBtn" onClick={() => onIncrement(service.service_id, 'add', service.quantity)}>
-                                                        +
-                                                    </button>
-                                                </div>
-                                            </div>
-
-
-
+                                            ))}
                                         </div>
                                     ))}
-                                     </div>
-))}
                                 </div>
 
                                 <div className='p-3 bg-white rounded-lg shadow'>

@@ -309,6 +309,8 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
              required
              value={formData.phone}
              onChange={handleInputChange}
+           slotProps={{ htmlInput: { maxLength: 10 } }}
+            
             
              />
 
@@ -322,6 +324,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
              fullWidth
              value={formData.alt_address_mob}
              onChange={handleInputChange}
+             slotProps={{ htmlInput: { maxLength: 10 } }}
              />
 
             </Grid>
@@ -336,6 +339,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 fullWidth
                 value={formData.pincode}
                 onChange={handlePincodeChange}
+                slotProps={{ htmlInput: { maxLength: 6 } }}
                 InputProps={{
                   endAdornment: loading ? <CircularProgress size={20} /> : null
                 }}
