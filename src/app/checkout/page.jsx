@@ -282,7 +282,7 @@ const CheckOut = () => {
                                 <h3 className="mb-4 text-xl">Delivery Address</h3>
                                 <BookingSlots phoneNumber={phoneNumber} />
 
-                                <div className="cancellation-section">
+                                <div className="cancellation-section  hidden lg:block xl:block">
                                     <h3 className="mb-4 text-xl">Cancellation policy</h3>
                                     <p>Free cancellations if done more than 12 hrs before the service or if a professional isn’t assigned. A fee will be charged otherwise.</p>
                                     <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black"><button>Read Full Privacy </button></a>
@@ -339,6 +339,12 @@ const CheckOut = () => {
                                     ))}
                                 </div>
 
+ <div className="cancellation-section block md:hidden   ">
+                                    <h3 className="mb-4 text-xl">Cancellation policy</h3>
+                                    <p>Free cancellations if done more than 12 hrs before the service or if a professional isn’t assigned. A fee will be charged otherwise.</p>
+                                    <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black"><button>Read Full Privacy </button></a>
+
+                                </div>
                                 <div className='p-3 bg-white rounded-lg shadow hidden'>
                                     <div>
                                         <h4>Payment summary</h4>
