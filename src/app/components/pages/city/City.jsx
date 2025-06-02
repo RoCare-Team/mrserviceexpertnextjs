@@ -10,93 +10,182 @@ import HomeCareService from "../../servicesSection/homeCareService";
 import Cart from "../../cart/Cart";
 
 
-const schemeForCity={
-  "@context": "https://schema.org",
-  "@type": "Service",
-  "name": "Home Appliance Repair and Installation Services in Gurgaon",
-  "url": "https://www.mrserviceexpert.com/gurgaon",
-  "description": "Mr. Service Expert provides reliable and professional home appliance repair and installation services in Gurgaon, including AC, RO, washing machine, refrigerator, LED TV, geyser, microwave, and vacuum cleaner services.",
-  "provider": {
-    "@type": "Organization",
-    "name": "Mr. Service Expert",
-    "url": "https://www.mrserviceexpert.com",
-    "logo": "https://www.mrserviceexpert.com/assets/images/serviceLogo.webp",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Gurgaon",
-      "addressRegion": "Haryana",
-      "addressCountry": "IN"
+// const schemeForCity={
+//   "@context": "https://schema.org",
+//   "@type": "Service",
+//   "name": "Home Appliance Repair and Installation Services in Gurgaon",
+//   "url": "https://www.mrserviceexpert.com/gurgaon",
+//   "description": "Mr. Service Expert provides reliable and professional home appliance repair and installation services in Gurgaon, including AC, RO, washing machine, refrigerator, LED TV, geyser, microwave, and vacuum cleaner services.",
+//   "provider": {
+//     "@type": "Organization",
+//     "name": "Mr. Service Expert",
+//     "url": "https://www.mrserviceexpert.com",
+//     "logo": "https://www.mrserviceexpert.com/assets/images/serviceLogo.webp",
+//     "address": {
+//       "@type": "PostalAddress",
+//       "addressLocality": "Gurgaon",
+//       "addressRegion": "Haryana",
+//       "addressCountry": "IN"
+//     },
+//     "contactPoint": {
+//       "@type": "ContactPoint",
+//       "telephone": "+9311587715",
+//       "contactType": "Customer Service",
+//       "availableLanguage": ["Hindi", "English"]
+//     }
+//   },
+//   "areaServed": {
+//     "@type": "Place",
+//     "name": "Gurgaon"
+//   },
+//   "serviceType": [
+//     "RO Installation",
+//     "AC Uninstallation",
+//     "Washing Machine Installation",
+//     "Microwave Installation",
+//     "Geyser Uninstallation",
+//     "Refrigerator Installation",
+//     "LED TV Repair",
+//     "Vacuum Cleaner Repair"
+//   ],
+//   "image": [
+//     "https://www.mrserviceexpert.com/assets/cityBanner/Front%20Banner.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/ro%20installation.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/ac%20uninstalltion.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/washing%20machine%20installation.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/microwave%20installation.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/geyser%20uninstallation.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/refrigerator%20installation.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/led%20tv%20reapair.webp",
+//     "https://www.mrserviceexpert.com/assets/serviceTabIcons/vaccum%20cleaner%20repair%20service.webp"
+//   ],
+//   "aggregateRating": {
+//     "@type": "AggregateRating",
+//     "ratingValue": "4.5",
+//     "reviewCount": "1850"
+//   },
+//   "review": [
+//     {
+//       "@type": "Review",
+//       "author": {
+//         "@type": "Person",
+//         "name": "Ritika Singh"
+//       },
+//       "reviewRating": {
+//         "@type": "Rating",
+//         "ratingValue": "5",
+//         "bestRating": "5"
+//       },
+//       "reviewBody": "Excellent service and quick response. My AC uninstallation was handled professionally.",
+//       "datePublished": "2025-05-20"
+//     },
+//     {
+//       "@type": "Review",
+//       "author": {
+//         "@type": "Person",
+//         "name": "Aditya Verma"
+//       },
+//       "reviewRating": {
+//         "@type": "Rating",
+//         "ratingValue": "4.5",
+//         "bestRating": "5"
+//       },
+//       "reviewBody": "Technician was punctual and fixed the washing machine issue efficiently. Highly recommended!",
+//       "datePublished": "2025-05-25"
+//     }
+//   ]
+// };
+
+const generateSchemaForCity = (cityData) => {
+  const cityName = cityData?.city_name ;
+  const cityUrl = cityData?.city_url || cityName.toLowerCase();
+  
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "name": `Home Appliance Repair and Installation Services in ${cityName}`,
+    "url": `https://www.mrserviceexpert.com/${cityUrl}`,
+    "description": `Mr. Service Expert provides reliable and professional home appliance repair and installation services in ${cityName}, including AC, RO, washing machine, refrigerator, LED TV, geyser, microwave, and vacuum cleaner services.`,
+    "provider": {
+      "@type": "Organization",
+      "name": "Mr. Service Expert",
+      "url": "https://www.mrserviceexpert.com",
+      "logo": "https://www.mrserviceexpert.com/assets/images/serviceLogo.webp",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": cityName,
+        "addressRegion": cityData?.state , // Make state dynamic too
+        "addressCountry": "IN"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+9311587715",
+        "contactType": "Customer Service",
+        "availableLanguage": ["Hindi", "English"]
+      }
     },
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "telephone": "+9311587715",
-      "contactType": "Customer Service",
-      "availableLanguage": ["Hindi", "English"]
-    }
-  },
-  "areaServed": {
-    "@type": "Place",
-    "name": "Gurgaon"
-  },
-  "serviceType": [
-    "RO Installation",
-    "AC Uninstallation",
-    "Washing Machine Installation",
-    "Microwave Installation",
-    "Geyser Uninstallation",
-    "Refrigerator Installation",
-    "LED TV Repair",
-    "Vacuum Cleaner Repair"
-  ],
-  "image": [
-    "https://www.mrserviceexpert.com/assets/cityBanner/Front%20Banner.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/ro%20installation.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/ac%20uninstalltion.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/washing%20machine%20installation.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/microwave%20installation.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/geyser%20uninstallation.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/refrigerator%20installation.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/led%20tv%20reapair.webp",
-    "https://www.mrserviceexpert.com/assets/serviceTabIcons/vaccum%20cleaner%20repair%20service.webp"
-  ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.5",
-    "reviewCount": "1850"
-  },
-  "review": [
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Ritika Singh"
-      },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Excellent service and quick response. My AC uninstallation was handled professionally.",
-      "datePublished": "2025-05-20"
+    "areaServed": {
+      "@type": "Place",
+      "name": cityName
     },
-    {
-      "@type": "Review",
-      "author": {
-        "@type": "Person",
-        "name": "Aditya Verma"
+    "serviceType": [
+      "RO Installation",
+      "AC Uninstallation", 
+      "Washing Machine Installation",
+      "Microwave Installation",
+      "Geyser Uninstallation",
+      "Refrigerator Installation",
+      "LED TV Repair",
+      "Vacuum Cleaner Repair"
+    ],
+    "image": [
+      "https://www.mrserviceexpert.com/assets/cityBanner/Front%20Banner.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/ro%20installation.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/ac%20uninstalltion.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/washing%20machine%20installation.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/microwave%20installation.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/geyser%20uninstallation.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/refrigerator%20installation.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/led%20tv%20reapair.webp",
+      "https://www.mrserviceexpert.com/assets/serviceTabIcons/vaccum%20cleaner%20repair%20service.webp"
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue":  "4.5",
+      "reviewCount":  "1850"
+    },
+    "review": cityData?.reviews || [
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "Ritika Singh"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": `Excellent service and quick response. My AC uninstallation was handled professionally in ${cityName}.`,
+        "datePublished": "2025-05-20"
       },
-      "reviewRating": {
-        "@type": "Rating",
-        "ratingValue": "4.5",
-        "bestRating": "5"
-      },
-      "reviewBody": "Technician was punctual and fixed the washing machine issue efficiently. Highly recommended!",
-      "datePublished": "2025-05-25"
-    }
-  ]
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person", 
+          "name": "Aditya Verma"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "4.5",
+          "bestRating": "5"
+        },
+        "reviewBody": `Technician was punctual and fixed the washing machine issue efficiently in ${cityName}. Highly recommended!`,
+        "datePublished": "2025-05-25"
+      }
+    ]
+  };
 };
-
-
 
 
 
@@ -170,7 +259,7 @@ const City = ({ city, cityData }) => {
             <>
              <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemeForCity) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(generateSchemaForCity(cityData)) }}
         />
             <div>
                 <div className="services-page common-spacing">
