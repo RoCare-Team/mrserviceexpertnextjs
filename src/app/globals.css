@@ -1066,7 +1066,7 @@ hr {
   align-items: center;
   justify-content: center;
   border-radius: 14px;
-  width: 375px;
+  width: 275px;
 }
 
 .blog-card-content a {
@@ -1078,10 +1078,10 @@ hr {
 }
 
 .blog-card-content {
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px
 }
 
 .blog-card-style:hover {
@@ -1884,9 +1884,9 @@ hr {
   border-radius: 9px;
 }
 
-.blog-img-section {
+/* .blog-img-section {
   width: 55%;
-}
+} */
 .booking-container{
   border-radius: 12px 12px 0px 0px;
 }
