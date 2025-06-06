@@ -19,6 +19,7 @@ export default function ServicePage({ pagedata, city, cat }) {
   const [cartLoaded, setCartLoaded] = useState(false);
   const [imageLoader, setImageLoader] = useState(false);
   const ifAcSchema = cat === 'ac';
+  const ifRoSChema= cat === 'ro-water-purifier';
 
 
   const handleCartLoading = () => {
@@ -270,6 +271,130 @@ export default function ServicePage({ pagedata, city, cat }) {
         </>
       )}
 
+ {ifRoSChema && (
+  <>
+ <script
+  id="ro-breadcrumb-schema"
+  type="application/ld+json"
+  strategy="afterInteractive"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "name": `RO Water Purifier Service ${city} Breadcrumbs`,
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Kent RO Service",
+          "item": `https://www.mrserviceexpert.com/${city}/kent/ro-water-purifier`
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Pureit RO Service",
+          "item": `https://www.mrserviceexpert.com/${city}/pureit/ro-water-purifier`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Aquafresh RO Service",
+          "item": `https://www.mrserviceexpert.com/${city}/aquafresh/ro-water-purifier`
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Livpure RO Service",
+          "item": `https://www.mrserviceexpert.com/${city}/livpure/ro-water-purifier`
+        }
+      ]
+    })
+  }}
+/>
+
+<script
+  id="ro-service-schema"
+  type="application/ld+json"
+  strategy="afterInteractive"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": `RO Service ${city}`,
+      "serviceType": ["RO Service", "RO Repair", "RO Installation"],
+      "url": `https://www.mrserviceexpert.com/${city}/ro-water-purifier`,
+      "areaServed": {
+        "@type": "Place",
+        "name": `${city}`
+      },
+      "description": `Mr Service Expert offers professional RO water purifier services in ${city}, including installation, repair, and maintenance. We service all major RO brands with fast, reliable, and affordable doorstep support.`
+    })
+  }}
+/>
+
+<script
+  id="ro-faq-schema"
+  type="application/ld+json"
+  strategy="afterInteractive"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": `What are the RO water purifier service charges in ${city}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Mainly RO service charges in ${city} start at ₹299 and may vary depending on the type of service—installation, repair, or filter replacement.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How can I book RO water purifier service with Mr Service Expert?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Booking is very easy. Just call us at +91 9311587715 or visit our website to book your service. We’ll confirm your appointment and send a technician to your doorstep in ${city}.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": `Do you provide both RO installation and repair services in ${city}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Yes, Mr Service Expert offers complete RO solutions, including installation, repair, maintenance, and filter replacements for all major brands.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": `Where can I find reliable RO service near me in ${city}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `If you're in ${city}, Mr Service Expert is a trusted name for doorstep RO service with trained technicians and transparent pricing.`
+          }
+        },
+        {
+          "@type": "Question",
+          "name": `Why choose Mr Service Expert over other RO service providers in ${city}?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": `Mr Service Expert stands out for its skilled and experienced technicians, transparent pricing starting at ₹299, and quick, reliable doorstep service.`
+          }
+        }
+      ]
+    })
+  }}
+/>
+
+   {/*organisation schema*/}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({"@context":"https://schema.org","@type":"Organization","name":"Mr Service Expert","url":"https://www.mrserviceexpert.com","logo":"https://www.mrserviceexpert.com/assets/images/serviceLogo.webp","aggregateRating":{"@type":"AggregateRating","ratingValue":4.8,"reviewCount":173078,"worstRating":1},"contactPoint":{"@type":"ContactPoint","telephone":"+91-9311587715","contactType":"Customer Service","areaServed":"IN","availableLanguage":["English","Hindi"]},"sameAs":["https://www.facebook.com/mrserviceexpert","https://www.linkedin.com/company/mr-service-expert/","https://twitter.com/mrserviceexper4/"],"address":{"@type":"PostalAddress","streetAddress":"8th Floor, Head Office, JMD MEGAPOLIS, Sector 48","addressLocality":"Gurgaon","addressRegion":"Haryana","postalCode":"122018","addressCountry":"IN"},"description":"Mr Service Expert is a trusted name in home appliance repair across India. We provide reliable RO Water purifiers Repair &, AC repair & services, refrigerators service, washing machines service, geysers service, and more"})
+            }}
+          />
+  </>
+ )}
       <div className=" ">
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
