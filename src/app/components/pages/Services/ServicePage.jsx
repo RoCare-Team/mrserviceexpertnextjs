@@ -399,7 +399,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
-              <h1 className="cityHeadings"> {pagedata.city_name}'s Top Picks: Most Loved Services by Our Customers!</h1>
+              <h1 className="cityHeadings font-bold">{` Get best  ${pagedata.category_name}  Services in ${pagedata.city_name}`}</h1>
               <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
                 {!imageLoader && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -452,7 +452,7 @@ export default function ServicePage({ pagedata, city, cat }) {
           <div className="right-side lg:w-3/4 w-full">
             <div className="rightSidePortion justify-center">
               <div className="lg:w-1/2 w-full">
-                <h2 className="ml-2.5 mt-1.5 headingTitle"><b>Services in {pagedata.city_name}</b></h2>
+                <h2 className="ml-2.5 mt-1.5 headingTitle mb-1">{pagedata.city_name}'s Top Picks: Most Loved Services by Our Customers!</h2>
                 <div className="desktopBanner mb-3.5 flex items-center justify-center relative  ">
                   {!imageLoader && (
                     <div className="absolute inset-0 flex items-center justify-center">
