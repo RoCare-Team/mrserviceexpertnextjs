@@ -216,7 +216,8 @@ const City = ({ city, cityData }) => {
                 <div className="services-page common-spacing">
                     <div className="left-side lg:w-1/4 flex-col mb-1.5">
                         <div className="sticky top-20">
-                            <h1 className="cityHeadings"><b>Get Best {cityData?.categorydetail?.category_name} Services</b></h1>
+                            {/* ${pagedata.category_name?.replace("Service", "")} */}
+                            <h1 className="cityHeadings"><b>Get Best {cityData?.categorydetail?.category_name?.replace("Service", "")} Service</b></h1>
                             <div className="mobileBanner mb-3   ">
                                 {/* <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
