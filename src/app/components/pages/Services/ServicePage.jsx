@@ -399,7 +399,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
-              <h1 className="cityHeadings font-bold">{` Get best  ${pagedata.category_name}  Services in ${pagedata.city_name}`}</h1>
+              <h1 className="cityHeadings font-bold">{`Get best ${pagedata.category_name?.replace("Service", "")} Service in ${pagedata.city_name}`}</h1>
               <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
                 {!imageLoader && (
                   <div className="absolute inset-0 flex items-center justify-center">
