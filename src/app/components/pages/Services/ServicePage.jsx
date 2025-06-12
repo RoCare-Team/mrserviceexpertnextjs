@@ -20,6 +20,7 @@ export default function ServicePage({ pagedata, city, cat }) {
   const [imageLoader, setImageLoader] = useState(false);
   const ifAcSchema = cat === 'ac';
   const ifRoSChema= cat === 'ro-water-purifier';
+  
 
 
   const handleCartLoading = () => {
