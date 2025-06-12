@@ -5,7 +5,6 @@ import ServiceSection from '../app/components/servicesSection/servicesSection';
 import HomeCareService from './components/servicesSection/homeCareService';
 
 const home = () => {
-  
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
@@ -228,15 +227,9 @@ const home = () => {
               </div>
             </div>
 
-            {/* <div className='heroContact'>
-               <span><a href="tel:+91 9311587744" title='For calling contact +91 9311587744'><button className='book-btn-style' aria-label="Open menu">Call Now</button></a> for reliable home appliance care that protects what matters most  </span> 
-            </div> */}
           </div>
         </div>
 
-        {/* <div className=' serviceBannerSection'>
-          <img src="assets/images/home-appliaces.webp" alt='home-appliances' className='serviceBanner'  title='home-appliances' height="auto" width={1314} />
-        </div> */}
 
         <div className='my-8'>
           <ServiceSection />
@@ -246,16 +239,13 @@ const home = () => {
           <HomeCareService/>
         </div>
 
-        {/* <div className='my-8'>
-          <ServiceSection />
-        </div> */}
 
         <div>
-          {/* <h3>Explore Our Services</h3> */}
+         
           <div className="pt-2 pb-2" style={{
             display: 'none'
           }}>
-            {/* <Slider /> */}
+          
           </div>
 
           <div>
@@ -362,23 +352,6 @@ const home = () => {
           </div>
         </div>
        
-        {/* reviewer section */}
-        {/* <div >
-          {reviewer.map((reviews) => (
-            <div key={reviews.id} className='bg-white flex justify-start items-start p-4 flex-col lg:w-2xs reviewerBody'>
-             <div>
-             {reviews.reviewerName} | {reviews.reviewerLocation}
-
-          
-             
-             </div>
-            <div className=''>
-              {reviews.reviewerContent}
-            </div>
-          </div>
-          ))}
-        </div> */}
-
       </div>
     </>
   )
