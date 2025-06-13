@@ -662,7 +662,156 @@ export default function ServicePage({ pagedata, city, cat }) {
                   </div>
                 )}
               </div>
+  
 
+  {cat === "ro-water-purifier" && (
+  <>
+    {/* FAQ Item 6 */}
+    <div className="border rounded-xl overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setOpenItem(openItem === 6 ? null : 6)}
+        className="w-full p-4 text-left flex justify-between items-center"
+      >
+        <span className="font-medium text-gray-800 text-[15px]">
+          What Are the Signs That My RO Water Purifier Needs Immediate Service in {city}?
+        </span>
+        <svg
+          className={`w-5 h-5 text-purple-600 transform transition-transform ${
+            openItem === 6 ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {openItem === 6 && (
+        <div className="p-4 bg-white border-t border-purple-100">
+          <p className="text-gray-600 text-[15px]">
+            Over time, your RO system may show signs such as an unusual taste or odor in the water, slow filtration, or leakage. If you are in {city} and are noticing any of these symptoms, it's time to book a professional RO service to ensure clean and safe drinking water.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* FAQ Item 7 */}
+    <div className="border rounded-xl overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setOpenItem(openItem === 7 ? null : 7)}
+        className="w-full p-4 text-left flex justify-between items-center"
+      >
+        <span className="font-medium text-gray-800 text-[15px]">
+          Why and when should I get RO service in {city}?
+        </span>
+        <svg
+          className={`w-5 h-5 text-purple-600 transform transition-transform ${
+            openItem === 7 ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {openItem === 7 && (
+        <div className="p-4 bg-white border-t border-purple-100">
+          <p className="text-gray-600 text-[15px]">
+            In {city}, regular RO service is important due to high TDS levels, water hardness and seasonal contamination - especially during monsoons and summers. Getting your RO purifier serviced every 3 to 6 months helps maintain water quality, improve filtration performance, prevent bad taste or odour, and extend the life of the purifier. Timely maintenance also reduces the risk of health problems caused by unfiltered or impure water.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* FAQ Item 8 */}
+    <div className="border rounded-xl overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setOpenItem(openItem === 8 ? null : 8)}
+        className="w-full p-4 text-left flex justify-between items-center"
+      >
+        <span className="font-medium text-gray-800 text-[15px]">
+          What Is the Cost of RO Service in {city}?
+        </span>
+        <svg
+          className={`w-5 h-5 text-purple-600 transform transition-transform ${
+            openItem === 8 ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {openItem === 8 && (
+        <div className="p-4 bg-white border-t border-purple-100">
+          <p className="text-gray-600 text-[15px]">
+            RO servicing in {city} starts at ₹399 with Mr. Service Expert. This includes a doorstep visit, inspection, and basic servicing by certified technicians. If any filters or parts need replacement, charges are communicated transparently before proceeding. We offer same-day service, cover all major RO brands, and ensure no hidden fees — trusted by thousands across {city} for reliable RO care, only at Mr. Service Expert.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* FAQ Item 9 */}
+    <div className="border rounded-xl overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setOpenItem(openItem === 9 ? null : 9)}
+        className="w-full p-4 text-left flex justify-between items-center"
+      >
+        <span className="font-medium text-gray-800 text-[15px]">
+          Does Mr. Service Expert Provide RO Service for Kent, Aquaguard, and Livpure in {city}?
+        </span>
+        <svg
+          className={`w-5 h-5 text-purple-600 transform transition-transform ${
+            openItem === 9 ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {openItem === 9 && (
+        <div className="p-4 bg-white border-t border-purple-100">
+          <p className="text-gray-600 text-[15px]">
+            Yes, Mr. Service Expert offers certified RO service in {city} for all major brands including Kent, Aquaguard, Pureit, Livpure, AO Smith, and more—covering installation, repair, and AMC plans at your doorstep.
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* FAQ Item 10 */}
+    <div className="border rounded-xl overflow-hidden transition-all duration-300">
+      <button
+        onClick={() => setOpenItem(openItem === 10 ? null : 10)}
+        className="w-full p-4 text-left flex justify-between items-center"
+      >
+        <span className="font-medium text-gray-800 text-[15px]">
+          Can I Book RO Service in {city} Just by Calling?
+        </span>
+        <svg
+          className={`w-5 h-5 text-purple-600 transform transition-transform ${
+            openItem === 10 ? 'rotate-180' : ''
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {openItem === 10 && (
+        <div className="p-4 bg-white border-t border-purple-100">
+          <p className="text-gray-600 text-[15px]">
+            Yes, booking RO service in {city} is simple and flexible with Mr. Service Expert. You can either call us directly at <strong>+91-9311587715</strong> or book instantly through our official website. Whichever way you choose, we guarantee a same-day visit by a certified RO technician, right at your doorstep—no delays, no hassle.
+          </p>
+        </div>
+      )}
+    </div>
+  </>
+)}
 
             </div>
           </div>
@@ -670,7 +819,7 @@ export default function ServicePage({ pagedata, city, cat }) {
 
         <div className="common-spacing">
           <div className=" bg-white aboutStyle">
-            <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {pagedata.city_name}</h3>
+            <h3 className="catgoreyTitle">About Mr. Service Expert {pagedata.city_name}</h3>
             <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" />
           </div>
         </div>
