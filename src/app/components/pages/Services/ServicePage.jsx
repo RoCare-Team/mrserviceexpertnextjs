@@ -166,7 +166,7 @@ export default function ServicePage({ pagedata, city, cat }) {
 
   return (
     <>
-      {ifAcSchema && (
+      {ifAcSchema && typeof window === "undefined" && (
         <>
           {/* BreadcrumbList Schema */}
           <script
@@ -272,7 +272,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         </>
       )}
 
- {ifRoSChema && (
+ {ifRoSChema &&  typeof window === "undefined" && (
   <>
  <script
   id="ro-breadcrumb-schema"
