@@ -122,7 +122,7 @@ function Booking() {
                                         <div className="flex service_info sm:flex-row sm:justify-between">
                                             <h4 className='font-medium'>{service.lead_type} ({service.complain_id})</h4>
                                             <span className={`bookingStatus ${
-                                                service.status === 'Complete' ? 'text-green-500' :
+                                                service.status === 'Completed' ? 'text-green-500' :
                                                 service.status === 'Ongoing' ? 'text-yellow-500' :
                                                 service.status === 'Pending-denied' ? 'text-red-500' :
                                                 service.status === 'Follow-up' ? 'text-gray-500' :
