@@ -79,9 +79,9 @@ function Booking() {
             </div>
 
             <div className='bg-white flex flex-col w-full max-w-lg shadow-md rounded-md booking-container'>
-                <div className='mb-4 bg-purple-600 p-4 booking-container'>
+                <div className='mb-4 flex items-center justify-between bg-purple-600 p-4 booking-container'>
                     <h3 className="text-lg font-semibold mb-2 text-white">Active & Upcoming...</h3>
-                    {/* <span className='text-white'>{leadStatus.length > 0 ? 'active booking': 'no booking available'}</span> */}
+                    <span className='text-purple-600 bg-purple-300 p-2 rounded-full'>{leadStatus.length }</span>
                 </div>
 
                 <div className="dashedLine"></div>
