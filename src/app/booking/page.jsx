@@ -55,7 +55,7 @@ function Booking() {
                     lead.status === 'Active' || lead.status === 'Follow-up');
             } else if (activeTab === 'delivered') {
                 filtered = allLeadData.filter(lead => 
-                    lead.status === 'Complete' );
+                    lead.status === 'Completed' );
             } else if (activeTab === 'cancelled') {
                 filtered = allLeadData.filter(lead => 
                     lead.status === 'Cancelled' || lead.status === 'Inactive');
