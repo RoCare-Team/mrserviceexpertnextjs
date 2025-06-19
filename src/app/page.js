@@ -203,6 +203,21 @@ const home = () => {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
+          <script
+        src="https://www.googletagmanager.com/gtag/js?id=G-GFJQZF71K8"
+        strategy="afterInteractive"
+      />
+
+      {/* Initialize GA */}
+      <script id="ga-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-GFJQZF71K8');
+        `}
+      </script>
+
       
       <div className='common-spacing'>
             {/*=================hero section================================== */}
