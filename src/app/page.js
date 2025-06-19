@@ -190,7 +190,23 @@ const home = () => {
 
   return (
     <>
-     
+     <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              var script = document.createElement('script');
+              script.async = true;
+              script.src = 'https://www.googletagmanager.com/gtag/js?id=G-GFJQZF71K8';
+              document.head.appendChild(script);
+              
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-GFJQZF71K8');
+            })();
+          `
+        }}
+      />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
@@ -203,20 +219,7 @@ const home = () => {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
         />
-          <script
-        src="https://www.googletagmanager.com/gtag/js?id=G-GFJQZF71K8"
-        strategy="afterInteractive"
-      />
-
-      {/* Initialize GA */}
-      <script id="ga-init" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-GFJQZF71K8');
-        `}
-      </script>
+      
 
       
       <div className='common-spacing'>
