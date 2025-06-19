@@ -1,73 +1,126 @@
-import React from 'react'
+"use client"
+
+import { faFile } from '@fortawesome/free-regular-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import React, { useEffect, useState } from 'react'
+import BlogContent from '../components/pages/blogContent/BlogContent'
 
 function Blog() {
+    const [categories, setCategories] = useState([]);
+    const [blogContent, setBlogContent] = useState([]);
+
+    useEffect(() => {
+        const blogContent = async () => {
+            const response = await fetch("https://mannubhai.in/web_api/blog_category.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
+                cache: "no-store",
+            });
+
+            const data = await response.json();
+
+            // console.log(data);
+            setCategories(data.data || []);
+        }
+
+        const fetchDefaultBlog = async () => {
+            const response = await fetch("https://mannubhai.in/web_api/get_blog_with_catid.php", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(),
+                cache: "no-store",
+            });
+            const data = await response.json();
+            console.log(data);
+
+            setBlogContent(data.data || []);
+        };
+
+
+
+        fetchDefaultBlog();
+        blogContent();
+    }, [])
+
+    const handleblogcontent = async (id) => {
+        // const cat_id=id;
+        const response = await fetch("https://mannubhai.in/web_api/get_blog_with_catid.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cat_id: id }),
+            cache: "no-store",
+        });
+
+        const data = await response.json();
+        console.log(data);
+        setBlogContent(data.data || [])
+
+    };
     return (
-        <div className='flex items-start flex-col common-spacing'>
-            <h1 className='ml-5 text-xl'><b>Blogs</b></h1>
-            <div className="blogs-section">
-                {/* blog 1 */}
-                <div className="blog-card-style" title='RO Water: Main Stages of RO Plant Process and Health Benefits
-                                This is a feasible method to purifier'>
-                    <div className='w-full'>
-                        <img src='/assets/images/blog_14_thumb.webp' alt='RO water Blogs' title='Blogs for RO services' className='h-auto w-full blog-img' />
-                    </div>
-                    <div className="blog-card-content">
-                        {/* <a href="/blogs/1/ro-water-main-stages-of-ro-plant-process-and-health-benefits" target="_blank" rel="noopener noreferrer">
-                             </a> */}
-                            <h2>RO Water: Main Stages of RO Plant Process and Health Benefits
-                                This is a feasible method to purifier</h2>
-                                
-                               
-                        <div>
-                            <span className='text-gray-500'>This is a feasible method to purify water in an effective manner. Hazardous contaminants and impurities from the water come out through a cellophane-similar membrane that’s semi-permeable.</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>Author: <strong>RO Care</strong></span>
-                            <span className='text-gray-400'>10-march-2025</span>
-                        </div>
-                    </div>
+        <div className='flex items-start md:flex-row flex-col-reverse common-spacing'>
+
+            <div className='w-full md:w-2/3'>
+
+                {blogContent.length > 0 && (
+                    <h1 className='ml-3 text-xl'><b>Blogs of {blogContent[0].category}</b></h1>
+                )}
+
+
+
+
+                {/* <a href="#" target="_blank" rel="noopener noreferrer"> </a> */}
+                <div className="blogs-section">
+
+                    {/* blog 1 */}
+                    {blogContent.length > 0 ? (
+                        blogContent.map((blog) => (
+                            <div key={blog.id} className="blog-card-style" title={blog.title}>
+                                <div className='w-full'>
+                                    <img src='/assets/images/blog_14_thumb.webp' alt='RO water Blogs' title={blog.title} className='h-auto w-full  blog-img' />
+                                </div>
+                                <div className="blog-card-content">
+
+                                    <h2 className='text-3xs'>{blog.title}
+                                    </h2>
+                                    <div>
+                                        <span className='text-gray-500 text-xs' >Reverse osmosis plants operating for mun</span>
+                                    </div>
+                                    <div className='flex justify-between'>
+                                        {/* <span><img src={blog.file_url} alt='blog tilte' title='author of the blog' /></span> */}
+                                        <span className='text-xs'>Author: <strong>{blog.author}</strong></span>
+                                        <span className='text-gray-400 text-xs'>{blog.publishdate}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (<div>
+                        {/* <button><BlogContent/></button> */}
+
+                        <p className='text-xl text-red-500'>No Blogs for this Categories</p>
+                    </div>)}
                 </div>
-
-                {/* blog 2 */}
-                <div className="blog-card-style" title='RO Plant Maintenance Checklist for Optimal Performance'>
-                    <div className='w-full'>
-                        <img src='/assets/images/blog_14_thumb.webp' alt='RO water Blogs' title='RO Plant Maintenance Checklist for Optimal Performance' className='h-auto w-full blog-img' />
-                    </div>
-                    <div className="blog-card-content">
-                        {/* <a href="#" target="_blank" rel="noopener noreferrer"> </a> */}
-                            <h2>RO Plant Maintenance Checklist for Optimal Performance
-                            </h2>
-                        <div>
-                            <span className='text-gray-500'>Reverse osmosis plants operating for municipal and industrial projects and producing in large volumes can run without any such operational issues. If there are operational problems, it can impact the system’s capacity to perform.</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>Author: <strong>RO Care</strong></span>
-                            <span className='text-gray-400'>10-march-2025</span>
-                        </div>
-                    </div>
-                </div>
-
-
-                {/* blog 3 */}
-                {/* <div className="blog-card-style">
-                    <div className='w-full'>
-                        <img src='/assets/images/blog_14_thumb.webp' alt='RO water Blogs' title='Blogs for RO services' className='h-auto w-full blog-img' />
-                    </div>
-                    <div className="blog-card-content">
-                        <a href="#" target="_blank" rel="noopener noreferrer">
-                            <h5>RO Plant Maintenance Checklist for Optimal Performance
-                            </h5></a>
-                        <div>
-                            <span className='text-gray-500'>Reverse osmosis plants operating for municipal and industrial projects and producing in large volumes can run without any such operational issues. If there are operational problems, it can impact the system’s capacity to perform.</span>
-                        </div>
-                        <div className='flex justify-between'>
-                            <span>Author: <strong>RO Care</strong></span>
-                            <span className='text-gray-400'>10-march-2025</span>
-                        </div>
-                    </div>
-                </div> */}
             </div>
 
+            <div className='bg-white h-auto w-full md:w-1/3 shadow-md p-4 rounded-xl hover:shadow-purple-300'>
+                {/*Categories portion*/}
+                <h2 className='bg-purple-300 px-2 py-1 rounded-xl text-xl text-white mb-2'><b>Categories</b></h2>
+
+                {categories?.map((Service) => (
+                    <div key={Service.id} onClick={() => handleblogcontent(Service.id)} className='flex items-center mb-1 gap-2 hover:-translate-y-0.5 hover:bg-blue-200 rounded-2xl  border-b-2 p-2 border-gray-300'>
+                        <span className='bg-blue-300  px-2  rounded-2xl text-white text-xl'><FontAwesomeIcon icon={faFile} /></span>
+                        <h2>{Service.name}</h2>
+                        <span className='text-gray-400 '>(23)</span>
+
+                    </div>
+                ))}
+
+
+
+
+
+            </div>
+            
 
         </div>
     )

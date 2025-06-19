@@ -59,13 +59,6 @@ const CheckOut = () => {
         if (userPhone) setPhoneNumber(userPhone);
     }, []);
 
-
-
-
-
-
-
-
     // Increment and Decrement handlers
     const onIncrement = async (service_id, type, qunt) => {
         const cid = localStorage.getItem("customer_id");
@@ -85,7 +78,7 @@ const CheckOut = () => {
 
             const data = await res.json();
             localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-            localStorage.setItem('cart_total_price', data.total_price);
+            localStorage.setItem('cart_total_price', data.total_main);
             // window.location.reload();
             // console.log(data);
 
@@ -119,12 +112,12 @@ const CheckOut = () => {
             const data = await res.json();
             // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
             localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
-            localStorage.setItem('cart_total_price', data.total_price == null ? 0 : data.total_price);
+            localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
             if (quantity === 0) {
                 const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
                 const updatedCartItems = oldCartItems.filter(id => id !== service_id);
                 localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-                console.log(service_id, oldCartItems);
+                // console.log(service_id, oldCartItems);
 
             }
             displayCartData();
@@ -137,69 +130,126 @@ const CheckOut = () => {
 
     };
 
-    // //   console.log(updatedServices+'this being increase');
-
-    // const onDecrement = (serviceId) => {
-    //     setServices(prevServices => {
-    //         const updatedServices = prevServices
-    //             .map(service =>
-    //                 service.id === serviceId
-    //                     ? { ...service, quantity: (service.quantity || 1) - 1 }
-    //                     : service
-    //             )
-    //             .filter(service => service.quantity >= 1);  // Changed to >= 1
-
-    //         // localStorage.setItem('cartItems', JSON.stringify(updatedServices));
-    //         return updatedServices;
-    //     });
-    // };
-
-    // Tip handling methods
-    // const handleTipSelection = (amount) => {
-    //     setTip(prev => prev === amount ? 0 : amount);
-    //     setCustomTip("");
-    // };
-
-    // const handleCustomTip = (e) => {
-    //     const value = e.target.value;
-    //     setCustomTip(value);
-    //     if (value !== "") setTip(0);
-    // };
-
-    // const applyCustomTip = () => {
-    //     const customTipValue = Number(customTip);
-    //     if (isNaN(customTipValue) || customTipValue < 25 || customTipValue > 500) {
-    //         toast.error("Tip must be between ₹25 and ₹500");
-    //         return;
-    //     }
-
-    //     setTip(customTipValue);
-    //     toast.success(`Tip of ₹${customTipValue} applied`);
-    // };
-
-    // const removeTip = () => {
-    //     setTip(0);
-    //     setCustomTip("");
-    // };
+    const handlePaymentCompleted = async (leadtype) => {
 
 
-    //     const requestData = {
-    //         bookingAddress: bookingAddress,
-    //         bookingTimeSlot: bookingTimeSlot,
-    //         cartItems: services,  
-    //         cartTotal: finalTotal,  
-    //         checkoutState: {
-    //             selectedServices: services,
-    //             finalTotal: finalTotal,
-    //             discountAmount: discountAmount,
-    //             tip: tip,
-    //             customTip: customTip
-    //         },
-    //         userPhone: phoneNumber, 
-    //     };
 
-    // console.log(requestData);
+        
+        const cust_id = localStorage.getItem("customer_id");
+        const cust_mobile = localStorage.getItem("userPhone");
+        const address_id = localStorage.getItem("address_id");
+        const cust_email = localStorage.getItem("email");
+        const chkout = JSON.parse(localStorage.getItem("checkoutState"));
+        // const fakeId=JSON.parse(localStorage.getItem("cartItems"));
+        const cartItems = JSON.parse(localStorage.getItem("cartItems"));
+        const cart_id = leadtype;
+        const addedValues = JSON.stringify(cartItems);
+        // console.log(addedValues);
 
+        // console.log(localStorage.getItem("cartItems"));
+
+
+        console.log(JSON.stringify(cartItems) + 'before doing anything');
+
+        const time = JSON.parse(localStorage.getItem("bookingTimeSlot") || "[]");
+        const appointment_time = time.time;
+        const appointment_date = time.date;
+
+        const source='mrserviceexpert website';
+
+
+        
+
+
+
+
+
+        const payload = { cust_id, cust_mobile, address_id, cust_email, cart_id, appointment_time, appointment_date ,source };
+
+        if(cust_id===null || cust_mobile=== null  || address_id === null ||  cust_email=== null || appointment_date === null || appointment_time === null )
+        {
+            // alert("please choose the booking details first before paying");
+            toast.error("please choose the booking details first before paying");
+
+            
+
+        }
+
+   
+
+      else{
+          // console.log(address_id);
+        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_lead_with_full_dtls.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (data.error == false) {
+            toast.success(data.msg);
+
+            const leftOverItems = chkout.filter(items => items.category_cart_id !== cart_id)
+
+            console.log(leftOverItems);
+
+            if (leftOverItems.length > 0) {
+                localStorage.setItem('checkoutState', JSON.stringify(leftOverItems));
+                // console.log('Leftover items:', leftOverItems);
+            } else {
+                localStorage.setItem('checkoutState', JSON.stringify([]));
+            }
+
+            const currentCategoryItem = chkout.find(item => item.category_cart_id === cart_id);
+            
+            if (currentCategoryItem && cartItems.length > 0) {
+                const checkedOutServiceIds = currentCategoryItem.cart_dtls.map(service => String(service.service_id));
+                
+                // console.log('Service IDs being checked out (current category only):', checkedOutServiceIds);
+                
+                const remainingItems = cartItems.filter(item => {
+                    const isIncluded = checkedOutServiceIds.includes(String(item));
+                    // console.log(`Checking item: ${item}, will be removed: ${isIncluded}`);
+                    return !isIncluded; 
+                });
+
+                // console.log('Remaining cart items after filtering:', remainingItems);
+
+                localStorage.setItem('cartItems', JSON.stringify(remainingItems));
+            } else if (leftOverItems.length === 0) {
+                // If no items left in checkout, clear cartItems
+                localStorage.setItem('cartItems', JSON.stringify([]));
+            }
+
+
+            const itemsToRemove = [
+                
+                "bookingTimeSlot",
+                "bookingAddress",
+                // "checkoutState",
+                "time_slot",
+                // "cart_total_price",
+                "address_id",
+                // "cartItems",
+            ];
+
+            itemsToRemove.forEach(item => {
+                localStorage.removeItem(item);
+            });
+
+
+            displayCartData();
+
+             setTimeout(() => {
+               window.location.href = data.lead_id_for_payment;
+             }, 100);
+
+        }
+      }
+
+
+    };
 
 
     return (
@@ -235,7 +285,7 @@ const CheckOut = () => {
                                 <h3 className="mb-4 text-xl">Delivery Address</h3>
                                 <BookingSlots phoneNumber={phoneNumber} />
 
-                                <div className="cancellation-section">
+                                <div className="cancellation-section  hidden lg:block xl:block">
                                     <h3 className="mb-4 text-xl">Cancellation policy</h3>
                                     <p>Free cancellations if done more than 12 hrs before the service or if a professional isn’t assigned. A fee will be charged otherwise.</p>
                                     <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black"><button>Read Full Privacy </button></a>
@@ -252,22 +302,12 @@ const CheckOut = () => {
                         <h3 className="text-center text-black"><b>For Availing Services Go To <Link href={'/ro-water-purifier'} >Services</Link></b></h3>
                     </div>)}
                     <div className="order-summary">
-
-                        {/* <Cart
-                                // selectedServices={selectedServices}
-                                total={totalAmount}
-                                onRemove={handleRemoveFromCart}
-                                onIncrement={handleIncrementService}
-                                onDecrement={handleDecrementService}
-                                onCartLoad={handleCartLoad}
-                            /> */}
-
                         {cartDataArray?.length > 0 ? (
                             <div className="checkOutOrder">
                                 <div>
                                     {cartDataArray?.map((service) => (
                                         <div key={service.cart_id}>
-                                            <p>{service.leadtype_name}</p>
+                                            <p className="text-xl"><b>{service.leadtype_name}</b></p>
                                             {service.cart_dtls.map((service) => (
                                                 <div key={service.service_id} className="checkout-item service-card2 flex items-center">
                                                     <div className="problemIcon">
@@ -275,52 +315,13 @@ const CheckOut = () => {
                                                     </div>
                                                     <div>
                                                         <p className="mb-0">{service.service_name}</p>
-                                                        {/* <p className="text-xs text-gray-300">{service.briefInfo}</p> */}
                                                         <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: service.description }}></p>
-
-
-                                                        {/* {service.details && (
-                                                    <div className="appliance-details text-sm text-gray-600 mt-1 flex flex-wrap gap-2">
-                                                        {service.details.brand && (
-                                                            <span><strong>Brand:</strong> {service.details.brand},</span>
-                                                        )}
-                                                        {service.details.type && (
-                                                            <span><strong>Type:</strong> {service.details.type},</span>
-                                                        )}
-                                                        {service.details.problems && service.details.problems.length > 0 && (
-                                                            <span>
-                                                                <strong>Issues: </strong>
-                                                                {service.details.problems.length > 2
-                                                                    ? `${service.details.problems.slice(0, 2).join(', ')}...`
-                                                                    : service.details.problems.join(', ')
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {service.acDetails && (
-                                                    <div className="ac-details text-sm text-gray-600 mt-1 flex flex-wrap gap-2">
-                                                        <span><strong>Brand:</strong> {service.acDetails?.brand},</span>
-                                                        <span><strong>Type:</strong> {service.acDetails?.type},</span>
-
-                                                        {service.acDetails?.problems?.length > 0 && (
-                                                            <span>
-                                                                <strong>Issues: </strong>
-                                                                {service.acDetails.problems.length > 2
-                                                                    ? `${service.acDetails.problems.slice(0, 2).join(', ')}...`
-                                                                    : service.acDetails.problems.join(', ')
-                                                                }
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )} */}
                                                     </div>
                                                     <div className="flex items-center flex-col">
 
                                                         <div>
-                                                            <p className="text-xs text-gray-700 mb-1"> ₹{service.price}</p>
-                                                            {/* <p className="text-xs text-gray-700"> ₹{service.price} x {service.quantity || 1}</p> */}
+                                                            <p className="text-xs text-gray-700 mb-1"> ₹{service.total_price}</p>
+
                                                         </div>
                                                         <div className="quantity-control">
                                                             <button className="IncrementDcrementBtn" onClick={() => onDecrement(service.service_id, 'delete', service.quantity)}>
@@ -333,21 +334,26 @@ const CheckOut = () => {
                                                         </div>
                                                     </div>
 
-
-
                                                 </div>
                                             ))}
+                                            <button className="bg-purple-600 w-full p-2 rounded-xl text-white" onClick={() => handlePaymentCompleted(service.category_cart_id)}>Pay Now: ₹{service.total_main} </button>
                                         </div>
+
                                     ))}
                                 </div>
 
-                                <div className='p-3 bg-white rounded-lg shadow'>
+ <div className="cancellation-section block md:hidden   ">
+                                    <h3 className="mb-4 text-xl">Cancellation policy</h3>
+                                    <p>Free cancellations if done more than 12 hrs before the service or if a professional isn’t assigned. A fee will be charged otherwise.</p>
+                                    <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black"><button>Read Full Privacy </button></a>
+
+                                </div>
+                                <div className='p-3 bg-white rounded-lg shadow hidden'>
                                     <div>
                                         <h4>Payment summary</h4>
                                         <div className="tip-portion">
                                             <div className="flex items-center justify-between">
                                                 <p className="text-2xs mb-2">Item total</p>
-                                                {/* <p className="text-2xs mb-2">₹{totalWithDiscount}</p> */}
                                                 <p className="text-2xs mb-2">₹{finalTotal}</p>
                                             </div>
                                             <div className="flex items-center justify-between">
@@ -358,68 +364,12 @@ const CheckOut = () => {
                                                 <p className="text-2xs mb-2">Discount</p>
                                                 <p className="text-green-400 text-2xs mb-2">-₹{discountAmount.toFixed(2)}</p>
                                             </div>
-                                            {/* <div className="dashedLine"></div>
 
-                                            <h6>Add a tip to thank the Professional</h6> */}
-                                            {/* <div className="tip-buttons">
-                                                {[25, 50, 75].map((amount) => (
-                                                    <button
-                                                        key={amount}
-                                                        className={`tip-btn ${tip === amount ? "selected" : ""}`}
-                                                        onClick={() => handleTipSelection(amount)}
-                                                        type="button"
-                                                    >
-                                                        ₹{amount}
-                                                    </button>
-                                                ))}
-                                                <div className="custom-tip-container">
-                                                    <input
-                                                        type="number"
-                                                        placeholder="Custom"
-                                                        className="tip-input"
-                                                        value={customTip}
-                                                        onChange={handleCustomTip}
-                                                        min="25"
-                                                        style={{
-                                                            width: '100%'
-                                                        }}
-                                                    />
-                                                    <button
-                                                        className="tip-apply-btn"
-                                                        onClick={applyCustomTip}
-                                                        disabled={!customTip}
-                                                        type="button"
-                                                    >
-                                                        Apply
-                                                    </button>
-                                                </div>
-                                            </div> */}
-
-                                            {/* Remove Tip Button */}
-                                            {/* {tip > 0 && (
-                                                <button className="mt-3 text-red-500 text-sm" onClick={removeTip} type="button">
-                                                    Remove Tip
-                                                </button>
-                                            )} */}
-
-                                            {/* {customTip && Number(customTip) < 25 && (
-                                                <p className="tip-error text-red-500">Minimum tip amount is ₹25</p>
-                                            )}
-                                            {
-                                                customTip && Number(customTip) > 500 && (
-                                                    <p className="tip-error text-red-500">Maximum tip amount is ₹500</p>
-                                                )
-                                            } */}
                                         </div>
                                     </div>
                                     <div className="dashedLine"></div>
                                     <div className="checkout-total flex gap-2.5 ">
-                                        {/* <p className="total-breakdown m-0">Total: ₹{(finalTotal + (tip || 0)).toFixed(2)}</p> */}
                                         <p className="total-breakdown m-0">Total: ₹{finalTotal}</p>
-                                        {/* <p className={`total-breakdown m-0 ${tip < 25 ? 'hidden' : ''}`}>
-
-                                            (Items: ₹{finalTotal} {(tip > 0 || customTip) ? ` + Tip: ₹${tip || 0}` : ''})
-                                        </p> */}
                                     </div>
                                 </div>
                             </div>
@@ -432,8 +382,6 @@ const CheckOut = () => {
                     </div>
                 </div>
             </div>
-
-
 
             <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
         </div>

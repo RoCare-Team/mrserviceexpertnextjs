@@ -55,7 +55,7 @@ function Booking() {
                     lead.status === 'Active' || lead.status === 'Follow-up');
             } else if (activeTab === 'delivered') {
                 filtered = allLeadData.filter(lead => 
-                    lead.status === 'Complete' );
+                    lead.status === 'Completed' );
             } else if (activeTab === 'cancelled') {
                 filtered = allLeadData.filter(lead => 
                     lead.status === 'Cancelled' || lead.status === 'Inactive');
@@ -79,9 +79,9 @@ function Booking() {
             </div>
 
             <div className='bg-white flex flex-col w-full max-w-lg shadow-md rounded-md booking-container'>
-                <div className='mb-4 bg-purple-600 p-4 booking-container'>
+                <div className='mb-4 flex items-center justify-between bg-purple-600 p-4 booking-container'>
                     <h3 className="text-lg font-semibold mb-2 text-white">Active & Upcoming...</h3>
-                    {/* <span className='text-white'>{leadStatus.length > 0 ? 'active booking': 'no booking available'}</span> */}
+                    <span className='text-purple-600 bg-purple-300 p-2 rounded-full'>{leadStatus.length }</span>
                 </div>
 
                 <div className="dashedLine"></div>
@@ -122,7 +122,7 @@ function Booking() {
                                         <div className="flex service_info sm:flex-row sm:justify-between">
                                             <h4 className='font-medium'>{service.lead_type} ({service.complain_id})</h4>
                                             <span className={`bookingStatus ${
-                                                service.status === 'Complete' ? 'text-green-500' :
+                                                service.status === 'Completed' ? 'text-green-500' :
                                                 service.status === 'Ongoing' ? 'text-yellow-500' :
                                                 service.status === 'Pending-denied' ? 'text-red-500' :
                                                 service.status === 'Follow-up' ? 'text-gray-500' :
