@@ -354,7 +354,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
               <p className="text-gray-600 mb-6">A 4-digit verification code has been sent to +91 {phoneNumber}</p>
 
               <div className="flex justify-center gap-2 mb-6">
-                {otpDigits.map((digit, index) => (
+                {/* {otpDigits.map((digit, index) => (
                   <input
                     key={index}
                     ref={el => otpInputRefs.current[index] = el}
@@ -365,7 +365,21 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
                   />
-                ))}
+                ))} */}
+                {otpDigits.map((digit, index) => (
+  <input
+    key={index}
+    ref={el => otpInputRefs.current[index] = el}
+    type='text'  // Changed from 'number' to 'text'
+    maxLength="1"
+    pattern="[0-9]"  // Only allow digits
+    inputMode="numeric"  // Show numeric keypad on mobile
+    className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    value={digit}
+    onChange={(e) => handleOtpChange(index, e.target.value)}
+    onKeyDown={(e) => handleKeyDown(index, e)}
+  />
+))}
               </div>
 
               <div className="mb-6">
