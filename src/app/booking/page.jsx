@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PaymentModal from '../components/modals/paymentModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSyncAlt } from '@fortawesome/free-solid-svg-icons';
 
 function Booking() {
     const [activeTab, setActiveTab] = useState('active');
@@ -11,19 +13,39 @@ function Booking() {
     const [currentServices, setCurrentServices] = useState([]);
     const [allLeadData, setAllLeadData] = useState([]);
     const [leadStatus, setLeadStatus] = useState([]);
+    const [isSpinning, setIsSpinning] = useState(false);
 
     const router = useRouter();
+
+    // useEffect(() => {
+    //     const userVerified = JSON.parse(localStorage.getItem("userPhone"));
+    //     if (!userVerified) {
+    //         router.push('/');
+    //     } else {
+    //         const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
+    //         setCurrentServices(allServices);
+    //         setAllLeadData(allServices); 
+    //     }
+    // }, []);
 
     useEffect(() => {
         const userVerified = JSON.parse(localStorage.getItem("userPhone"));
         if (!userVerified) {
             router.push('/');
-        } else {
-            const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
-            setCurrentServices(allServices);
-            setAllLeadData(allServices); 
         }
+
+        const interval = setInterval(() => {
+            const allServices = JSON.parse(localStorage.getItem("all_cmpl") || "[]");
+            if (allServices.length > 0) {
+                setCurrentServices(allServices);
+                setAllLeadData(allServices);
+                clearInterval(interval);
+            }
+        }, 500);
+
+        return () => clearInterval(interval);
     }, []);
+
 
     const getcmpldetls = async (lead_id) => {
         const payload = { lead_id };
@@ -44,20 +66,20 @@ function Booking() {
     // console.log(+"fdfsg");
     // const dippperrrr=JSON.stringify(allLeadData);
     // console.log(JSON.parse(dippperrrr));
-    
-    
+
+
 
     useEffect(() => {
         if (allLeadData.length > 0) {
             let filtered = [];
             if (activeTab === 'active') {
-                filtered = allLeadData.filter(lead => 
+                filtered = allLeadData.filter(lead =>
                     lead.status === 'Active' || lead.status === 'Follow-up');
             } else if (activeTab === 'delivered') {
-                filtered = allLeadData.filter(lead => 
-                    lead.status === 'Completed' );
+                filtered = allLeadData.filter(lead =>
+                    lead.status === 'Completed');
             } else if (activeTab === 'cancelled') {
-                filtered = allLeadData.filter(lead => 
+                filtered = allLeadData.filter(lead =>
                     lead.status === 'Cancelled' || lead.status === 'Inactive');
             }
 
@@ -68,6 +90,23 @@ function Booking() {
     const handleTabClick = (tab) => {
         setActiveTab(tab);
     };
+
+    const handleRefresh = async () => {
+setIsSpinning(true);
+        const user_no = localStorage.getItem("userPhone");
+        const payload = { user_no: user_no }
+        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
+         setTimeout(() => setIsSpinning(false), 1000);
+        console.log(JSON.stringify(data.complainDetails)+"badmasi nhi mitar idhar ");
+
+    }
 
     return (
         <div className="flex justify-center common-login-spacing flex-col items-center mb-5">
@@ -81,7 +120,10 @@ function Booking() {
             <div className='bg-white flex flex-col w-full max-w-lg shadow-md rounded-md booking-container'>
                 <div className='mb-4 flex items-center justify-between bg-purple-600 p-4 booking-container'>
                     <h3 className="text-lg font-semibold mb-2 text-white">Active & Upcoming...</h3>
-                    <span className='text-purple-600 bg-purple-300 p-2 rounded-full'>{leadStatus.length }</span>
+                    <div className='flex items-center gap-2.5'>
+                        <span onClick={handleRefresh}> <FontAwesomeIcon icon={faSyncAlt} className={`text-xl text-purple-600 bg-purple-300 p-2 rounded-full transition-transform duration-500 ${isSpinning ? 'animate-spin' : ''}`} />  </span>
+                        <span className='text-purple-600 bg-purple-300 p-2 rounded-full'>{leadStatus.length}</span>
+                    </div>
                 </div>
 
                 <div className="dashedLine"></div>
@@ -121,14 +163,13 @@ function Booking() {
                                     <div className="serviceCard flex-1 flex flex-row justify-between">
                                         <div className="flex service_info sm:flex-row sm:justify-between">
                                             <h4 className='font-medium'>{service.lead_type} ({service.complain_id})</h4>
-                                            <span className={`bookingStatus ${
-                                                service.status === 'Completed' ? 'text-green-500' :
-                                                service.status === 'Ongoing' ? 'text-yellow-500' :
-                                                service.status === 'Pending-denied' ? 'text-red-500' :
-                                                service.status === 'Follow-up' ? 'text-gray-500' :
-                                                service.status === 'Inactive' ? 'text-red-500' :
-                                                service.status === 'Active' ? 'text-blue-400' : ''
-                                            }`}>
+                                            <span className={`bookingStatus ${service.status === 'Completed' ? 'text-green-500' :
+                                                    service.status === 'Ongoing' ? 'text-yellow-500' :
+                                                        service.status === 'Pending-denied' ? 'text-red-500' :
+                                                            service.status === 'Follow-up' ? 'text-gray-500' :
+                                                                service.status === 'Inactive' ? 'text-red-500' :
+                                                                    service.status === 'Active' ? 'text-blue-400' : ''
+                                                }`}>
                                                 status: {service.status}
                                             </span>
                                         </div>
