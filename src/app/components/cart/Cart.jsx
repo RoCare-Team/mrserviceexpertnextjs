@@ -21,22 +21,25 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     // console.log(cartdata.leadtype_name[5].cart_dtls[5]);
 
     // console.log(cartdata+'heres all details');
-    
+
     const cartDataArray = cartdata ? JSON.parse(cartdata) || [] : [];
 
     // console.log(cartDataArray);
 
 
     // console.log(cartDataArray.cart_dtls[5]);
-    
 
-setFinalTotal(localStorage.getItem('cart_total_price'));
+
+    setFinalTotal(localStorage.getItem('cart_total_price'));
 
     const finalTotal = cartDataArray
       .map(item => Number(item.total_main)) // Convert string to number
       .reduce((acc, price) => acc + price, 0); // Sum up prices
 
     setFinalTotal(finalTotal);
+
+    console.log(finalTotal+"after making the actuall sum of all the things");
+    
 
     // const price_discount=cartDataArray.map(item => Number(item.total_cart_price)).reduce((acc, price) => acc + price, 0);
     // alert(price_discount)
@@ -69,7 +72,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
       const data = await res.json();
       localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_main);
+      localStorage.setItem('cart_total_price', data.total_main);
 
       displayCartData();
       toast.success(data.msg);
@@ -98,19 +101,19 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
       const data = await res.json();
       // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
-      localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_main== null ? 0 : data.total_main);
-      if(quantity===0){
+      localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+      localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
+      if (quantity === 0) {
         const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
         const updatedCartItems = oldCartItems.filter(id => id !== service_id);
         localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-        
+
         // trigger parent update
         if (typeof cartLoadedToggle === 'function') {
           cartLoadedToggle();
         }
       }
-      
+
       displayCartData();
       toast.success(data.msg);
 
@@ -122,7 +125,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
   };
 
 
-  const handleRemoveFromCart = async(service_id, type, qunt) => {
+  const handleRemoveFromCart = async (service_id, type, qunt) => {
     const cid = localStorage.getItem("customer_id");
     // const num = Number(qunt);
     const quantity = 0;
@@ -139,19 +142,19 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
 
     const data = await res.json();
     // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
-   
-    localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_main== null ? 0 : data.total_main);
-      const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
-      const updatedCartItems = oldCartItems.filter(id => id !== service_id);
-      console.log("cart remove" + updatedCartItems);
-      
-      localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-      
-      // trigger parent update
-      if (typeof cartLoadedToggle === 'function') {
-        cartLoadedToggle();
-      }
+
+    localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+    localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
+    const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+    const updatedCartItems = oldCartItems.filter(id => id !== service_id);
+    console.log("cart remove" + updatedCartItems);
+
+    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+
+    // trigger parent update
+    if (typeof cartLoadedToggle === 'function') {
+      cartLoadedToggle();
+    }
     displayCartData();
     toast.success(data.msg);
 
@@ -159,7 +162,7 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
   };
 
 
-  // console.log(finalTotal);
+  console.log(finalTotal);
 
 
   return (
@@ -177,52 +180,52 @@ setFinalTotal(localStorage.getItem('cart_total_price'));
         <>
           {cartDataArray?.map((service) => (
             // key={service.cart_id}
-  <div key={service.service_id} className="max-h-90 overflow-x-auto">
-    <p className="ml-2.5">{service.leadtype_name}</p>
+            <div key={service.service_id} className="max-h-90 overflow-x-auto">
+              <p className="ml-2.5">{service.leadtype_name}</p>
 
-    {/* Assuming service.innerArray is the nested array */}
-    {service.cart_dtls?.map((item, index) => (
-      <div className="cart-item-body" key={item.cart_id}>
-      <div className="cart-item">
-        <div className="service-details flex items-start flex-col">
-          <div className="flex items-center gap-4 ">
-            <span>{item.service_name}</span>
+              {/* Assuming service.innerArray is the nested array */}
+              {service.cart_dtls?.map((item, index) => (
+                <div className="cart-item-body" key={item.cart_id}>
+                  <div className="cart-item">
+                    <div className="service-details flex items-start flex-col">
+                      <div className="flex items-center gap-4 ">
+                        <span>{item.service_name}</span>
 
-            <div className="quantity-control">
-              <button className="IncrementDcrementBtn" onClick={() => onDecrement(item.service_id, 'delete', item.quantity)}>
-                -
-              </button>
-              <span>{item.quantity || 1}</span>
-              <button
-                className="IncrementDcrementBtn"
-                onClick={() => onIncrement(item.service_id, 'add', item.quantity)}
-                disabled={(item.quantity || 1) >= 5}
-                style={{
-                  opacity: (item.quantity || 1) >= 5 ? 0.5 : 1,
-                  cursor: (item.quantity || 1) >= 5 ? 'not-allowed' : 'pointer'
-                }}
-              >
-                +
-              </button>
+                        <div className="quantity-control">
+                          <button className="IncrementDcrementBtn" onClick={() => onDecrement(item.service_id, 'delete', item.quantity)}>
+                            -
+                          </button>
+                          <span>{item.quantity || 1}</span>
+                          <button
+                            className="IncrementDcrementBtn"
+                            onClick={() => onIncrement(item.service_id, 'add', item.quantity)}
+                            disabled={(item.quantity || 1) >= 5}
+                            style={{
+                              opacity: (item.quantity || 1) >= 5 ? 0.5 : 1,
+                              cursor: (item.quantity || 1) >= 5 ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-gray-400">
+                        <div dangerouslySetInnerHTML={{ __html: item.description }} />
+                      </div>
+
+                    </div>
+                    <div className="flex flex-col px-1">
+                      ₹{item.price}
+                      <IconButton onClick={() => handleRemoveFromCart(item.service_id, 'delete', 0)} color="error" className="p-0">
+                        <img src="/assets/images/Remove.png" alt="Remove" style={{ width: 24, height: 24 }} />
+                      </IconButton>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-
-          <div className="text-xs text-gray-400">
-          <div dangerouslySetInnerHTML={{ __html: item.description}} />
-          </div>
-
-        </div>
-        <div className="flex flex-col px-1">
-          ₹{item.price}
-          <IconButton onClick={() => handleRemoveFromCart(item.service_id, 'delete', 0)} color="error" className="p-0">
-            <img src="/assets/images/Remove.png" alt="Remove" style={{ width: 24, height: 24 }} />
-          </IconButton>
-        </div>
-      </div>
-    </div>
-    ))}
-  </div>
-))}
+          ))}
 
           <div className="cart-footer">
 

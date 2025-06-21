@@ -17,10 +17,13 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchBar from '../searchbar/index';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBook, faCartShopping, faDoorClosed, faHeadset, faHome, faPerson, faSignIn, faSignOut, faTools, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faBook, faCartShopping, faDoorClosed, faHeadset, faHome, faPerson, faPhone, faSignIn, faSignOut, faTools, faUser } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
 import PhoneVerification from "../PhoneVerification/PhoneVerification";
 import { useRouter } from "next/navigation";
+import PhoneIcon from '@mui/icons-material/Phone';
+
+
 
 export default function Header() {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -29,8 +32,8 @@ export default function Header() {
   const [showModal, setShowModal] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
- const navigate=useRouter();
-  
+  const navigate = useRouter();
+
 
   // Profile popup states
   const [isPopupVisible, setIsPopupVisible] = useState(false);
@@ -47,7 +50,7 @@ export default function Header() {
   }
 
 
-  
+
 
   // For phone verification popup
   const [isPhoneModalOpen, setPhoneModalOpen] = useState(false);
@@ -57,10 +60,10 @@ export default function Header() {
     // let data = JSON.parse(localStorage.getItem('checkoutState'))
     // setCartCount(data)
     // console.log(cartCount[0]);
- 
-    
+
+
     // console.log(cartCount.quantity);
-    
+
     // Close popup when clicking outside
     const handleClickOutside = (event) => {
       if (popupRef.current && !popupRef.current.contains(event.target)) {
@@ -78,14 +81,14 @@ export default function Header() {
   useEffect(() => {
     // Get cart data from localStorage
     let data = JSON.parse(localStorage.getItem('checkoutState'));
-    
+
     // Calculate total quantity
     let totalQuantity = 0;
 
-    if(data && data.length>0){
-      totalQuantity=data.reduce((sum,item)=>{
-        return sum+(parseInt(item.quantity)|| 0);
-      },0)
+    if (data && data.length > 0) {
+      totalQuantity = data.reduce((sum, item) => {
+        return sum + (parseInt(item.quantity) || 0);
+      }, 0)
     }
 
     // if (Array.isArray(data)) {
@@ -93,10 +96,10 @@ export default function Header() {
     //     return sum + (parseInt(item.quantity) || 0);
     //   }, 0);
     // }
-    
+
     // Set the total quantity
     setCartCount(totalQuantity);
-    
+
     // For debugging
     console.log("Cart items:", data);
     console.log("Total quantity:", totalQuantity);
@@ -131,26 +134,26 @@ export default function Header() {
     setPhoneModalOpen(false);
   };
 
-  const getbookingdata=async()=>{
+  const getbookingdata = async () => {
     setIsPopupVisible(false);
-  const user_no=localStorage.getItem("userPhone");
-  const payload={user_no:user_no}
+    const user_no = localStorage.getItem("userPhone");
+    const payload = { user_no: user_no }
     const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const data = await res.json();
-    localStorage.setItem("all_cmpl",JSON.stringify(data.complainDetails));
+    localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
     // console.log(data.complainDetails);
-    
+
 
   }
 
   const handleLogout = () => {
     // Remove user data from localStorage
-   localStorage.clear();
+    localStorage.clear();
     // Any other user-related items you want to clear
 
     // Update state to reflect logged out status
@@ -178,12 +181,12 @@ export default function Header() {
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <div onClick={() => handleNavigation('/')} style={{ cursor: 'pointer' }}>
               <Link href={'/'} title="Home Services">
-              <img
-                src="/assets/images/serviceLogo.webp"
-                alt="service logo"
-                title="Mr Service Expert"
-                style={{ height: "50px" }}
-              /></Link>
+                <img
+                  src="/assets/images/serviceLogo.webp"
+                  alt="service logo"
+                  title="Mr Service Expert"
+                  style={{ height: "50px" }}
+                /></Link>
             </div>
           </Box>
 
@@ -206,11 +209,11 @@ export default function Header() {
 
             <SearchBar />
 
-           
+
 
             <Link href='/ro-water-purifier' title="ro water purifier services">
               <Button
-              title="Services"
+                title="Services"
                 style={{ color: 'white' }}
                 sx={{ textTransform: "none", fontSize: "16px" }}
               >
@@ -223,7 +226,7 @@ export default function Header() {
               <a href="/checkout" title="Checkout">
                 <FontAwesomeIcon icon={faCartShopping} style={{ fontSize: "24px", cursor: "pointer" }} />
               </a>
-              {cartCount > 0 ? (<span className='cartCountStyle absolute '>{cartCount}</span>): (<></>)}
+              {cartCount > 0 ? (<span className='cartCountStyle absolute '>{cartCount}</span>) : (<></>)}
             </div>
 
             {/* Profile Icon */}
@@ -256,8 +259,8 @@ export default function Header() {
 
 
                         <Link
-                         href="/profile"
-                         title="profile section"
+                          href="/profile"
+                          title="profile section"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => setIsPopupVisible(false)}
                         >
@@ -267,8 +270,8 @@ export default function Header() {
                         </Link>
 
                         <Link
-                         href="/help-center"
-                         title="help center for any issue related to services"
+                          href="/help-center"
+                          title="help center for any issue related to services"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => setIsPopupVisible(false)}
                         >
@@ -277,8 +280,8 @@ export default function Header() {
                           </span>Help Center</li>
                         </Link>
                         <Link
-                         href="/booking"
-                         title="previous and upcoming services booking section"
+                          href="/booking"
+                          title="previous and upcoming services booking section"
                           style={{ textDecoration: 'none', color: 'black', fontSize: '12px' }}
                           onClick={() => getbookingdata()}
                         >
@@ -288,7 +291,7 @@ export default function Header() {
                         </Link>
                         <li style={{ padding: '8px 4px' }}>
                           <button
-                          title="Logout"
+                            title="Logout"
                             onClick={handleLogout}
                             style={{
                               background: 'none',
@@ -313,7 +316,7 @@ export default function Header() {
                     ) : (
                       <li style={{ padding: '8px 4px' }}>
                         <button
-                        title="login"
+                          title="login"
                           onClick={handlePopup}
                           style={{
                             background: 'none',
@@ -339,92 +342,310 @@ export default function Header() {
           </Box>
 
           {/* Mobile Menu Icon */}
-          <IconButton
-            sx={{ display: { xs: "flex", md: "none" } }}
-            onClick={toggleDrawer(true)}
-            title="Menu View"
-          >
-            <MenuIcon />
-          </IconButton>
+
+          <Box sx={{ display: { xs: 'flex', md: 'none', alignItems: 'center', justifyContent: 'center' }, gap: 1 }}>
+            {/* Menu Icon */}
+            <IconButton onClick={toggleDrawer(true)} title="Menu View">
+              <MenuIcon />
+            </IconButton>
+
+            {/* Call Button */}
+            <IconButton
+              component="a"
+              href="tel:+919311587715"  // replace with your number
+              title="Call Now at 9311587715 for ro services "
+              sx={{ background: '#e9d5ff', color: '#5D3FD3', }}
+            >
+              <PhoneIcon /> {/* from @mui/icons-material */}
+              {/* OR use FontAwesome if preferred */}
+              {/* <FontAwesomeIcon icon={faPhone} /> */}
+            </IconButton>
+          </Box>
+
         </Toolbar>
       </AppBar>
 
       {/* Mobile Drawer */}
-      <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)} >
-        <Box
-          sx={{ width: 250 }}
-          role="presentation"
+      {/* <Drawer anchor="bottom" open={drawerOpen} onClose={toggleDrawer(false)} > */}
+      <Box
+  sx={{
+    width: '100%',
+    bgcolor: '#ffffff',
+    position: {
+      xs: 'fixed',
+      sm: 'fixed',
+      md: 'static',
+    },
+    bottom: {
+      xs: 0,
+      sm: 0,
+    },
+    left: {
+      xs: 0,
+      sm: 0,
+    },
+    right: {
+      xs: 0,
+      sm: 0,
+    },
+    display: {
+      xs: 'block',
+      sm: 'block',
+      md: 'none',
+    },
+    zIndex: 1300,
+    borderTop: '1px solid #f0f0f0',
+    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+  }}
+  role="presentation"
+>
+  <List 
+    sx={{ 
+      display: 'flex',
+      flexDirection: 'row',
+      padding: '10px 8px',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      margin: 0,
+    }}
+  >
+    {/* Home */}
+    <ListItem 
+      button 
+      onClick={() => handleNavigation('/')}
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '12px 8px',
+        minWidth: '60px',
+        borderRadius: '16px',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          backgroundColor: '#f8f9ff',
+          transform: 'scale(1.05)',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          backgroundColor: '#4f46e5',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '6px',
+          color: 'white',
+          fontSize: '16px',
+        }}
+      >
+        <FontAwesomeIcon icon={faHome} />
+      </Box>
+      <Typography 
+        variant="caption"
+        sx={{
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#374151',
+          textAlign: 'center',
+        }}
+      >
+        Home
+      </Typography>
+    </ListItem>
+
+    {/* Cart */}
+    <ListItem 
+      button 
+      onClick={() => handleNavigation('/checkout')}
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '12px 8px',
+        minWidth: '60px',
+        borderRadius: '16px',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          backgroundColor: '#f0fdf4',
+          transform: 'scale(1.05)',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          backgroundColor: '#10b981',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '6px',
+          color: 'white',
+          fontSize: '16px',
+        }}
+      >
+        <FontAwesomeIcon icon={faCartShopping} />
+      </Box>
+      <Typography 
+        variant="caption"
+        sx={{
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#374151',
+          textAlign: 'center',
+        }}
+      >
+        Cart
+      </Typography>
+    </ListItem>
+
+    {/* Conditional Items */}
+    {isLoggedIn ? (
+      <>
+        {/* Booking */}
+        <ListItem 
+          button 
+          onClick={() => handleNavigation('/booking')}
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '12px 8px',
+            minWidth: '60px',
+            borderRadius: '16px',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              backgroundColor: '#fff7ed',
+              transform: 'scale(1.05)',
+            },
+          }}
         >
-          <List>
-            <ListItem>
-              <img src="/assets/images/serviceLogo.webp" alt='Mr Service Expert all services'   title="Mr Service Expert"/>
-            </ListItem>
+          <Box
+            sx={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '6px',
+              color: 'white',
+              fontSize: '16px',
+            }}
+          >
+            <FontAwesomeIcon icon={faBook} />
+          </Box>
+          <Typography 
+            variant="caption"
+            sx={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+              textAlign: 'center',
+            }}
+          >
+            Booking
+          </Typography>
+        </ListItem>
 
-            <ListItem button onClick={() => handleNavigation('/')}>
-              <ListItemIcon sx={{ minWidth: '34px' }}>
-                <FontAwesomeIcon icon={faHome} />
-              </ListItemIcon>
-              <Typography variant="span" fontWeight="normal" >
-                Home
-              </Typography>
-            </ListItem>
-            <Divider sx={{ borderColor: 'gray' }} />
-            <ListItem button onClick={() => handleNavigation('/ro-water-purifier')}>
-              <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faTools} /> </ListItemIcon>
-              <Typography variant="span" fontWeight="400">
-                Service
-              </Typography>
-            </ListItem>
-
-            <Divider sx={{ borderColor: 'gray' }} />
-
-            <ListItem button onClick={() => handleNavigation('/checkout')}>
-              <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faCartShopping} /></ListItemIcon>
-              <Typography variant="span" fontWeight='400'>
-                Checkout
-              </Typography>
-            </ListItem>
-
-            {/* Login/Logout in drawer */}
-            <Divider sx={{ borderColor: 'gray' }} />
-            {isLoggedIn ? (
-              <>
-
-                    <ListItem button onClick={()=> handleNavigation('/profile')}>
-                      <ListItemIcon sx={{minWidth:'34px'}}><FontAwesomeIcon icon={faUser}/>
-                      </ListItemIcon> <ListItemText primary="Profile"/> </ListItem>
-
-                      <Divider sx={{ borderColor: 'gray' }} />
-
-                <ListItem button onClick={() => handleNavigation('/booking')} >
-                  <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faBook} /></ListItemIcon>
-                  <ListItemText primary="Booking" />
-                </ListItem>
-
-                <Divider sx={{ borderColor: 'gray' }} />
-
-                <ListItem button onClick={() => handleNavigation('/help-center')} >
-                  <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faHeadset} /></ListItemIcon>
-                  <ListItemText primary="Help Center" />
-                </ListItem>
-
-                <Divider sx={{ borderColor: 'gray' }} />
-
-                <ListItem button onClick={handleLogout}>
-                  <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faSignOut} /></ListItemIcon>
-                  <ListItemText primary="Logout" />
-                </ListItem>
-                <Divider sx={{ borderColor: 'gray' }} />
-              </>
-            ) : (
-              <ListItem button onClick={() => setShowModal(true)}>
-                <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faSignIn} /></ListItemIcon>
-                <ListItemText primary="Login" />
-              </ListItem>
-            )}
-          </List>
+        {/* Profile */}
+        <ListItem 
+          button 
+          onClick={() => handleNavigation('/profile')}
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '12px 8px',
+            minWidth: '60px',
+            borderRadius: '16px',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              backgroundColor: '#fdf2f8',
+              transform: 'scale(1.05)',
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#ec4899',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '6px',
+              color: 'white',
+              fontSize: '16px',
+            }}
+          >
+            <FontAwesomeIcon icon={faUser} />
+          </Box>
+          <Typography 
+            variant="caption"
+            sx={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+              textAlign: 'center',
+            }}
+          >
+            Profile
+          </Typography>
+        </ListItem>
+      </>
+    ) : (
+      /* Login */
+      <ListItem 
+        button 
+        onClick={() => setShowModal(true)}
+        sx={{
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '12px 8px',
+          minWidth: '60px',
+          borderRadius: '16px',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#f0f9ff',
+            transform: 'scale(1.05)',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: '#0ea5e9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '6px',
+            color: 'white',
+            fontSize: '16px',
+          }}
+        >
+          <FontAwesomeIcon icon={faSignIn} />
         </Box>
-      </Drawer>
+        <Typography 
+          variant="caption"
+          sx={{
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#374151',
+            textAlign: 'center',
+          }}
+        >
+          Login
+        </Typography>
+        </ListItem>
+    )}
+  </List>
+</Box>
+      {/* </Drawer> */}
 
       {/* Phone Verification Modal */}
       <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
