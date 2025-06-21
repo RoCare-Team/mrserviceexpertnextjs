@@ -345,9 +345,9 @@ export default function Header() {
 
           <Box sx={{ display: { xs: 'flex', md: 'none', alignItems: 'center', justifyContent: 'center' }, gap: 1 }}>
             {/* Menu Icon */}
-            <IconButton onClick={toggleDrawer(true)} title="Menu View">
+            {/* <IconButton onClick={toggleDrawer(true)} title="Menu View">
               <MenuIcon />
-            </IconButton>
+            </IconButton> */}
 
             {/* Call Button */}
             <IconButton
