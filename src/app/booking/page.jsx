@@ -92,7 +92,7 @@ function Booking() {
     };
 
     const handleRefresh = async () => {
-setIsSpinning(true);
+        setIsSpinning(true);
         const user_no = localStorage.getItem("userPhone");
         const payload = { user_no: user_no }
         const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
@@ -103,8 +103,8 @@ setIsSpinning(true);
 
         const data = await res.json();
         localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
-         setTimeout(() => setIsSpinning(false), 1000);
-        console.log(JSON.stringify(data.complainDetails)+"badmasi nhi mitar idhar ");
+        setTimeout(() => setIsSpinning(false), 1000);
+        console.log(JSON.stringify(data.complainDetails) + "badmasi nhi mitar idhar ");
 
     }
 
@@ -164,11 +164,11 @@ setIsSpinning(true);
                                         <div className="flex service_info sm:flex-row sm:justify-between">
                                             <h4 className='font-medium'>{service.lead_type} ({service.complain_id})</h4>
                                             <span className={`bookingStatus ${service.status === 'Completed' ? 'text-green-500' :
-                                                    service.status === 'Ongoing' ? 'text-yellow-500' :
-                                                        service.status === 'Pending-denied' ? 'text-red-500' :
-                                                            service.status === 'Follow-up' ? 'text-gray-500' :
-                                                                service.status === 'Inactive' ? 'text-red-500' :
-                                                                    service.status === 'Active' ? 'text-blue-400' : ''
+                                                service.status === 'Ongoing' ? 'text-yellow-500' :
+                                                    service.status === 'Pending-denied' ? 'text-red-500' :
+                                                        service.status === 'Follow-up' ? 'text-gray-500' :
+                                                            service.status === 'Inactive' ? 'text-red-500' :
+                                                                service.status === 'Active' ? 'text-blue-400' : ''
                                                 }`}>
                                                 status: {service.status}
                                             </span>
