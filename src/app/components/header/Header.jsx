@@ -151,6 +151,23 @@ export default function Header() {
 
   }
 
+const handleRefresh = async () => {
+        // setIsSpinning(true);
+        const user_no = localStorage.getItem("userPhone");
+        const payload = { user_no: user_no }
+        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
+        // setTimeout(() => setIsSpinning(false), 1000);
+        // console.log(JSON.stringify(data.complainDetails) + "badmasi nhi mitar idhar ");
+
+    }
+
   const handleLogout = () => {
     // Remove user data from localStorage
     localStorage.clear();
@@ -507,7 +524,12 @@ export default function Header() {
         {/* Booking */}
         <ListItem 
           button 
-          onClick={() => handleNavigation('/booking')}
+            // onClick={handleRefresh}
+          // onClick={() => handleNavigation('/booking'),handleRefresh}
+           onClick={() => {
+    handleNavigation('/booking');
+    handleRefresh();
+  }}
           sx={{
             flexDirection: 'column',
             alignItems: 'center',
@@ -534,6 +556,7 @@ export default function Header() {
               color: 'white',
               fontSize: '16px',
             }}
+            
           >
             <FontAwesomeIcon icon={faBook} />
           </Box>
@@ -545,6 +568,7 @@ export default function Header() {
               color: '#374151',
               textAlign: 'center',
             }}
+          
           >
             Booking
           </Typography>
