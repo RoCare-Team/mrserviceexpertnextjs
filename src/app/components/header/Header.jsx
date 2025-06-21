@@ -403,7 +403,7 @@ export default function Header() {
     sx={{ 
       display: 'flex',
       flexDirection: 'row',
-      padding: '10px 8px',
+      padding: '0px 0px',
       justifyContent: 'space-around',
       alignItems: 'center',
       margin: 0,
@@ -416,7 +416,7 @@ export default function Header() {
       sx={{
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '12px 8px',
+        padding: '6px 2px',
         minWidth: '60px',
         borderRadius: '16px',
         transition: 'all 0.3s ease',
@@ -428,14 +428,14 @@ export default function Header() {
     >
       <Box
         sx={{
-          width: '32px',
-          height: '32px',
+          width: '28px',
+          height: '28px',
           borderRadius: '50%',
           backgroundColor: '#4f46e5',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '6px',
+          marginBottom: '2px',
           color: 'white',
           fontSize: '16px',
         }}
@@ -462,7 +462,7 @@ export default function Header() {
       sx={{
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '12px 8px',
+        padding: '6px 2px',
         minWidth: '60px',
         borderRadius: '16px',
         transition: 'all 0.3s ease',
@@ -474,14 +474,14 @@ export default function Header() {
     >
       <Box
         sx={{
-          width: '32px',
-          height: '32px',
+          width: '28px',
+          height: '28px',
           borderRadius: '50%',
           backgroundColor: '#10b981',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          marginBottom: '6px',
+          marginBottom: '2px',
           color: 'white',
           fontSize: '16px',
         }}
@@ -511,7 +511,7 @@ export default function Header() {
           sx={{
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '12px 8px',
+            padding: '6px 2px',
             minWidth: '60px',
             borderRadius: '16px',
             transition: 'all 0.3s ease',
@@ -523,14 +523,14 @@ export default function Header() {
         >
           <Box
             sx={{
-              width: '32px',
-              height: '32px',
+              width: '28px',
+              height: '28px',
               borderRadius: '50%',
               backgroundColor: '#f59e0b',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '6px',
+              marginBottom: '2px',
               color: 'white',
               fontSize: '16px',
             }}
@@ -557,7 +557,7 @@ export default function Header() {
           sx={{
             flexDirection: 'column',
             alignItems: 'center',
-            padding: '12px 8px',
+            padding: '6px 2px',
             minWidth: '60px',
             borderRadius: '16px',
             transition: 'all 0.3s ease',
@@ -569,14 +569,14 @@ export default function Header() {
         >
           <Box
             sx={{
-              width: '32px',
-              height: '32px',
+              width: '28px',
+              height: '28px',
               borderRadius: '50%',
               backgroundColor: '#ec4899',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              marginBottom: '6px',
+              marginBottom: '2px',
               color: 'white',
               fontSize: '16px',
             }}
@@ -604,7 +604,7 @@ export default function Header() {
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '12px 8px',
+          padding: '6px 2px',
           minWidth: '60px',
           borderRadius: '16px',
           transition: 'all 0.3s ease',
@@ -616,14 +616,14 @@ export default function Header() {
       >
         <Box
           sx={{
-            width: '32px',
-            height: '32px',
+            width: '28px',
+            height: '28px',
             borderRadius: '50%',
             backgroundColor: '#0ea5e9',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            marginBottom: '6px',
+            marginBottom: '2px',
             color: 'white',
             fontSize: '16px',
           }}
