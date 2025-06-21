@@ -13,14 +13,14 @@ function Profile() {
     const [userName, setUserName] = useState('');
     const [userEmail, setUserEmail] = useState('');
     const [updateOpen, setUpdateOpen] = useState(false);
-    const router=useRouter();
+    const router = useRouter();
 
-    useEffect(()=>{
+    useEffect(() => {
         const userVerified = JSON.parse(localStorage.getItem("userPhone"));
         if (!userVerified) {
             router.push('/');
         }
-    },[])
+    }, [])
 
     // Load user data from localStorage
     const loadUserData = () => {
@@ -69,31 +69,31 @@ function Profile() {
         return Promise.resolve(); // Return a resolved promise
     };
 
-      const handleLogout = () => {
-    // Remove user data from localStorage
-   localStorage.clear();
-   
+    const handleLogout = () => {
+        // Remove user data from localStorage
+        localStorage.clear();
 
-    // Update state to reflect logged out status
-    // setIsLoggedIn(false);
-    window.location.reload();
-  };
+
+        // Update state to reflect logged out status
+        // setIsLoggedIn(false);
+        window.location.reload();
+    };
 
     return (
         <div className="flex justify-center items-center flex-col common-login-spacing mb-5">
-             <ToastContainer/>
+            <ToastContainer />
 
-           <div className='flex md:block justify-between  items-center   md:justify-start  md:items-start w-full md:w-0'>
-             <div className='flex items-start justify-start text-left gap-0.5 mb-2.5 col-4'>
-                <Link href={'/'} className='mb-0 text-black'><span className='mb-0 text-black'>Home</span></Link>
-                <span className='mb-0 text-black'> {'>'}</span>
-                <span className='mb-0 text-purple-600'>Profile</span>
-            </div>
+            <div className='flex md:block justify-between  items-center   md:justify-start  md:items-start w-full md:w-0'>
+                <div className='flex items-start justify-start text-left gap-0.5 mb-2.5 col-4'>
+                    <Link href={'/'} className='mb-0 text-black'><span className='mb-0 text-black'>Home</span></Link>
+                    <span className='mb-0 text-black'> {'>'}</span>
+                    <span className='mb-0 text-purple-600'>Profile</span>
+                </div>
 
-            <div className=' mb-2.5 flex md:hidden'>
-                <span onClick={handleLogout}> <FontAwesomeIcon icon={faSignOut}/>  Logout</span>
+                <div className=' mb-2.5 flex md:hidden'>
+                    <span onClick={handleLogout}> <FontAwesomeIcon icon={faSignOut} />  Logout</span>
+                </div>
             </div>
-           </div>
 
             <div className="bg-white flex flex-col w-full max-w-lg shadow-md rounded-md">
                 <div className='flex items-center justify-between text-white bg-purple-600 p-4 booking-container '>

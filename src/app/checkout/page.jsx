@@ -83,7 +83,7 @@ const CheckOut = () => {
             // console.log(data);
 
             displayCartData();
-            toast.success(data.msg);
+            // toast.success(data.msg);
         } else {
             toast.error("You can't add more than 5 items");
         }
@@ -121,11 +121,13 @@ const CheckOut = () => {
 
             }
             displayCartData();
-            toast.success(data.msg);
+            // toast.success(data.msg);
 
 
         } else {
-            toast.success(data.msg);
+            toast.success(data.msg,{
+                 autoClose: 3000,
+            });
         }
 
     };
@@ -149,7 +151,7 @@ const CheckOut = () => {
         // console.log(localStorage.getItem("cartItems"));
 
 
-        console.log(JSON.stringify(cartItems) + 'before doing anything');
+        // console.log(JSON.stringify(cartItems) + 'before doing anything');
 
         const time = JSON.parse(localStorage.getItem("bookingTimeSlot") || "[]");
         const appointment_time = time.time;
@@ -169,7 +171,9 @@ const CheckOut = () => {
         if(cust_id===null || cust_mobile=== null  || address_id === null ||  cust_email=== null || appointment_date === null || appointment_time === null )
         {
             // alert("please choose the booking details first before paying");
-            toast.error("please choose the booking details first before paying");
+            toast.error("please choose the booking details first before paying",{
+                 autoClose: 3000,
+            });
 
             
 
@@ -192,7 +196,7 @@ const CheckOut = () => {
 
             const leftOverItems = chkout.filter(items => items.category_cart_id !== cart_id)
 
-            console.log(leftOverItems);
+            // console.log(leftOverItems);
 
             if (leftOverItems.length > 0) {
                 localStorage.setItem('checkoutState', JSON.stringify(leftOverItems));

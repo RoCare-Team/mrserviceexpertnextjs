@@ -38,7 +38,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
     setFinalTotal(finalTotal);
 
-    console.log(finalTotal+"after making the actuall sum of all the things");
+    // console.log(finalTotal+"after making the actuall sum of all the things");
     
 
     // const price_discount=cartDataArray.map(item => Number(item.total_cart_price)).reduce((acc, price) => acc + price, 0);
@@ -75,11 +75,15 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       localStorage.setItem('cart_total_price', data.total_main);
 
       displayCartData();
-      toast.success(data.msg);
+      // toast.success(data.msg,{
+      //    autoClose: 1500,
+      // });
 
 
     } else {
-      toast.error("You can't add more than 5 items");
+      toast.error("You can't add more than 5 items",{
+         autoClose: 3000,
+      });
     }
 
   };
@@ -115,11 +119,13 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       }
 
       displayCartData();
-      toast.success(data.msg);
+      // toast.success(data.msg);
 
 
     } else {
-      toast.success('hey hey hey ')
+      toast.success('hey hey hey ',{
+         autoClose: 3000,
+      })
     }
 
   };
@@ -156,13 +162,13 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       cartLoadedToggle();
     }
     displayCartData();
-    toast.success(data.msg);
+    // toast.success(data.msg);
 
 
   };
 
 
-  console.log(finalTotal);
+  // console.log(finalTotal);
 
 
   return (
