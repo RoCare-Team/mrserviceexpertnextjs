@@ -184,7 +184,7 @@ setIsSpinning(true);
                             <div className="no_booking">
                                 <div className="text-center py-4 text-gray-500">No services in this category</div>
                                 <div>
-                                    <Link href={'/service'}>
+                                    <Link href={'/ro-water-purifier'}>
                                         <p className='text-xl text-violet-700 mb-3.5 text-center'>Explore Our Services</p>
                                     </Link>
                                 </div>
