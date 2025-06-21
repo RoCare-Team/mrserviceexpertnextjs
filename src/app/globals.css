@@ -2229,10 +2229,10 @@ padding-block: 13px;
 
   .cart-footer {
     position: fixed;
-    bottom: 0;
+    bottom: 65px;
     left: 0;
     width: 100%;
-    background-color: white;
+    background-color:transparent;
     z-index: 1000;
     padding: 10px
   }
