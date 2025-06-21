@@ -368,104 +368,283 @@ export default function Header() {
       {/* Mobile Drawer */}
       {/* <Drawer anchor="bottom" open={drawerOpen} onClose={toggleDrawer(false)} > */}
       <Box
+  sx={{
+    width: '100%',
+    bgcolor: '#ffffff',
+    position: {
+      xs: 'fixed',
+      sm: 'fixed',
+      md: 'static',
+    },
+    bottom: {
+      xs: 0,
+      sm: 0,
+    },
+    left: {
+      xs: 0,
+      sm: 0,
+    },
+    right: {
+      xs: 0,
+      sm: 0,
+    },
+    display: {
+      xs: 'block',
+      sm: 'block',
+      md: 'none',
+    },
+    zIndex: 1300,
+    borderTop: '1px solid #f0f0f0',
+    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
+  }}
+  role="presentation"
+>
+  <List 
+    sx={{ 
+      display: 'flex',
+      flexDirection: 'row',
+      padding: '10px 8px',
+      justifyContent: 'space-around',
+      alignItems: 'center',
+      margin: 0,
+    }}
+  >
+    {/* Home */}
+    <ListItem 
+      button 
+      onClick={() => handleNavigation('/')}
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '12px 8px',
+        minWidth: '60px',
+        borderRadius: '16px',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          backgroundColor: '#f8f9ff',
+          transform: 'scale(1.05)',
+        },
+      }}
+    >
+      <Box
         sx={{
-          width: '100%',
-          bgcolor: 'white',
-          position: {
-            xs: 'fixed',   // fixed at bottom on mobile
-            sm: 'fixed',
-            md: 'static',  // no fixed position on medium and larger
-          },
-          bottom: {
-            xs: 0,
-            sm: 0,
-          },
-          left: {
-            xs: 0,
-            sm: 0,
-          },
-          right: {
-            xs: 0,
-            sm: 0,
-          },
-          display: {
-            xs: 'block',
-            sm: 'block',
-            md: 'none',   // hidden on medium and up
-          },
-          zIndex: 1300, // to ensure it's above other content
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          backgroundColor: '#4f46e5',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '6px',
+          color: 'white',
+          fontSize: '16px',
         }}
-        role="presentation"
       >
-        <List className="flex flex-row ">
-
-
-          <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/')}>
-            <ListItemIcon sx={{ minWidth: '34px' }}>
-              <FontAwesomeIcon icon={faHome} />
-            </ListItemIcon>
-            <Typography variant="span" fontWeight="normal" >
-              Home
-            </Typography>
-          </ListItem>
-
-          {/* <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/ro-water-purifier')}>
-            <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faTools} /> </ListItemIcon>
-            <Typography variant="span" fontWeight="400">
-              Service
-            </Typography>
-          </ListItem> */}
-
-
-
-          <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/checkout')}>
-            <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faCartShopping} /></ListItemIcon>
-            <Typography variant="span" fontWeight='400'>
-              Cart
-            </Typography>
-          </ListItem>
-
-          {/* Login/Logout in drawer */}
-
-          {isLoggedIn ? (
-            <>
-
-              <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/booking')} >
-                <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faBook} /></ListItemIcon>
-                <ListItemText primary="Booking" />
-              </ListItem>
-
-              <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/profile')}>
-                <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faUser} />
-                </ListItemIcon> <ListItemText primary="Profile" /> </ListItem>
-
-
-
-
-
-
-
-              {/* <ListItem className="flex  flex-col" button onClick={() => handleNavigation('/help-center')} >
-                <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faHeadset} /></ListItemIcon>
-                <ListItemText primary="Help Center" />
-              </ListItem> */}
-
-
-
-              {/* <ListItem className="flex  flex-col" button onClick={handleLogout}>
-                <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faSignOut} /></ListItemIcon>
-                <ListItemText primary="Logout" />
-              </ListItem> */}
-
-            </>
-          ) : (
-            <ListItem className="flex  flex-col" button onClick={() => setShowModal(true)}>
-              <ListItemIcon sx={{ minWidth: '34px' }}><FontAwesomeIcon icon={faSignIn} /></ListItemIcon>
-              <ListItemText primary="Login" />
-            </ListItem>
-          )}
-        </List>
+        <FontAwesomeIcon icon={faHome} />
       </Box>
+      <Typography 
+        variant="caption"
+        sx={{
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#374151',
+          textAlign: 'center',
+        }}
+      >
+        Home
+      </Typography>
+    </ListItem>
+
+    {/* Cart */}
+    <ListItem 
+      button 
+      onClick={() => handleNavigation('/checkout')}
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        padding: '12px 8px',
+        minWidth: '60px',
+        borderRadius: '16px',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          backgroundColor: '#f0fdf4',
+          transform: 'scale(1.05)',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          backgroundColor: '#10b981',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: '6px',
+          color: 'white',
+          fontSize: '16px',
+        }}
+      >
+        <FontAwesomeIcon icon={faCartShopping} />
+      </Box>
+      <Typography 
+        variant="caption"
+        sx={{
+          fontSize: '12px',
+          fontWeight: 600,
+          color: '#374151',
+          textAlign: 'center',
+        }}
+      >
+        Cart
+      </Typography>
+    </ListItem>
+
+    {/* Conditional Items */}
+    {isLoggedIn ? (
+      <>
+        {/* Booking */}
+        <ListItem 
+          button 
+          onClick={() => handleNavigation('/booking')}
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '12px 8px',
+            minWidth: '60px',
+            borderRadius: '16px',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              backgroundColor: '#fff7ed',
+              transform: 'scale(1.05)',
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#f59e0b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '6px',
+              color: 'white',
+              fontSize: '16px',
+            }}
+          >
+            <FontAwesomeIcon icon={faBook} />
+          </Box>
+          <Typography 
+            variant="caption"
+            sx={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+              textAlign: 'center',
+            }}
+          >
+            Booking
+          </Typography>
+        </ListItem>
+
+        {/* Profile */}
+        <ListItem 
+          button 
+          onClick={() => handleNavigation('/profile')}
+          sx={{
+            flexDirection: 'column',
+            alignItems: 'center',
+            padding: '12px 8px',
+            minWidth: '60px',
+            borderRadius: '16px',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              backgroundColor: '#fdf2f8',
+              transform: 'scale(1.05)',
+            },
+          }}
+        >
+          <Box
+            sx={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#ec4899',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '6px',
+              color: 'white',
+              fontSize: '16px',
+            }}
+          >
+            <FontAwesomeIcon icon={faUser} />
+          </Box>
+          <Typography 
+            variant="caption"
+            sx={{
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+              textAlign: 'center',
+            }}
+          >
+            Profile
+          </Typography>
+        </ListItem>
+      </>
+    ) : (
+      /* Login */
+      <ListItem 
+        button 
+        onClick={() => setShowModal(true)}
+        sx={{
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '12px 8px',
+          minWidth: '60px',
+          borderRadius: '16px',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: '#f0f9ff',
+            transform: 'scale(1.05)',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: '#0ea5e9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '6px',
+            color: 'white',
+            fontSize: '16px',
+          }}
+        >
+          <FontAwesomeIcon icon={faSignIn} />
+        </Box>
+        <Typography 
+          variant="caption"
+          sx={{
+            fontSize: '12px',
+            fontWeight: 600,
+            color: '#374151',
+            textAlign: 'center',
+          }}
+        >
+          Login
+        </Typography>
+        </ListItem>
+    )}
+  </List>
+</Box>
       {/* </Drawer> */}
 
       {/* Phone Verification Modal */}
