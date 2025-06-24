@@ -65,21 +65,21 @@ const TimeSlotModal = ({ onTimeSlotSelected, onClose, open }) => {
   };
 
   // Handle date selection
-  const handleDateSelect =async (date) => {
-const sdate=date.toISOString().split('T')[0];
-const payload = { date: sdate };
-// console.log(JSON.stringify(payload));
- 
+  const handleDateSelect = async (date) => {
+    const sdate = date.toISOString().split('T')[0];
+    const payload = { date: sdate };
+    // console.log(JSON.stringify(payload));
+
     const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/time_slot.php", {
       method: "POST",
-      headers: { "Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const data = await res.json();
-  // console.log(data);
-    localStorage.setItem("time_slot",JSON.stringify(data.all_time_slots));
-    
+    // console.log(data);
+    localStorage.setItem("time_slot", JSON.stringify(data.all_time_slots));
+
     setSelectedDate(date);
     setSelectedTime(null); // Reset time selection when date changes
   };
@@ -93,14 +93,14 @@ const payload = { date: sdate };
 
 
   const timeslot = JSON.parse(localStorage.getItem("time_slot") || "[]");
-  
+
   // if(Array.isArray(timeslot)){
   //   console.log("iss array");
-    
+
   // }
 
-  
-  
+
+
   // const timeDataArray = timeslot ? JSON.parse(timeslot) : [];
   // Handle close button click
   const handleClose = () => {
@@ -112,7 +112,7 @@ const payload = { date: sdate };
   // Handle proceed to checkout
   const handleProceed = () => {
     // console.log(id);
-    
+
     if (selectedDate && selectedTime && onTimeSlotSelected && selectedTimeId) {
 
       // Format date as YYYY-MM-DD
@@ -128,13 +128,13 @@ const payload = { date: sdate };
       });
       // const timeId = setSelectedTimeId(time.id)
 
-      
+
 
       onTimeSlotSelected({
         date: formattedDate,
         time: selectedTime,
         id: selectedTimeId
-       
+
       });
 
       // Close the modal after selection is complete
@@ -142,7 +142,7 @@ const payload = { date: sdate };
     }
   };
 
-  const handleTimeSlot = (time,id) => {
+  const handleTimeSlot = (time, id) => {
 
     setSelectedTime(time);
     setSelectedTimeId(id)
@@ -184,14 +184,14 @@ const payload = { date: sdate };
         </div>
 
         {/* Date Selection */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex  flex-wrap gap-2 mb-4">
           {availableDates?.map((date, index) => (
             <button
               key={index}
               onClick={() => handleDateSelect(date.value)}
               className={`px-1 py-3  dateStyle ${selectedDate && selectedDate.toDateString() === date.value.toDateString()
-                  ? "bg-violet-500 text-white"
-                  : "bg-white text-gray-800 border-gray-300"
+                ? "bg-violet-500 text-white"
+                : "bg-white text-gray-800 border-gray-300"
                 }`}
             >
               {date.label}
@@ -204,35 +204,35 @@ const payload = { date: sdate };
           <div className="mb-4 mt-6">
             <h5 className="text-sm font-medium mb-2 text-left ">Available time slots for {selectedDate.toLocaleDateString("en-US", { weekday: 'long', month: 'long', day: 'numeric' })}</h5>
             <div className="h-40 overflow-y-auto">
-              <div className="grid grid-cols-3 gap-2 p-3">
-             
-               {timeslot.length>0 ? (
+              <div className="grid md:grid-cols-3 grid-cols-2 gap-2 p-3">
+
+                {timeslot.length > 0 ? (
 
 
-timeslot.map((time) => (
-  <div key={time.id}>
-    <button
-      className={`w-full py-2 px-3 border slotButton relative text-sm ${selectedTime === time.time_slots
-          ? "bg-violet-300 text-white"
-          : "bg-white text-gray-800 border-gray-300"
-        }`}
-      
-      onClick={() => handleTimeSlot(time.time_slots,time.id)}
-    >
-      {time.time_slots}
-      {/* {hasExtraCharge(time) && (
+                  timeslot.map((time) => (
+                    <div key={time.id}>
+                      <button
+                        className={`w-full py-2 px-3 border  slotButton relative text-sm ${selectedTime === time.time_slots
+                          ? "bg-violet-500 text-white"
+                          : "bg-white text-gray-800 border-gray-300"
+                          }`}
+
+                        onClick={() => handleTimeSlot(time.time_slots, time.id)}
+                      >
+                        {time.time_slots}
+                        {/* {hasExtraCharge(time) && (
         <span className={`text-xs ${selectedTime === time ? "text-orange-500 extraCharge" : "text-orange-500 extraCharge"} ml-1`}>+ ₹150</span>
       )} */}
-    </button>
-  </div>
-))
-               ):(
-               
-               <div className='w-full'>
-                <p className='text-center'><b>no available slots go to other dates</b></p>
-               </div>
-               
-               )}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+
+                  <div className='w-full'>
+                    <p className='text-center'><b>no available slots go to other dates</b></p>
+                  </div>
+
+                )}
               </div>
             </div>
 
@@ -244,13 +244,13 @@ timeslot.map((time) => (
           <Box textAlign="center" mt={3}>
             <button
               className={`px-6 py-2 rounded-md w-full ${!selectedTime
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-green-500 cursor-pointer"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-500 cursor-pointer"
                 } text-white`}
               disabled={!selectedTime}
               onClick={handleProceed}
             >
-              Proceed to checkout
+              Next
             </button>
           </Box>
         )}

@@ -408,7 +408,7 @@ const handleRefresh = async () => {
       sm: 'block',
       md: 'none',
     },
-    zIndex: 1300,
+    zIndex:5,
     borderTop: '1px solid #f0f0f0',
     boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
   }}

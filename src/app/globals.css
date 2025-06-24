@@ -1958,6 +1958,9 @@ hr {
 /* media queries for devices having width till 600px */
 @media only screen and (max-width: 600px) {
 
+  .hidden_pay{
+    display: none;
+  }
 
   .mobileNumber {
   background: #8429d8;

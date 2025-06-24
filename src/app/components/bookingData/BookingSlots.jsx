@@ -141,7 +141,7 @@ function BookingSlots({ phoneNumber }) {
       // Close the modal after selection
       setShowTimeSlotModal(false);
       
-      toast.success("Time slot selected successfully");
+      // toast.success("Time slot selected successfully");
     } catch (error) {
       console.error("Error saving time slot:", error);
       toast.error("Failed to save time slot");

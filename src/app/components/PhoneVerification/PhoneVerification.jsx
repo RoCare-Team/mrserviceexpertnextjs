@@ -73,7 +73,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
           localStorage.setItem('userToken', 'verified');
         }
 
-        toast.success(data.msg);
+        // toast.success(data.msg);
         setShowOtpModal(false);
 
         if (data.status === 1) {
@@ -110,7 +110,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
       const data = await res.json();
 
       if (data.error === false) {
-        toast.success("Details saved successfully!");
+        // toast.success("Details saved successfully!");
         setOpenBasic(false);
         setShowCongrats(true);
 
@@ -185,7 +185,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
 
         if (data.error === false) {
           setOtpLoader(false); // Stop loading on success
-          toast.success(data.msg);
+          // toast.success(data.msg);
           setShowModal(false);
           setShowOtpModal(true);
           setPhoneError('');
@@ -385,12 +385,12 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
               <div className="mb-6">
                 <span className='text-gray-400'>Resend the code on</span>
                 <div className='flex items-center gap-2.5 justify-center mt-2'>
-                  <button
+                  {/* <button
                     className={`px-4 py-2 rounded-md transition ${activeButton === 'whatsapp' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                     onClick={() => handleResendCode('whatsapp')}
                   >
                     WhatsApp
-                  </button>
+                  </button> */}
                   <button
                     className={`px-4 py-2 rounded-md transition ${activeButton === 'sms' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                     onClick={() => handleResendCode('sms')}
