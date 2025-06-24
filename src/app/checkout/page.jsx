@@ -340,7 +340,7 @@ const CheckOut = () => {
 
                                                 </div>
                                             ))}
-                                            <button className="bg-purple-600 w-full p-2 rounded-xl text-white" onClick={() => handlePaymentCompleted(service.category_cart_id)}>Pay Now: ₹{service.total_main} </button>
+                                            <button className="bg-purple-600 w-full p-2 rounded-xl text-white" onClick={() => handlePaymentCompleted(service.category_cart_id)}>Book Now: ₹{service.total_main} </button>
                                         </div>
 
                                     ))}
