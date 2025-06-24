@@ -202,7 +202,8 @@ const handleRefresh = async () => {
                   src="/assets/images/serviceLogo.webp"
                   alt="service logo"
                   title="Mr Service Expert"
-                  style={{ height: "50px" }}
+                  // style={{ height: "50px" , }}
+                  className="service_logo"
                 /></Link>
             </div>
           </Box>
@@ -220,7 +221,7 @@ const handleRefresh = async () => {
                 <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" />
               </span>
               <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
-                <button className="text-black" title="Call for services">+91-9311587715</button>
+                <button className="text-white" title="Call for services">+91-9311587715</button>
               </a>
             </div>
 
@@ -361,22 +362,17 @@ const handleRefresh = async () => {
           {/* Mobile Menu Icon */}
 
           <Box sx={{ display: { xs: 'flex', md: 'none', alignItems: 'center', justifyContent: 'center' }, gap: 1 }}>
-            {/* Menu Icon */}
-            {/* <IconButton onClick={toggleDrawer(true)} title="Menu View">
-              <MenuIcon />
-            </IconButton> */}
-
-            {/* Call Button */}
-            <IconButton
-              component="a"
-              href="tel:+919311587715"  // replace with your number
-              title="Call Now at 9311587715 for ro services "
-              sx={{ background: '#e9d5ff', color: '#5D3FD3', }}
-            >
-              <PhoneIcon /> {/* from @mui/icons-material */}
-              {/* OR use FontAwesome if preferred */}
-              {/* <FontAwesomeIcon icon={faPhone} /> */}
-            </IconButton>
+            
+            <div className="flex items-center mobileNumber">
+              <span className="w-10 h-10">
+                <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" />
+              </span>
+              <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
+                <button className="text-white" title="Call for services">+91-9311587715</button>
+              </a>
+            </div>
+             
+            
           </Box>
 
         </Toolbar>
