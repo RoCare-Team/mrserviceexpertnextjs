@@ -732,9 +732,10 @@ hr {
 }
 
 .mobileNumber {
-  background: #ae6deb;
-  padding: 0px 6px;
+  background: #8429d8;
+  padding: 4px 6px;
   border-radius: 10px;
+ 
 }
 
 .CountNumber {
@@ -1956,6 +1957,13 @@ hr {
 
 /* media queries for devices having width till 600px */
 @media only screen and (max-width: 600px) {
+
+
+  .mobileNumber {
+  background: #8429d8;
+  /* padding: 0px 6px; */
+  border-radius: 10px;
+}
 
   .benfits-card{
     height: 100px;
