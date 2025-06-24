@@ -216,9 +216,10 @@ const handleRefresh = async () => {
               gap: 2,
             }}
           >
-            <div className="flex items-center mobileNumber">
-              <span className="w-10 h-10">
-                <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" />
+            <div className="flex items-center mobileNumber ">
+              <span className="">
+                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5"/>
+                {/* <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" /> */}
               </span>
               <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
                 <button className="text-white" title="Call for services">+91-9311587715</button>
@@ -363,9 +364,10 @@ const handleRefresh = async () => {
 
           <Box sx={{ display: { xs: 'flex', md: 'none', alignItems: 'center', justifyContent: 'center' }, gap: 1 }}>
             
-            <div className="flex items-center mobileNumber">
-              <span className="w-10 h-10">
-                <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" />
+            <div className="flex items-center mobileNumber ">
+              <span className="">
+                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5"/>
+                {/* <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" /> */}
               </span>
               <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
                 <button className="text-white" title="Call for services">+91-9311587715</button>
