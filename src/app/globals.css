@@ -732,7 +732,7 @@ hr {
 }
 
 .mobileNumber {
-  background: #ededed;
+  background: #ae6deb;
   padding: 0px 6px;
   border-radius: 10px;
 }
@@ -1946,6 +1946,9 @@ hr {
   /* color: white; */
 }
 
+.service_logo{
+  height: 50px;
+}
 /* .querySpan:hover{
   color: white;
 } */
@@ -2047,7 +2050,9 @@ padding-block: 13px;
     text-overflow: ellipsis;
     text-decoration: none;
   }
-
+.service_logo{
+  height: 28px;
+}
   .rightHeroDetails {
     gap: 18px;
     text-align: center;
