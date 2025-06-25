@@ -390,7 +390,7 @@ const CheckOut = () => {
                                                     </div>
                                                     <div className="flex items-center flex-col">
                                                         <div>
-                                                            <p className="text-xs text-gray-700 mb-1">₹{serviceDetail.total_price}</p>
+                                                            <p className="text-xs text-gray-700 mb-1">₹{serviceDetail.total_price || serviceDetail.price}</p>
                                                         </div>
                                                         <div className="quantity-control">
                                                             <button className="IncrementDcrementBtn" onClick={() => onDecrement(serviceDetail.service_id, 'delete', serviceDetail.quantity)}>
@@ -414,7 +414,7 @@ const CheckOut = () => {
                                                     }
                                                 }}
                                             >
-                                                Book Now: ₹{service.total_main}
+                                                Book Now: ₹{service.total_main || finalTotal}
                                             </button>
                                         </div>
                                     ))}
