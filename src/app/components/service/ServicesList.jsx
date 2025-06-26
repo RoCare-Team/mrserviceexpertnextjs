@@ -169,7 +169,7 @@ setBrandName(cat);
       const cid = localStorage.getItem('customer_id');
       // console.log(cid);
       if (cid != null) {
-        toast.success('Hope You Enjoy Our Services 🎉');
+        // toast.success('Hope You Enjoy Our Services 🎉');
         const payload = { service_id, quantity, cid, type };
         const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
 

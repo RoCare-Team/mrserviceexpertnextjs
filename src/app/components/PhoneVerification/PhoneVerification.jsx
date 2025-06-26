@@ -288,9 +288,9 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2 text-gray-900 w-full text-center">Enter your phone number</h2>
+              <h2 className=" text-xl  md:text-2xl font-semibold mb-2 text-gray-900 w-full text-center">Enter your phone number</h2>
               <p className="text-gray-600 mb-6 w-full text-center">We'll send you a text with a verification code.</p>
-              <div className="flex mb-4 w-full">
+              <div className="flex mb-2 md:mb-4 w-full">
                 <div className="flex items-center px-4 bg-gray-100 rounded-l-lg border border-gray-300 border-r-0">
                   <span className="text-gray-600">+91</span>
                 </div>
@@ -389,7 +389,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                 ))}
               </div>
 
-              <div className="mb-6">
+              <div className="mb-2 md:mb-6 flex items-center gap-1.5 ">
                 <span className='text-gray-400'>Resend the code on</span>
                 <div className='flex items-center gap-2.5 justify-center mt-2'>
                   {/* <button
