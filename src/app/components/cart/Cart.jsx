@@ -32,9 +32,16 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
     setFinalTotal(localStorage.getItem('cart_total_price'));
 
+    // const finalTotal = cartDataArray
+    //   .map(item => Number(item.total_main)) // Convert string to number
+    //   .reduce((acc, price) => acc + price, 0); // Sum up prices
+
+    const getPrice=localStorage.getItem('cart_total_price');
+
     const finalTotal = cartDataArray
-      .map(item => Number(item.total_main)) // Convert string to number
-      .reduce((acc, price) => acc + price, 0); // Sum up prices
+  .map(item => Number(item.total_main || getPrice || 0)) // Handle total_main or price or default to 0
+  .reduce((acc, price) => acc + price, 0);
+
 
     setFinalTotal(finalTotal);
 
