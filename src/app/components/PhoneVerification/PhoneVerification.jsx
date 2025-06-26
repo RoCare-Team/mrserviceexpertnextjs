@@ -249,19 +249,26 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         aria-describedby="phone-verification-description"
       >
         <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
-            maxWidth: '600px',
-            bgcolor: 'background.paper',
-            borderRadius: '0.5rem',
-            boxShadow: 24,
-            p: 3,
-          }}
-        >
+  sx={{
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: {
+      xs: '90%',   // 70% on extra-small screens (mobile)
+      sm: '100%',  // 100% on small and up
+    },
+    maxWidth: '600px',
+    bgcolor: 'background.paper',
+    borderRadius: '0.5rem',
+    boxShadow: 24,
+    p: {
+      xs: '13px',  // 13px padding on mobile
+      sm: 3        // default MUI spacing unit on larger screens
+    },
+  }}
+>
+
           {/* Close Button */}
           <button
             onClick={handleCloseModal}

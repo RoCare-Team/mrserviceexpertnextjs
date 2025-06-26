@@ -210,7 +210,7 @@ const CheckOut = () => {
         }, 200);
     };
 
-    const handlePaymentCompleted = async (leadtype) => {
+    const handlePaymentCompleted = async (leadtype,redirect=true) => {
         const cust_id = localStorage.getItem("customer_id");
         const cust_mobile = localStorage.getItem("userPhone");
         const address_id = localStorage.getItem("address_id");
@@ -302,9 +302,17 @@ const CheckOut = () => {
 
                 displayCartData();
 
-                setTimeout(() => {
-                    window.location.href = data.lead_id_for_payment;
-                }, 100);
+                 if (redirect) {
+                    setTimeout(() => {
+                        window.location.href = data.lead_id_for_payment;
+                    }, 100);
+                } else {
+                    toast.success("Team Will Contact You Soon!......");
+                }
+
+                // setTimeout(() => {
+                //     window.location.href = data.lead_id_for_payment;
+                // }, 100);
             } else {
                 toast.error(data.msg || "Payment processing failed");
             }
@@ -321,8 +329,9 @@ const CheckOut = () => {
     };
 
     return (
+        
         <div className="checkout common-spacing bg-white">
-            <ToastContainer position="top-right" autoClose={3000} />
+           
 
             <div className="checkSection">
                 {cartDataArray.length > 0 ? (
@@ -376,8 +385,14 @@ const CheckOut = () => {
                         {cartDataArray?.length > 0 ? (
                             <div className="checkOutOrder">
                                 <div>
-                                    {cartDataArray?.map((service) => (
-                                        <div key={service.cart_id}>
+                                    {cartDataArray?.map((service) => {
+                                           const categoryTotal = service.cart_dtls.reduce((sum, item) => {
+                                            const price = Number(item.total_price || item.price);
+                                            const quantity = Number(item.quantity || 1);
+                                            return sum + price * quantity;
+                                        }, 0);
+                                        return(
+                                             <div key={service.cart_id}>
                                             <p className="text-xl"><b>{service.leadtype_name}</b></p>
                                             {service.cart_dtls.map((serviceDetail) => (
                                                 <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">
@@ -404,8 +419,10 @@ const CheckOut = () => {
                                                     </div>
                                                 </div>
                                             ))}
-                                            <button 
-                                                className="bg-purple-600 w-full p-2 rounded-xl text-white hover:bg-purple-700 transition-colors" 
+                                           <div className="flex justify-between">
+                                            <button  onClick={()=>handlePaymentCompleted(service.category_cart_id, false)} className="bg-gray-400 hidden md:block  p-2 rounded-xl text-white hover:bg-blue-700 transition-colors">Pay Later</button>
+                                             <button 
+                                                className="bg-purple-600  md:w-xs w-full p-2 rounded-xl text-white hover:bg-purple-700 transition-colors" 
                                                 onClick={() => {
                                                     if (window.innerWidth < 768) {
                                                         handleBookNowClick(service);
@@ -415,10 +432,12 @@ const CheckOut = () => {
                                                 }}
                                             >
                                                 
-                                                Book Now: ₹{service.total_main || finalTotal}
+                                                Book Now: ₹{categoryTotal}
                                             </button>
+                                           </div>
                                         </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
 
                                 <div className="cancellation-section block md:hidden">
@@ -501,7 +520,13 @@ const CheckOut = () => {
 
                             <div className="mt-6 flex gap-3">
                                 <button
-                                    onClick={handleCloseModal}
+                                    onClick={() => {
+                                        handleCloseModal();
+                                        // Call handlePaymentCompleted with redirect=false for "Pay Later"
+                                        if (currentBookingItem) {
+                                            handlePaymentCompleted(currentBookingItem.category_cart_id, false);
+                                        }
+                                    }}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
                                 >
                                     Pay Later
@@ -524,6 +549,7 @@ const CheckOut = () => {
             )}
 
             <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
+             <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );
 };
