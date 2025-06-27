@@ -249,7 +249,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
 
   return (
     <div>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="top-right" />
 
       {/* Phone Verification Modal using MUI Modal */}
       <Modal
