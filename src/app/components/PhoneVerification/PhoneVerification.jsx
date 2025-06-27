@@ -215,11 +215,21 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     }
   };
 
+  // const handleKeyDown = (index, e) => {
+  //   if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+  //     otpInputRefs.current[index - 1].focus();
+  //   }
+  // };
+
   const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpInputRefs.current[index - 1].focus();
+  if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+    otpInputRefs.current[index - 1].focus();
+  } else if (e.key === 'Enter') {
+    if (index === 3) {
+      handleVerification(); 
     }
-  };
+  }
+};
 
   const handleResendCode = (method) => {
     setActiveButton(method);
