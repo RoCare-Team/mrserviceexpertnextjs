@@ -54,7 +54,12 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         if (data.c_id) localStorage.setItem('customer_id', data.c_id);
 
         if (data.AllCartDetails) {
-          localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
+          // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
+           const filteredCart = data.AllCartDetails.filter((item) =>
+            item.cart_dtls.some((service) => Number(service.quantity) > 0)
+          );
+
+          localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
         }
 
         if (data.total_cart_price) {
@@ -222,14 +227,14 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
   // };
 
   const handleKeyDown = (index, e) => {
-  if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-    otpInputRefs.current[index - 1].focus();
-  } else if (e.key === 'Enter') {
-    if (index === 3) {
-      handleVerification(); 
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpInputRefs.current[index - 1].focus();
+    } else if (e.key === 'Enter') {
+      if (index === 3) {
+        handleVerification();
+      }
     }
-  }
-};
+  };
 
   const handleResendCode = (method) => {
     setActiveButton(method);
@@ -259,25 +264,21 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         aria-describedby="phone-verification-description"
       >
         <Box
-  sx={{
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: {
-      xs: '90%',   // 70% on extra-small screens (mobile)
-      sm: '100%',  // 100% on small and up
-    },
-    maxWidth: '600px',
-    bgcolor: 'background.paper',
-    borderRadius: '0.5rem',
-    boxShadow: 24,
-    p: {
-      xs: '13px',  // 13px padding on mobile
-      sm: 3        // default MUI spacing unit on larger screens
-    },
-  }}
->
+          sx={{
+            position: 'absolute',
+            top: { xs: '35%', sm: '50%' },
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%',
+            maxWidth: { xs: '328px', sm: '600px' },
+            maxHeight: '90vh',
+            p: { xs: 2, sm: 3 },
+
+            bgcolor: 'background.paper',
+            borderRadius: '0.5rem',
+            boxShadow: 24,
+          }}
+        >
 
           {/* Close Button */}
           <button
