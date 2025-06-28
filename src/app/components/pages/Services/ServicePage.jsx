@@ -399,7 +399,7 @@ export default function ServicePage({ pagedata, city, cat }) {
   </>
  )}
 
- {ifBangaloreSchema && ifRoSChema && typeof window === "undefined" &&(
+ {/* {ifBangaloreSchema && ifRoSChema && typeof window === "undefined" &&(
 
 <>
 
@@ -472,7 +472,7 @@ export default function ServicePage({ pagedata, city, cat }) {
 
 
 
- )}
+ )} */}
       <div className=" ">
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
