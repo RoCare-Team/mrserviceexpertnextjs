@@ -407,7 +407,7 @@ export default function ServicePage({ pagedata, city, cat }) {
       dangerouslySetInnerHTML={{
         __html: JSON.stringify({
           "@context": "https://schema.org/",
-          "@type": "Product",
+          "@type": "Service",
           "name": "RO Service Bangalore",
           "description": "Mr Service Expert offers professional water purifier service in Bangalore starting at ₹399. We provide complete solutions including RO servicing, water purifier repair service, RO installation, and filter change. Whether you're searching for RO service near me, RO repair near me, or reverse osmosis system maintenance, our expert technicians are just a call away. Get reliable and affordable RO and water purifier service from a trusted local provider.",
           "image": "https://www.waterpurifierservicecenter.in/inet/img/service_img/data-ROUTINE%20SERVICE%20700X700.webp",
