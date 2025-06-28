@@ -22,6 +22,7 @@ export default function ServicePage({ pagedata, city, cat }) {
   const ifRoSChema= cat === 'ro-water-purifier';
 
  const ifBangaloreSchema= city === 'bangalore';
+ const ifBangaloreRoSchema = city === 'bangalore' && cat === 'ro-water-purifier'; // Add this line
   
 
 
@@ -399,80 +400,67 @@ export default function ServicePage({ pagedata, city, cat }) {
   </>
  )}
 
- {/* {ifBangaloreSchema && ifRoSChema && typeof window === "undefined" &&(
-
-<>
-
-<script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify({
-      "@context": "https://schema.org/",
-      "@type": "Product",
-      "name": "RO Service Bangalore",
-      "description":
-        "Mr Service Expert offers professional water purifier service in Bangalore starting at ₹399. We provide complete solutions including RO servicing, water purifier repair service, RO installation, and filter change. Whether you're searching for RO service near me, RO repair near me, or reverse osmosis system maintenance, our expert technicians are just a call away. Get reliable and affordable RO and water purifier service from a trusted local provider.",
-      "image":
-        "https://www.waterpurifierservicecenter.in/inet/img/service_img/data-ROUTINE%20SERVICE%20700X700.webp",
-      "brand": {
-        "@type": "Brand",
-        "name": "Mr Service Expert"
-      },
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": "INR",
-        "price": "399",
-        "itemCondition": "https://schema.org/NewCondition",
-        "availability": "https://schema.org/InStock",
-        "url": "https://www.mrserviceexpert.com/bangalore/ro-water-purifier"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.7",
-        "reviewCount": "7931"
-      },
-      "review": [
-        {
-          "@type": "Review",
-          "author": {
-            "@type": "Person",
-            "name": "Ravi Mehra"
+{ifBangaloreRoSchema  && (
+  <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org/",
+          "@type": "Product",
+          "name": "RO Service Bangalore",
+          "description": "Mr Service Expert offers professional water purifier service in Bangalore starting at ₹399. We provide complete solutions including RO servicing, water purifier repair service, RO installation, and filter change. Whether you're searching for RO service near me, RO repair near me, or reverse osmosis system maintenance, our expert technicians are just a call away. Get reliable and affordable RO and water purifier service from a trusted local provider.",
+          "image": "https://www.waterpurifierservicecenter.in/inet/img/service_img/data-ROUTINE%20SERVICE%20700X700.webp",
+          "brand": {
+            "@type": "Brand",
+            "name": "Mr Service Expert"
           },
-          "reviewBody":
-            "I booked water purifier service near me and was very satisfied. The technician from Mr Service Expert arrived on time, serviced my RO system professionally, and the charges were reasonable.",
-          "reviewRating": {
-            "@type": "Rating",
-            "ratingValue": "5",
-            "bestRating": "5"
-          }
-        },
-        {
-          "@type": "Review",
-          "author": {
-            "@type": "Person",
-            "name": "Sameer"
+          "offers": {
+            "@type": "Offer",
+            "priceCurrency": "INR",
+            "price": "399",
+            "itemCondition": "https://schema.org/NewCondition",
+            "availability": "https://schema.org/InStock",
+            "url": "https://www.mrserviceexpert.com/bangalore/ro-water-purifier"
           },
-          "reviewBody":
-            "Needed RO repair service in Bangalore and contacted Mr Service Expert. They provided excellent support for my reverse osmosis system. Definitely recommended.",
-          "reviewRating": {
-            "@type": "Rating",
-            "ratingValue": "5",
-            "bestRating": "5"
-          }
-        }
-      ]
-    })
-  }}
-/>
-
-
-
-
-</>
-
-
-
- )} */}
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.7",
+            "reviewCount": "7931"
+          },
+          "review": [
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "Ravi Mehra"
+              },
+              "reviewBody": "I booked water purifier service near me and was very satisfied. The technician from Mr Service Expert arrived on time, serviced my RO system professionally, and the charges were reasonable.",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+              }
+            },
+            {
+              "@type": "Review",
+              "author": {
+                "@type": "Person",
+                "name": "Sameer"
+              },
+              "reviewBody": "Needed RO repair service in Bangalore and contacted Mr Service Expert. They provided excellent support for my reverse osmosis system. Definitely recommended.",
+              "reviewRating": {
+                "@type": "Rating",
+                "ratingValue": "5",
+                "bestRating": "5"
+              }
+            }
+          ]
+        })
+      }}
+    />
+  </>
+)}
       <div className=" ">
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
