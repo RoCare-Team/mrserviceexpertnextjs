@@ -34,6 +34,37 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     setPhoneError('');
   };
 
+  const syncCartItemsFromCheckoutState = () => {
+  try {
+    const checkoutState = localStorage.getItem('checkoutState');
+    if (checkoutState) {
+      const cartData = JSON.parse(checkoutState);
+      const serviceIds = [];
+      
+      // Extract all service IDs from the cart data structure
+      cartData.forEach(category => {
+        if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
+          category.cart_dtls.forEach(item => {
+            if (item.service_id) {
+              serviceIds.push(item.service_id);
+            }
+          });
+        }
+      });
+      
+      // Update cartItems in localStorage
+      localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+      // console.log('all the ids of previous ids are here'+cartData);
+      
+      return serviceIds;
+    }
+  } catch (error) {
+    console.error('Error syncing cart items:', error);
+  }
+  return [];
+};
+
+
   const handleVerification = async () => {
     try {
       const newOtp = otpDigits.join('');
@@ -60,6 +91,8 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
           );
 
           localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
+
+           syncCartItemsFromCheckoutState();
         }
 
         if (data.total_cart_price) {
