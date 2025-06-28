@@ -166,10 +166,10 @@ export default function ServicePage({ pagedata, city, cat }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [city]);
-
+// &&  typeof window === "undefined"
   return (
     <>
-      {ifAcSchema && typeof window === "undefined" && (
+      {ifAcSchema  && (
         <>
           {/* BreadcrumbList Schema */}
           <script
@@ -275,7 +275,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         </>
       )}
 
- {ifRoSChema &&  typeof window === "undefined" && (
+ {ifRoSChema  && (
   <>
  <script
   id="ro-breadcrumb-schema"
