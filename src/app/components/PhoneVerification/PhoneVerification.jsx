@@ -84,6 +84,53 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         if (data.email) localStorage.setItem('email', data.email);
         if (data.c_id) localStorage.setItem('customer_id', data.c_id);
 
+//added the here new logic 
+// ✅ Check if a pending service needs to be added to cart after login
+const pendingService = localStorage.getItem('pendingServiceToAdd');
+if (pendingService && data.c_id) {
+  const service_id = JSON.parse(pendingService);
+  const quantity = 1;
+  const type = 'add';
+  const cid = data.c_id;
+
+  const payload = { service_id, quantity, cid, type };
+
+  try {
+    const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const cartResponse = await res.json();
+
+    localStorage.setItem('checkoutState', JSON.stringify(cartResponse.AllCartDetails || []));
+    localStorage.setItem('cart_total_price', cartResponse.total_price || 0);
+
+    const existingCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    if (!existingCart.includes(service_id)) {
+      localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
+    }
+
+    localStorage.removeItem('pendingServiceToAdd'); // cleanup
+
+    // Optional: Notify user
+    toast.success("Service added to cart after login!");
+  } catch (error) {
+    console.error("Error adding pending service to cart:", error);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
         if (data.AllCartDetails) {
           // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
            const filteredCart = data.AllCartDetails.filter((item) =>
