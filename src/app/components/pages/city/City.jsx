@@ -93,10 +93,10 @@ const City = ({ city, cityData }) => {
                         <div className="left-side lg:w-1/4 flex-col mb-1.5">
                             <div className="sticky top-20">
                                 <h1 className="cityHeadings font-bold">Affordable Home Appliances Repair & Home Care Services in {cityData?.city_name} </h1>
-                                <div className=" mb-3 mobileBanner">
+                                {/* <div className=" mb-3 mobileBanner">
                                     <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title="All Services in india" width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
-                                    }} /></div>
+                                    }} /></div> */}
                                 <Tabs />
                             </div>
                         </div>
@@ -218,16 +218,12 @@ const City = ({ city, cityData }) => {
                         <div className="sticky top-20">
                             {/* ${pagedata.category_name?.replace("Service", "")} */}
                             <h1 className="cityHeadings"><b>Get Best {cityData?.categorydetail?.category_name?.replace("Service", "")} Service</b></h1>
-                            <div className="mobileBanner mb-3   ">
-                                {/* <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
-                                    borderRadius: '17px', width: '100%'
-                                }} */}
-                                {/* /assets/cityBanner/Front Banner.webp */}
+                            {/* <div className="mobileBanner mb-3   ">
                                 <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
                                 }}
                                 />
-                            </div>
+                            </div> */}
                             <Tabs cat={city} />
                         </div>
                     </div>
