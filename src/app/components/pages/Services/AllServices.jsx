@@ -154,7 +154,7 @@ const AllServices = (cater) => {
           ))}
         </div>) : (
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3  gap-4">
             {serviceList.map((service) => (
               //  <Link href={`/${service.id}`} >
               <button
@@ -177,16 +177,16 @@ const AllServices = (cater) => {
                 {/* first convert the strings to arrays using splits then length to make it ... if more than 2  */}
 
                 {/* Desktop version: Truncated */}
-                <span className="hidden md:inline text-xs font-medium text-gray-700 text-center text-wrap">
+                <span className="inline text-xs font-medium text-gray-700 text-center text-wrap">
                   {service?.service_name?.split(" ").length > 2
                     ? service.service_name.split(" ").slice(0, 2).join(" ") + "....."
                     : service.service_name}
                 </span>
 
                 {/* Mobile version: Full name */}
-                <span className="inline md:hidden text-xs font-medium text-gray-700 text-center text-wrap">
+                {/* <span className="inline md:hidden text-xs font-medium text-gray-700 text-center text-wrap">
                   {service.service_name}
-                </span>
+                </span> */}
               </button>
 
             ))}

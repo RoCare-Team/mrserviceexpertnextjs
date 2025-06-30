@@ -42,6 +42,8 @@ const CheckOut = () => {
         const cartDataArray = cartdata ? JSON.parse(cartdata) : [];
         setCartDataArray(cartDataArray);
         setFinalTotal(localStorage.getItem('cart_total_price'));
+        console.log(localStorage.getItem('cart_total_price') + 'fdsafasd');
+
     }
 
     // Function to refresh booking data from localStorage
@@ -91,7 +93,7 @@ const CheckOut = () => {
     // Polling mechanism to check for localStorage changes (as storage event doesn't work for same-window changes)
     useEffect(() => {
         let intervalId;
-        
+
         if (showBookingModal) {
             intervalId = setInterval(() => {
                 refreshBookingData();
@@ -151,7 +153,7 @@ const CheckOut = () => {
                 const data = await res.json();
                 localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
                 localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
-                
+
                 if (quantity === 0) {
                     const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
                     const updatedCartItems = oldCartItems.filter(id => id !== service_id);
@@ -186,11 +188,11 @@ const CheckOut = () => {
     const handleProceedToPayment = () => {
         // Force refresh booking data before checking
         refreshBookingData();
-        
+
         // Small delay to ensure state is updated
         setTimeout(() => {
             const isComplete = isBookingComplete();
-            
+
             if (isComplete && currentBookingItem) {
                 setShowBookingModal(false);
                 handlePaymentCompleted(currentBookingItem.category_cart_id);
@@ -199,7 +201,7 @@ const CheckOut = () => {
                 const address = localStorage.getItem('bookingAddress');
                 const timeSlot = localStorage.getItem('bookingTimeSlot');
                 const addressId = localStorage.getItem('address_id');
-                
+
                 if (address && timeSlot && addressId && currentBookingItem) {
                     setShowBookingModal(false);
                     handlePaymentCompleted(currentBookingItem.category_cart_id);
@@ -210,7 +212,7 @@ const CheckOut = () => {
         }, 200);
     };
 
-    const handlePaymentCompleted = async (leadtype,redirect=true) => {
+    const handlePaymentCompleted = async (leadtype, redirect = true) => {
         const cust_id = localStorage.getItem("customer_id");
         const cust_mobile = localStorage.getItem("userPhone");
         const address_id = localStorage.getItem("address_id");
@@ -234,15 +236,15 @@ const CheckOut = () => {
             return;
         }
 
-        const payload = { 
-            cust_id, 
-            cust_mobile, 
-            address_id, 
-            cust_email, 
-            cart_id, 
-            appointment_time, 
-            appointment_date, 
-            source 
+        const payload = {
+            cust_id,
+            cust_mobile,
+            address_id,
+            cust_email,
+            cart_id,
+            appointment_time,
+            appointment_date,
+            source
         };
 
         try {
@@ -302,7 +304,7 @@ const CheckOut = () => {
 
                 displayCartData();
 
-                 if (redirect) {
+                if (redirect) {
                     setTimeout(() => {
                         window.location.href = data.lead_id_for_payment;
                     }, 100);
@@ -329,9 +331,9 @@ const CheckOut = () => {
     };
 
     return (
-        
+
         <div className="checkout common-spacing bg-white">
-           
+
 
             <div className="checkSection">
                 {cartDataArray.length > 0 ? (
@@ -385,10 +387,11 @@ const CheckOut = () => {
                         {cartDataArray?.length > 0 ? (
                             <div className="checkOutOrder">
                                 <div>
-                                    {cartDataArray?.map((service) => {
+                                    {/* {cartDataArray?.map((service) => {
                                            const categoryTotal = service.cart_dtls.reduce((sum, item) => {
-                                            const price = Number(item.total_price || item.price);
+                                            const price = Number(  item.total_price || item.price );
                                             const quantity = Number(item.quantity || 1);
+                                            
                                             return sum + price * quantity;
                                         }, 0);
                                         return(
@@ -437,7 +440,66 @@ const CheckOut = () => {
                                            </div>
                                         </div>
                                         )
+                                    })} */}
+                                    {cartDataArray?.map((service) => {
+                                        const calculatedTotal = service.cart_dtls.reduce((sum, item) => {
+                                            const price = Number(item.total_price || item.price || 0);
+                                            const quantity = Number(item.quantity || 1);
+                                            return sum + (price * quantity);
+                                        }, 0);
+
+                                        const serverTotal = Number(service.total_main) || 0;
+                                        const categoryTotal = serverTotal || calculatedTotal;
+
+                                        return (
+                                            <div key={service.cart_id}>
+                                                <p className="text-xl"><b>{service.leadtype_name}</b></p>
+                                                {service.cart_dtls.map((serviceDetail) => (
+                                                    <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">
+                                                        <div className="problemIcon">
+                                                            <img src={serviceDetail.image} alt={serviceDetail.service_name} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="mb-0">{serviceDetail.service_name}</p>
+                                                            <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: serviceDetail.description }}></p>
+                                                        </div>
+                                                        <div className="flex items-center flex-col">
+                                                            <div>
+                                                                <p className="text-xs text-gray-700 mb-1">₹{serviceDetail.total_price || serviceDetail.price}</p>
+                                                            </div>
+                                                            <div className="quantity-control">
+                                                                <button className="IncrementDcrementBtn" onClick={() => onDecrement(serviceDetail.service_id, 'delete', serviceDetail.quantity)}>
+                                                                    -
+                                                                </button>
+                                                                <span>{serviceDetail.quantity || 1}</span>
+                                                                <button className="IncrementDcrementBtn" onClick={() => onIncrement(serviceDetail.service_id, 'add', serviceDetail.quantity)}>
+                                                                    +
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <div className="flex justify-between">
+                                                    <button onClick={() => handlePaymentCompleted(service.category_cart_id, false)} className="bg-gray-400 hidden md:block p-2 rounded-xl text-white hover:bg-blue-700 transition-colors">
+                                                        Pay Later
+                                                    </button>
+                                                    <button
+                                                        className="bg-purple-600 md:w-xs w-full p-2 rounded-xl text-white hover:bg-purple-700 transition-colors"
+                                                        onClick={() => {
+                                                            if (window.innerWidth < 768) {
+                                                                handleBookNowClick(service);
+                                                            } else {
+                                                                handlePaymentCompleted(service.category_cart_id);
+                                                            }
+                                                        }}
+                                                    >
+                                                        Book Now: ₹{categoryTotal}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
                                     })}
+
                                 </div>
 
                                 <div className="cancellation-section block md:hidden">
@@ -533,11 +595,10 @@ const CheckOut = () => {
                                 </button>
                                 <button
                                     onClick={handleProceedToPayment}
-                                    className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
-                                        bookingCompleted 
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700' 
+                                    className={`flex-1 px-4 py-2 rounded-lg transition-colors ${bookingCompleted
+                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
                                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    }`}
+                                        }`}
                                     disabled={!bookingCompleted}
                                 >
                                     {bookingCompleted ? 'Next' : 'Book Now'}
@@ -549,7 +610,7 @@ const CheckOut = () => {
             )}
 
             <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
-             <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer position="top-right" autoClose={3000} />
         </div>
     );
 };

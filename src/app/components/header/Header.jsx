@@ -57,12 +57,7 @@ export default function Header() {
 
   useEffect(() => {
 
-    // let data = JSON.parse(localStorage.getItem('checkoutState'))
-    // setCartCount(data)
-    // console.log(cartCount[0]);
 
-
-    // console.log(cartCount.quantity);
 
     // Close popup when clicking outside
     const handleClickOutside = (event) => {
@@ -79,31 +74,14 @@ export default function Header() {
 
 
   useEffect(() => {
-    // Get cart data from localStorage
-    let data = JSON.parse(localStorage.getItem('checkoutState'));
-
-    // Calculate total quantity
-    let totalQuantity = 0;
-
-    if (data && data.length > 0) {
-      totalQuantity = data.reduce((sum, item) => {
-        return sum + (parseInt(item.quantity) || 0);
-      }, 0)
-    }
-
-    // if (Array.isArray(data)) {
-    //   totalQuantity = data.reduce((sum, item) => {
-    //     return sum + (parseInt(item.quantity) || 0);
-    //   }, 0);
-    // }
-
-    // Set the total quantity
+    const data = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const totalQuantity = data.length;
     setCartCount(totalQuantity);
-
-    // For debugging
     console.log("Cart items:", data);
     console.log("Total quantity:", totalQuantity);
   }, []);
+
+
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -151,22 +129,22 @@ export default function Header() {
 
   }
 
-const handleRefresh = async () => {
-        // setIsSpinning(true);
-        const user_no = localStorage.getItem("userPhone");
-        const payload = { user_no: user_no }
-        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+  const handleRefresh = async () => {
+    // setIsSpinning(true);
+    const user_no = localStorage.getItem("userPhone");
+    const payload = { user_no: user_no }
+    const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-        const data = await res.json();
-        localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
-        // setTimeout(() => setIsSpinning(false), 1000);
-        // console.log(JSON.stringify(data.complainDetails) + "badmasi nhi mitar idhar ");
+    const data = await res.json();
+    localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
+    // setTimeout(() => setIsSpinning(false), 1000);
+    // console.log(JSON.stringify(data.complainDetails) + "badmasi nhi mitar idhar ");
 
-    }
+  }
 
   const handleLogout = () => {
     // Remove user data from localStorage
@@ -218,7 +196,7 @@ const handleRefresh = async () => {
           >
             <div className="flex items-center mobileNumber ">
               <span className="">
-                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5"/>
+                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5" />
                 {/* <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" /> */}
               </span>
               <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
@@ -363,18 +341,18 @@ const handleRefresh = async () => {
           {/* Mobile Menu Icon */}
 
           <Box sx={{ display: { xs: 'flex', md: 'none', alignItems: 'center', justifyContent: 'center' }, gap: 1 }}>
-            
+
             <div className="flex items-center mobileNumber ">
               <span className="">
-                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5"/>
+                <FontAwesomeIcon icon={faPhone} className="text-white mr-1.5" />
                 {/* <img src="/assets/images/Call (2).webp" alt="Call For Services" height={40} width={40} title='For calling contact +91 9311587715' className="w-100" /> */}
               </span>
               <a href="tel:+91-9311587715" className="text-black" title='For calling contact +91 9311587715'>
                 <button className="text-white" title="Call for services">+91-9311587715</button>
               </a>
             </div>
-             
-            
+
+
           </Box>
 
         </Toolbar>
@@ -383,290 +361,290 @@ const handleRefresh = async () => {
       {/* Mobile Drawer */}
       {/* <Drawer anchor="bottom" open={drawerOpen} onClose={toggleDrawer(false)} > */}
       <Box
-  sx={{
-    width: '100%',
-    bgcolor: '#ffffff',
-    position: {
-      xs: 'fixed',
-      sm: 'fixed',
-      md: 'static',
-    },
-    bottom: {
-      xs: 0,
-      sm: 0,
-    },
-    left: {
-      xs: 0,
-      sm: 0,
-    },
-    right: {
-      xs: 0,
-      sm: 0,
-    },
-    display: {
-      xs: 'block',
-      sm: 'block',
-      md: 'none',
-    },
-    zIndex:5,
-    borderTop: '1px solid #f0f0f0',
-    boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
-  }}
-  role="presentation"
->
-  <List 
-    sx={{ 
-      display: 'flex',
-      flexDirection: 'row',
-      padding: '0px 0px',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      margin: 0,
-    }}
-  >
-    {/* Home */}
-    <ListItem 
-      button 
-      onClick={() => handleNavigation('/')}
-      sx={{
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '6px 2px',
-        minWidth: '60px',
-        borderRadius: '16px',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          backgroundColor: '#f8f9ff',
-          transform: 'scale(1.05)',
-        },
-      }}
-    >
-      <Box
         sx={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
-          backgroundColor: '#4f46e5',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '2px',
-          color: 'white',
-          fontSize: '16px',
-        }}
-      >
-        <FontAwesomeIcon icon={faHome} />
-      </Box>
-      <Typography 
-        variant="caption"
-        sx={{
-          fontSize: '12px',
-          fontWeight: 600,
-          color: '#374151',
-          textAlign: 'center',
-        }}
-      >
-        Home
-      </Typography>
-    </ListItem>
-
-    {/* Cart */}
-    <ListItem 
-      button 
-      onClick={() => handleNavigation('/checkout')}
-      sx={{
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '6px 2px',
-        minWidth: '60px',
-        borderRadius: '16px',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          backgroundColor: '#f0fdf4',
-          transform: 'scale(1.05)',
-        },
-      }}
-    >
-      <Box
-        sx={{
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
-          backgroundColor: '#10b981',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: '2px',
-          color: 'white',
-          fontSize: '16px',
-        }}
-      >
-        <FontAwesomeIcon icon={faCartShopping} />
-      </Box>
-      <Typography 
-        variant="caption"
-        sx={{
-          fontSize: '12px',
-          fontWeight: 600,
-          color: '#374151',
-          textAlign: 'center',
-        }}
-      >
-        Cart
-      </Typography>
-    </ListItem>
-
-    {/* Conditional Items */}
-    {isLoggedIn ? (
-      <>
-        {/* Booking */}
-        <ListItem 
-          button 
-            // onClick={handleRefresh}
-          // onClick={() => handleNavigation('/booking'),handleRefresh}
-           onClick={() => {
-    handleNavigation('/booking');
-    handleRefresh();
-  }}
-          sx={{
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '6px 2px',
-            minWidth: '60px',
-            borderRadius: '16px',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              backgroundColor: '#fff7ed',
-              transform: 'scale(1.05)',
-            },
-          }}
-        >
-          <Box
-            sx={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: '#f59e0b',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '2px',
-              color: 'white',
-              fontSize: '16px',
-            }}
-            
-          >
-            <FontAwesomeIcon icon={faBook} />
-          </Box>
-          <Typography 
-            variant="caption"
-            sx={{
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#374151',
-              textAlign: 'center',
-            }}
-          
-          >
-            Booking
-          </Typography>
-        </ListItem>
-
-        {/* Profile */}
-        <ListItem 
-          button 
-          onClick={() => handleNavigation('/profile')}
-          sx={{
-            flexDirection: 'column',
-            alignItems: 'center',
-            padding: '6px 2px',
-            minWidth: '60px',
-            borderRadius: '16px',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              backgroundColor: '#fdf2f8',
-              transform: 'scale(1.05)',
-            },
-          }}
-        >
-          <Box
-            sx={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              backgroundColor: '#ec4899',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: '2px',
-              color: 'white',
-              fontSize: '16px',
-            }}
-          >
-            <FontAwesomeIcon icon={faUser} />
-          </Box>
-          <Typography 
-            variant="caption"
-            sx={{
-              fontSize: '12px',
-              fontWeight: 600,
-              color: '#374151',
-              textAlign: 'center',
-            }}
-          >
-            Profile
-          </Typography>
-        </ListItem>
-      </>
-    ) : (
-      /* Login */
-      <ListItem 
-        button 
-        onClick={() => setShowModal(true)}
-        sx={{
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '6px 2px',
-          minWidth: '60px',
-          borderRadius: '16px',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            backgroundColor: '#f0f9ff',
-            transform: 'scale(1.05)',
+          width: '100%',
+          bgcolor: '#ffffff',
+          position: {
+            xs: 'fixed',
+            sm: 'fixed',
+            md: 'static',
           },
+          bottom: {
+            xs: 0,
+            sm: 0,
+          },
+          left: {
+            xs: 0,
+            sm: 0,
+          },
+          right: {
+            xs: 0,
+            sm: 0,
+          },
+          display: {
+            xs: 'block',
+            sm: 'block',
+            md: 'none',
+          },
+          zIndex: 5,
+          borderTop: '1px solid #f0f0f0',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
         }}
+        role="presentation"
       >
-        <Box
+        <List
           sx={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            backgroundColor: '#0ea5e9',
             display: 'flex',
+            flexDirection: 'row',
+            padding: '0px 0px',
+            justifyContent: 'space-around',
             alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '2px',
-            color: 'white',
-            fontSize: '16px',
+            margin: 0,
           }}
         >
-          <FontAwesomeIcon icon={faSignIn} />
-        </Box>
-        <Typography 
-          variant="caption"
-          sx={{
-            fontSize: '12px',
-            fontWeight: 600,
-            color: '#374151',
-            textAlign: 'center',
-          }}
-        >
-          Login
-        </Typography>
-        </ListItem>
-    )}
-  </List>
-</Box>
+          {/* Home */}
+          <ListItem
+            button
+            onClick={() => handleNavigation('/')}
+            sx={{
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '6px 2px',
+              minWidth: '60px',
+              borderRadius: '16px',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: '#f8f9ff',
+                transform: 'scale(1.05)',
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#4f46e5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '2px',
+                color: 'white',
+                fontSize: '16px',
+              }}
+            >
+              <FontAwesomeIcon icon={faHome} />
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#374151',
+                textAlign: 'center',
+              }}
+            >
+              Home
+            </Typography>
+          </ListItem>
+
+          {/* Cart */}
+          <ListItem
+            button
+            onClick={() => handleNavigation('/checkout')}
+            sx={{
+              flexDirection: 'column',
+              alignItems: 'center',
+              padding: '6px 2px',
+              minWidth: '60px',
+              borderRadius: '16px',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: '#f0fdf4',
+                transform: 'scale(1.05)',
+              },
+            }}
+          >
+            <Box
+              sx={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '2px',
+                color: 'white',
+                fontSize: '16px',
+              }}
+            >
+              <FontAwesomeIcon icon={faCartShopping} />
+            </Box>
+            <Typography
+              variant="caption"
+              sx={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#374151',
+                textAlign: 'center',
+              }}
+            >
+              Cart
+            </Typography>
+          </ListItem>
+
+          {/* Conditional Items */}
+          {isLoggedIn ? (
+            <>
+              {/* Booking */}
+              <ListItem
+                button
+                // onClick={handleRefresh}
+                // onClick={() => handleNavigation('/booking'),handleRefresh}
+                onClick={() => {
+                  handleNavigation('/booking');
+                  handleRefresh();
+                }}
+                sx={{
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 2px',
+                  minWidth: '60px',
+                  borderRadius: '16px',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: '#fff7ed',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '2px',
+                    color: 'white',
+                    fontSize: '16px',
+                  }}
+
+                >
+                  <FontAwesomeIcon icon={faBook} />
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#374151',
+                    textAlign: 'center',
+                  }}
+
+                >
+                  Booking
+                </Typography>
+              </ListItem>
+
+              {/* Profile */}
+              <ListItem
+                button
+                onClick={() => handleNavigation('/profile')}
+                sx={{
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '6px 2px',
+                  minWidth: '60px',
+                  borderRadius: '16px',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    backgroundColor: '#fdf2f8',
+                    transform: 'scale(1.05)',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ec4899',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: '2px',
+                    color: 'white',
+                    fontSize: '16px',
+                  }}
+                >
+                  <FontAwesomeIcon icon={faUser} />
+                </Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: '#374151',
+                    textAlign: 'center',
+                  }}
+                >
+                  Profile
+                </Typography>
+              </ListItem>
+            </>
+          ) : (
+            /* Login */
+            <ListItem
+              button
+              onClick={() => setShowModal(true)}
+              sx={{
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '6px 2px',
+                minWidth: '60px',
+                borderRadius: '16px',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: '#f0f9ff',
+                  transform: 'scale(1.05)',
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: '#0ea5e9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '2px',
+                  color: 'white',
+                  fontSize: '16px',
+                }}
+              >
+                <FontAwesomeIcon icon={faSignIn} />
+              </Box>
+              <Typography
+                variant="caption"
+                sx={{
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#374151',
+                  textAlign: 'center',
+                }}
+              >
+                Login
+              </Typography>
+            </ListItem>
+          )}
+        </List>
+      </Box>
       {/* </Drawer> */}
 
       {/* Phone Verification Modal */}

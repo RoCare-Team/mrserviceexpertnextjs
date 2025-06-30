@@ -215,6 +215,7 @@ function AddressModal({ onAddressSelected, addressOpen, setAddressOpen }) {
                           sx={{
                             p: 1,
                             cursor: 'pointer',
+                            lineBreak:'anywhere',
                            
                           }}>
 

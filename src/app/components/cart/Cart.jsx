@@ -36,17 +36,17 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     //   .map(item => Number(item.total_main)) // Convert string to number
     //   .reduce((acc, price) => acc + price, 0); // Sum up prices
 
-    const getPrice=localStorage.getItem('cart_total_price');
+    const getPrice = localStorage.getItem('cart_total_price');
 
     const finalTotal = cartDataArray
-  .map(item => Number(item.total_main || getPrice || 0)) // Handle total_main or price or default to 0
-  .reduce((acc, price) => acc + price, 0);
+      .map(item => Number(item.total_main || getPrice || 0)) // Handle total_main or price or default to 0
+      .reduce((acc, price) => acc + price, 0);
 
 
     setFinalTotal(finalTotal);
 
-    // console.log(finalTotal+"after making the actuall sum of all the things");
-    
+    console.log(finalTotal + "after making the actuall sum of all the things");
+
 
     // const price_discount=cartDataArray.map(item => Number(item.total_cart_price)).reduce((acc, price) => acc + price, 0);
     // alert(price_discount)
@@ -79,7 +79,8 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
       const data = await res.json();
       localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-      localStorage.setItem('cart_total_price', data.total_main);
+      localStorage.setItem('cart_total_price', data.total_price);
+      console.log(data.total_main + 'on increase');
 
       displayCartData();
       // toast.success(data.msg,{
@@ -88,8 +89,8 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
 
     } else {
-      toast.error("You can't add more than 5 items",{
-         autoClose: 3000,
+      toast.error("You can't add more than 5 items", {
+        autoClose: 3000,
       });
     }
 
@@ -130,8 +131,8 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
 
     } else {
-      toast.success('hey hey hey ',{
-         autoClose: 3000,
+      toast.success('hey hey hey ', {
+        autoClose: 3000,
       })
     }
 
