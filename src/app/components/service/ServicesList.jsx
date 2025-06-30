@@ -199,6 +199,7 @@ setBrandName(cat);
          handleCartLoading();
        }
       } else {
+          localStorage.setItem('pendingServiceToAdd', JSON.stringify(service.id));
         setShowModal(true);
         // toast.error('Login before addding any service');
 
