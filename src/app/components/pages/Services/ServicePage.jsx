@@ -415,52 +415,7 @@ export default function ServicePage({ pagedata, city, cat }) {
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
               <h1 className="cityHeadings font-bold">{`Get best ${pagedata.category_name?.replace("Service", "")} Service in ${pagedata.city_name}`}</h1>
-              <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
-                {!imageLoader && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image
-                      src="/assets/cityBanner/Front Banner.webp"
-                      alt="Loading"
-                      width={475}
-                      height={345}
-                      // priority
-                      // fetchPriority='high'
-                      style={{
-                        borderRadius: '17px',
-                        width: '100%',
-                      }}
-                    />
-                  </div>
-                )}
-                {/* <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
-                loading="eager" width={475} height={345}
-                title={`${pagedata.city_name}  Services`}
-                onLoad={() => setImageLoader(true)}
-                style={{
-                  borderRadius: '17px', width: '100%',
-                  opacity: imageLoader ? 1 : 0,
-                  transition: 'opacity 0.5s ease-in-out',
-                }}
-
-              /> */}
-
-                <img
-                  src={`/assets/categorybanner/${pagedata.banner}`}
-                  alt={`${pagedata.city_name} Services`}
-                  width={475}
-                  height={345}
-                  loading="eager"
-                  onLoad={() => setImageLoader(true)}
-                  style={{
-                    borderRadius: '17px',
-                    width: '100%',
-                    opacity: imageLoader ? 1 : 0,
-                    transition: 'opacity 0.5s ease-in-out',
-                  }}
-                />
-
-
-              </div>
+              
               <Tabs />
             </div>
           </div>
