@@ -175,9 +175,9 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
             <div className="lg:w-1/2">
              <h3 className="ml-2.5 mt-1.5 text-[20px]"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
               
-              <div className="mb-3.5 flex items-center justify-center  relative">
+              <div className="mb-3.5 md:flex items-center justify-center hidden md:relative">
                 {!brandLoader && (
-                  <div className="absolute w-full">
+                  <div className="absolute w-full ">
                     <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
                     borderRadius: '17px', width: '100%'
                   }} />
