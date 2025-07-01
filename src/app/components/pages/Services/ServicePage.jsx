@@ -20,6 +20,9 @@ export default function ServicePage({ pagedata, city, cat }) {
   const [imageLoader, setImageLoader] = useState(false);
   const ifAcSchema = cat === 'ac';
   const ifRoSChema= cat === 'ro-water-purifier';
+
+ const ifBangaloreSchema= city === 'bangalore';
+ const ifBangaloreRoSchema = city === 'bangalore' && cat === 'ro-water-purifier'; // Add this line
   
 
 
@@ -163,10 +166,10 @@ export default function ServicePage({ pagedata, city, cat }) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [city]);
-
+// &&  typeof window === "undefined"
   return (
     <>
-      {ifAcSchema && typeof window === "undefined" && (
+      {ifAcSchema  && (
         <>
           {/* BreadcrumbList Schema */}
           <script
@@ -272,7 +275,7 @@ export default function ServicePage({ pagedata, city, cat }) {
         </>
       )}
 
- {ifRoSChema &&  typeof window === "undefined" && (
+ {ifRoSChema  && (
   <>
  <script
   id="ro-breadcrumb-schema"
@@ -396,57 +399,23 @@ export default function ServicePage({ pagedata, city, cat }) {
           />
   </>
  )}
+
+{ifBangaloreRoSchema  && (
+  <>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({"@context":"https://schema.org/","@type":"Product","name":"RO Service Bangalore","description":"Mr Service Expert offers professional water purifier service in Bangalore starting at ₹399. We provide complete solutions including RO servicing, water purifier repair service, RO installation, and filter change. Whether you're searching for RO service near me, RO repair near me, or reverse osmosis system maintenance, our expert technicians are just a call away. Get reliable and affordable RO and water purifier service from a trusted local provider.","image":"https://www.waterpurifierservicecenter.in/inet/img/service_img/data-ROUTINE%20SERVICE%20700X700.webp","brand":{"@type":"Brand","name":"Mr Service Expert"},"offers":{"@type":"Offer","priceCurrency":"INR","price":"399","itemCondition":"https://schema.org/NewCondition","availability":"https://schema.org/InStock","url":"https://www.mrserviceexpert.com/bangalore/ro-water-purifier"},"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.7","reviewCount":"7931"},"review":[{"@type":"Review","author":{"@type":"Person","name":"Ravi Mehra"},"reviewBody":"I booked water purifier service near me and was very satisfied. The technician from Mr Service Expert arrived on time, serviced my RO system professionally, and the charges were reasonable.","reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"}},{"@type":"Review","author":{"@type":"Person","name":"Sameer"},"reviewBody":"Needed RO repair service in Bangalore and contacted Mr Service Expert. They provided excellent support for my reverse osmosis system. Definitely recommended.","reviewRating":{"@type":"Rating","ratingValue":"5","bestRating":"5"}}]})
+      }}
+    />
+  </>
+)}
       <div className=" ">
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
               <h1 className="cityHeadings font-bold">{`Get best ${pagedata.category_name?.replace("Service", "")} Service in ${pagedata.city_name}`}</h1>
-              <div className=" mb-3.5  items-center justify-center mobileBanner relative  ">
-                {!imageLoader && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Image
-                      src="/assets/cityBanner/Front Banner.webp"
-                      alt="Loading"
-                      width={475}
-                      height={345}
-                      // priority
-                      // fetchPriority='high'
-                      style={{
-                        borderRadius: '17px',
-                        width: '100%',
-                      }}
-                    />
-                  </div>
-                )}
-                {/* <Image src={`/assets/categorybanner/${pagedata.banner}`} alt={`${pagedata.city_name}  Services`} priority fetchPriority="high"
-                loading="eager" width={475} height={345}
-                title={`${pagedata.city_name}  Services`}
-                onLoad={() => setImageLoader(true)}
-                style={{
-                  borderRadius: '17px', width: '100%',
-                  opacity: imageLoader ? 1 : 0,
-                  transition: 'opacity 0.5s ease-in-out',
-                }}
-
-              /> */}
-
-                <img
-                  src={`/assets/categorybanner/${pagedata.banner}`}
-                  alt={`${pagedata.city_name} Services`}
-                  width={475}
-                  height={345}
-                  loading="eager"
-                  onLoad={() => setImageLoader(true)}
-                  style={{
-                    borderRadius: '17px',
-                    width: '100%',
-                    opacity: imageLoader ? 1 : 0,
-                    transition: 'opacity 0.5s ease-in-out',
-                  }}
-                />
-
-
-              </div>
+              
               <Tabs />
             </div>
           </div>

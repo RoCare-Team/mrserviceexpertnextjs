@@ -166,19 +166,22 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
       <div className="services-page common-spacing">
         <div className="left-side lg:w-1/4 flex-col mb-1.5">
           <div className="sticky top-20">
-            <h3 className="cityHeadings"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
+           <h1 className=" cityHeadings"><b>{pagedata?.brandname} {pagedata?.categoryname} Services in {pagedata?.cityname}</b></h1>
             <Tabs cater={cat} />
           </div>
         </div>
         <div className="right-side lg:w-3/4">
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
-              <h1 className="ml-2.5 mt-1.5"><b>{pagedata?.categoryname}({pagedata?.brandname}) Services in {pagedata?.cityname}</b></h1>
-              <div className="mb-3.5 flex items-center justify-center ">
+             <h3 className="ml-2.5 mt-1.5 text-[20px]"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
+              
+              <div className="mb-3.5 md:flex items-center justify-center hidden md:relative">
                 {!brandLoader && (
-                  <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
+                  <div className="absolute w-full ">
+                    <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
                     borderRadius: '17px', width: '100%'
                   }} />
+                  </div>
                 )}
 
                 <img src={`/assets/categorybanner/${pagedata.banner}`} alt='service img' width={475} height={345} onLoad={() => setBrandLoader(true)} style={{

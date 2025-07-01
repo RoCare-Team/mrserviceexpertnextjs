@@ -92,18 +92,18 @@ const City = ({ city, cityData }) => {
 
                         <div className="left-side lg:w-1/4 flex-col mb-1.5">
                             <div className="sticky top-20">
-                                <h1 className="cityHeadings">Most Loved Services by Our Customers!</h1>
-                                <div className=" mb-3 mobileBanner">
+                                <h1 className="cityHeadings font-bold">Affordable Home Appliances Repair & Home Care Services in {cityData?.city_name} </h1>
+                                {/* <div className=" mb-3 mobileBanner">
                                     <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title="All Services in india" width={475} height={345} style={{
                                         borderRadius: '17px', width: '100%'
-                                    }} /></div>
+                                    }} /></div> */}
                                 <Tabs />
                             </div>
                         </div>
                         <div className="right-side lg:w-3/4">
                             <div className="rightSidePortion justify-center">
                                 <div className="lg:w-1/2">
-                                    <h2 className="ml-2.5 mt-1.5 text-3xl">Services All Over {cityData?.city_name}</h2>
+                                    <h2 className="ml-2.5 mt-1.5 text-2xl">Most Loved Services by Our Customers!</h2>
                                     <div className="mb-3.5 flex items-center justify-center desktopBanner ">
                                         <img src="/assets/cityBanner/Front Banner.webp" alt='All Services in india' title={`Our Services in ${cityData?.city_name}`} width={475} height="auto" style={{
                                             borderRadius: '17px', width: '100%',
@@ -218,16 +218,12 @@ const City = ({ city, cityData }) => {
                         <div className="sticky top-20">
                             {/* ${pagedata.category_name?.replace("Service", "")} */}
                             <h1 className="cityHeadings"><b>Get Best {cityData?.categorydetail?.category_name?.replace("Service", "")} Service</b></h1>
-                            <div className="mobileBanner mb-3   ">
-                                {/* <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
-                                    borderRadius: '17px', width: '100%'
-                                }} */}
-                                {/* /assets/cityBanner/Front Banner.webp */}
+                            {/* <div className="mobileBanner mb-3   ">
                                 <img src={`/assets/categorybanner/${cityData.catbanner}`} alt={`${cityData?.categorydetail?.category_name}`} title={`${cityData?.categorydetail?.category_name}`} width={475} height={345} style={{
                                     borderRadius: '17px', width: '100%'
                                 }}
                                 />
-                            </div>
+                            </div> */}
                             <Tabs cat={city} />
                         </div>
                     </div>

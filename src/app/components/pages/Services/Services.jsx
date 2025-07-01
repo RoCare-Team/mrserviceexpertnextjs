@@ -208,7 +208,8 @@ const Services = () => {
                         {/* <h1>{title}</h1> */}
                         {filteredServices.map((service) => {
                             return (
-                                <div className="servicePortionDetails flex-col" key={service.id}>
+                                // servicePortionDetails
+                                <div className=" flex-col " key={service.id}>
                                     <div className="flex serviceWiseContainer">
                                         <div className="serviceDetails">
 

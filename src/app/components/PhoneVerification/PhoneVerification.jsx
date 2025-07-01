@@ -34,6 +34,37 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     setPhoneError('');
   };
 
+  const syncCartItemsFromCheckoutState = () => {
+  try {
+    const checkoutState = localStorage.getItem('checkoutState');
+    if (checkoutState) {
+      const cartData = JSON.parse(checkoutState);
+      const serviceIds = [];
+      
+      // Extract all service IDs from the cart data structure
+      cartData.forEach(category => {
+        if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
+          category.cart_dtls.forEach(item => {
+            if (item.service_id) {
+              serviceIds.push(item.service_id);
+            }
+          });
+        }
+      });
+      
+      // Update cartItems in localStorage
+      localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+      // console.log('all the ids of previous ids are here'+cartData);
+      
+      return serviceIds;
+    }
+  } catch (error) {
+    console.error('Error syncing cart items:', error);
+  }
+  return [];
+};
+
+
   const handleVerification = async () => {
     try {
       const newOtp = otpDigits.join('');
@@ -53,8 +84,62 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         if (data.email) localStorage.setItem('email', data.email);
         if (data.c_id) localStorage.setItem('customer_id', data.c_id);
 
+//added the here new logic 
+// ✅ Check if a pending service needs to be added to cart after login
+const pendingService = localStorage.getItem('pendingServiceToAdd');
+if (pendingService && data.c_id) {
+  const service_id = JSON.parse(pendingService);
+  const quantity = 1;
+  const type = 'add';
+  const cid = data.c_id;
+
+  const payload = { service_id, quantity, cid, type };
+
+  try {
+    const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const cartResponse = await res.json();
+
+    localStorage.setItem('checkoutState', JSON.stringify(cartResponse.AllCartDetails || []));
+    localStorage.setItem('cart_total_price', cartResponse.total_price || 0);
+
+    const existingCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+    if (!existingCart.includes(service_id)) {
+      localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
+    }
+
+    localStorage.removeItem('pendingServiceToAdd'); // cleanup
+
+    // Optional: Notify user
+    toast.success("Service added to cart after login!");
+  } catch (error) {
+    console.error("Error adding pending service to cart:", error);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
         if (data.AllCartDetails) {
-          localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
+          // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
+           const filteredCart = data.AllCartDetails.filter((item) =>
+            item.cart_dtls.some((service) => Number(service.quantity) > 0)
+          );
+
+          localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
+
+           syncCartItemsFromCheckoutState();
         }
 
         if (data.total_cart_price) {
@@ -73,7 +158,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
           localStorage.setItem('userToken', 'verified');
         }
 
-        toast.success(data.msg);
+        // toast.success(data.msg);
         setShowOtpModal(false);
 
         if (data.status === 1) {
@@ -110,7 +195,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
       const data = await res.json();
 
       if (data.error === false) {
-        toast.success("Details saved successfully!");
+        // toast.success("Details saved successfully!");
         setOpenBasic(false);
         setShowCongrats(true);
 
@@ -185,7 +270,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
 
         if (data.error === false) {
           setOtpLoader(false); // Stop loading on success
-          toast.success(data.msg);
+          // toast.success(data.msg);
           setShowModal(false);
           setShowOtpModal(true);
           setPhoneError('');
@@ -215,9 +300,19 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     }
   };
 
+  // const handleKeyDown = (index, e) => {
+  //   if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+  //     otpInputRefs.current[index - 1].focus();
+  //   }
+  // };
+
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
       otpInputRefs.current[index - 1].focus();
+    } else if (e.key === 'Enter') {
+      if (index === 3) {
+        handleVerification();
+      }
     }
   };
 
@@ -239,7 +334,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
 
   return (
     <div>
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="top-right" />
 
       {/* Phone Verification Modal using MUI Modal */}
       <Modal
@@ -251,17 +346,20 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         <Box
           sx={{
             position: 'absolute',
-            top: '50%',
+            top: { xs: '35%', sm: '50%' },
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: '100%',
-            maxWidth: '600px',
+            maxWidth: { xs: '328px', sm: '600px' },
+            maxHeight: '90vh',
+            p: { xs: 2, sm: 3 },
+
             bgcolor: 'background.paper',
             borderRadius: '0.5rem',
             boxShadow: 24,
-            p: 3,
           }}
         >
+
           {/* Close Button */}
           <button
             onClick={handleCloseModal}
@@ -281,9 +379,9 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                   <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-semibold mb-2 text-gray-900 w-full text-center">Enter your phone number</h2>
+              <h2 className=" text-xl  md:text-2xl font-semibold mb-2 text-gray-900 w-full text-center">Enter your phone number</h2>
               <p className="text-gray-600 mb-6 w-full text-center">We'll send you a text with a verification code.</p>
-              <div className="flex mb-4 w-full">
+              <div className="flex mb-2 md:mb-4 w-full">
                 <div className="flex items-center px-4 bg-gray-100 rounded-l-lg border border-gray-300 border-r-0">
                   <span className="text-gray-600">+91</span>
                 </div>
@@ -354,12 +452,26 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
               <p className="text-gray-600 mb-6">A 4-digit verification code has been sent to +91 {phoneNumber}</p>
 
               <div className="flex justify-center gap-2 mb-6">
+                {/* {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={el => otpInputRefs.current[index] = el}
+                    type='number'
+                    maxLength="1"
+                    className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(index, e)}
+                  />
+                ))} */}
                 {otpDigits.map((digit, index) => (
                   <input
                     key={index}
                     ref={el => otpInputRefs.current[index] = el}
-                    type="text"
+                    type='text'  // Changed from 'number' to 'text'
                     maxLength="1"
+                    pattern="[0-9]"  // Only allow digits
+                    inputMode="numeric"  // Show numeric keypad on mobile
                     className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
@@ -368,15 +480,15 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                 ))}
               </div>
 
-              <div className="mb-6">
+              <div className="mb-2 md:mb-6 flex items-center gap-1.5 ">
                 <span className='text-gray-400'>Resend the code on</span>
                 <div className='flex items-center gap-2.5 justify-center mt-2'>
-                  <button
+                  {/* <button
                     className={`px-4 py-2 rounded-md transition ${activeButton === 'whatsapp' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                     onClick={() => handleResendCode('whatsapp')}
                   >
                     WhatsApp
-                  </button>
+                  </button> */}
                   <button
                     className={`px-4 py-2 rounded-md transition ${activeButton === 'sms' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                     onClick={() => handleResendCode('sms')}
