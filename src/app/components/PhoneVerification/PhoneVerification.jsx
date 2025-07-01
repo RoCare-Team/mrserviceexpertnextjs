@@ -34,14 +34,43 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     setPhoneError('');
   };
 
-  const syncCartItemsFromCheckoutState = () => {
+//   const syncCartItemsFromCheckoutState = () => {
+//   try {
+//     const checkoutState = localStorage.getItem('checkoutState');
+//     if (checkoutState) {
+//       const cartData = JSON.parse(checkoutState);
+//       const serviceIds = [];
+      
+//       // Extract all service IDs from the cart data structure
+//       cartData.forEach(category => {
+//         if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
+//           category.cart_dtls.forEach(item => {
+//             if (item.service_id) {
+//               serviceIds.push(item.service_id);
+//             }
+//           });
+//         }
+//       });
+      
+//       // Update cartItems in localStorage
+//       localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+//       // console.log('all the ids of previous ids are here'+cartData);
+      
+//       return serviceIds;
+//     }
+//   } catch (error) {
+//     console.error('Error syncing cart items:', error);
+//   }
+//   return [];
+// };
+
+const syncCartItemsFromCheckoutState = () => {
   try {
     const checkoutState = localStorage.getItem('checkoutState');
     if (checkoutState) {
       const cartData = JSON.parse(checkoutState);
       const serviceIds = [];
       
-      // Extract all service IDs from the cart data structure
       cartData.forEach(category => {
         if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
           category.cart_dtls.forEach(item => {
@@ -52,19 +81,18 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         }
       });
       
-      // Update cartItems in localStorage
-      localStorage.setItem('cartItems', JSON.stringify(serviceIds));
-      // console.log('all the ids of previous ids are here'+cartData);
+      // Get existing cartItems and merge
+      const existingCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+      const mergedCartItems = [...new Set([...existingCartItems, ...serviceIds])];
       
-      return serviceIds;
+      localStorage.setItem('cartItems', JSON.stringify(mergedCartItems));
+      return mergedCartItems;
     }
   } catch (error) {
     console.error('Error syncing cart items:', error);
   }
   return [];
 };
-
-
   const handleVerification = async () => {
     try {
       const newOtp = otpDigits.join('');
@@ -115,7 +143,7 @@ if (pendingService && data.c_id) {
     localStorage.removeItem('pendingServiceToAdd'); // cleanup
 
     // Optional: Notify user
-    toast.success("Service added to cart after login!");
+    // toast.success("Service added to cart after login!");
   } catch (error) {
     console.error("Error adding pending service to cart:", error);
   }
