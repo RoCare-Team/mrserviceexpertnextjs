@@ -139,8 +139,8 @@ if (pendingService && data.c_id) {
     if (!existingCart.includes(service_id)) {
       localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
     }
-
-    localStorage.removeItem('pendingServiceToAdd'); // cleanup
+     syncCartItemsFromCheckoutState();
+    localStorage.removeItem('pendingServiceToAdd'); 
 
     // Optional: Notify user
     // toast.success("Service added to cart after login!");
@@ -159,20 +159,20 @@ if (pendingService && data.c_id) {
 
 
 
-        if (data.AllCartDetails) {
-          // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
-           const filteredCart = data.AllCartDetails.filter((item) =>
-            item.cart_dtls.some((service) => Number(service.quantity) > 0)
-          );
+        // if (data.AllCartDetails) {
+        //   // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
+        //    const filteredCart = data.AllCartDetails.filter((item) =>
+        //     item.cart_dtls.some((service) => Number(service.quantity) > 0)
+        //   );
 
-          localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
+        //   localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
 
-           syncCartItemsFromCheckoutState();
-        }
+        //    syncCartItemsFromCheckoutState();
+        // }
 
-        if (data.total_cart_price) {
-          localStorage.setItem('cart_total_price', data.total_cart_price || 0);
-        }
+        // if (data.total_cart_price) {
+        //   localStorage.setItem('cart_total_price', data.total_cart_price || 0);
+        // }
 
         if (data.address) {
           let RecentAdd = JSON.stringify(data.address);
