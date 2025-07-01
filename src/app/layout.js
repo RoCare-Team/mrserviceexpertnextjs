@@ -20,7 +20,7 @@ export const metadata = {
     canonical: "https://www.mrserviceexpert.com/",
   },
   verification: {
-    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY',
+    google: '483dfd13bd02e15036ba68fb4b8adc6ab44c031dbdfc6e9de0c36ea01ea99eab',
   },
   icons: {
     icon: '/favicon.ico',
