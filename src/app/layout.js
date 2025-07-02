@@ -20,8 +20,9 @@ export const metadata = {
     canonical: "https://www.mrserviceexpert.com/",
   },
   verification: {
-    google: '483dfd13bd02e15036ba68fb4b8adc6ab44c031dbdfc6e9de0c36ea01ea99eab',
+    google: 'V60YSnBVGExJKR1IaZkBJf5hwHuAjMhcx6miESUJZNY',
   },
+  
   icons: {
     icon: '/favicon.ico',
   },
@@ -33,6 +34,10 @@ export default function RootLayout({ children }) {
     <html lang="en">
        <head>
          <link rel="amphtml" href="" />
+          <meta
+          name="ahrefs-site-verification"
+          content="483dfd13bd02e15036ba68fb4b8adc6ab44c031dbdfc6e9de0c36ea01ea99eab"
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
