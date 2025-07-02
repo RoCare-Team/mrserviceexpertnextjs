@@ -34,65 +34,65 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     setPhoneError('');
   };
 
-//   const syncCartItemsFromCheckoutState = () => {
-//   try {
-//     const checkoutState = localStorage.getItem('checkoutState');
-//     if (checkoutState) {
-//       const cartData = JSON.parse(checkoutState);
-//       const serviceIds = [];
-      
-//       // Extract all service IDs from the cart data structure
-//       cartData.forEach(category => {
-//         if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
-//           category.cart_dtls.forEach(item => {
-//             if (item.service_id) {
-//               serviceIds.push(item.service_id);
-//             }
-//           });
-//         }
-//       });
-      
-//       // Update cartItems in localStorage
-//       localStorage.setItem('cartItems', JSON.stringify(serviceIds));
-//       // console.log('all the ids of previous ids are here'+cartData);
-      
-//       return serviceIds;
-//     }
-//   } catch (error) {
-//     console.error('Error syncing cart items:', error);
-//   }
-//   return [];
-// };
+  //   const syncCartItemsFromCheckoutState = () => {
+  //   try {
+  //     const checkoutState = localStorage.getItem('checkoutState');
+  //     if (checkoutState) {
+  //       const cartData = JSON.parse(checkoutState);
+  //       const serviceIds = [];
 
-const syncCartItemsFromCheckoutState = () => {
-  try {
-    const checkoutState = localStorage.getItem('checkoutState');
-    if (checkoutState) {
-      const cartData = JSON.parse(checkoutState);
-      const serviceIds = [];
-      
-      cartData.forEach(category => {
-        if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
-          category.cart_dtls.forEach(item => {
-            if (item.service_id) {
-              serviceIds.push(item.service_id);
-            }
-          });
-        }
-      });
-      
-      // Get existing cartItems and merge
-      const existingCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-      const mergedCartItems = [...new Set([...existingCartItems, ...serviceIds])];
-      
-      localStorage.setItem('cartItems', JSON.stringify(mergedCartItems));
-      return mergedCartItems;
+  //       // Extract all service IDs from the cart data structure
+  //       cartData.forEach(category => {
+  //         if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
+  //           category.cart_dtls.forEach(item => {
+  //             if (item.service_id) {
+  //               serviceIds.push(item.service_id);
+  //             }
+  //           });
+  //         }
+  //       });
+
+  //       // Update cartItems in localStorage
+  //       localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+  //       // console.log('all the ids of previous ids are here'+cartData);
+
+  //       return serviceIds;
+  //     }
+  //   } catch (error) {
+  //     console.error('Error syncing cart items:', error);
+  //   }
+  //   return [];
+  // };
+
+  const syncCartItemsFromCheckoutState = () => {
+    try {
+      const checkoutState = localStorage.getItem('checkoutState');
+      if (checkoutState) {
+        const cartData = JSON.parse(checkoutState);
+        const serviceIds = [];
+
+        cartData.forEach(category => {
+          if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
+            category.cart_dtls.forEach(item => {
+              if (item.service_id) {
+                serviceIds.push(item.service_id);
+              }
+            });
+          }
+        });
+
+        // Get existing cartItems and merge
+        const existingCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        const mergedCartItems = [...new Set([...existingCartItems, ...serviceIds])];
+
+        localStorage.setItem('cartItems', JSON.stringify(mergedCartItems));
+        return mergedCartItems;
+      }
+    } catch (error) {
+      console.error('Error syncing cart items:', error);
     }
-  } catch (error) {
-    console.error('Error syncing cart items:', error);
-  }
-  return [];
-};
+    return [];
+  };
   const handleVerification = async () => {
     try {
       const newOtp = otpDigits.join('');
@@ -112,14 +112,29 @@ const syncCartItemsFromCheckoutState = () => {
         if (data.email) localStorage.setItem('email', data.email);
         if (data.c_id) localStorage.setItem('customer_id', data.c_id);
 
-   
 
-//added the here new logic 
-// ✅ Check if a pending service needs to be added to cart after login
-const pendingService = localStorage.getItem('pendingServiceToAdd');
-if (pendingService && data.c_id) {
+
+        //added the here new logic 
+        // ✅ Check if a pending service needs to be added to cart after login
+        const pendingService = localStorage.getItem('pendingServiceToAdd');
+       if (pendingService && data.c_id) {
   const service_id = JSON.parse(pendingService);
-  const quantity = 1;
+
+  // ✅ Use latest cart data from API, not localStorage
+  const existingCheckout = data.AllCartDetails || [];
+
+  let quantity = 1;
+  const existingServiceEntry = existingCheckout.find(cartItem =>
+    cartItem.cart_dtls?.some(service => service.service_id == service_id)
+  );
+
+  if (existingServiceEntry) {
+    const matchedService = existingServiceEntry.cart_dtls.find(service => service.service_id == service_id);
+    if (matchedService && Number(matchedService.quantity) > 1) {
+      quantity = Number(matchedService.quantity);
+    }
+  }
+
   const type = 'add';
   const cid = data.c_id;
 
@@ -141,26 +156,24 @@ if (pendingService && data.c_id) {
     if (!existingCart.includes(service_id)) {
       localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
     }
-     syncCartItemsFromCheckoutState();
-    localStorage.removeItem('pendingServiceToAdd'); 
-
-    // Optional: Notify user
-    // toast.success("Service added to cart after login!");
+    syncCartItemsFromCheckoutState();
+    localStorage.removeItem('pendingServiceToAdd');
   } catch (error) {
     console.error("Error adding pending service to cart:", error);
   }
 }
 
- else{
 
-       if (data.AllCartDetails) {
-  localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-  syncCartItemsFromCheckoutState();
-}
-if (data.total_cart_price) {
-  localStorage.setItem('cart_total_price', data.total_cart_price);
-}
- }
+        else {
+
+          if (data.AllCartDetails) {
+            localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
+            syncCartItemsFromCheckoutState();
+          }
+          if (data.total_cart_price) {
+            localStorage.setItem('cart_total_price', data.total_cart_price);
+          }
+        }
 
 
 
