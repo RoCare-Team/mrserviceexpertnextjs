@@ -112,6 +112,8 @@ const syncCartItemsFromCheckoutState = () => {
         if (data.email) localStorage.setItem('email', data.email);
         if (data.c_id) localStorage.setItem('customer_id', data.c_id);
 
+   
+
 //added the here new logic 
 // ✅ Check if a pending service needs to be added to cart after login
 const pendingService = localStorage.getItem('pendingServiceToAdd');
@@ -149,7 +151,16 @@ if (pendingService && data.c_id) {
   }
 }
 
+ else{
 
+       if (data.AllCartDetails) {
+  localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
+  syncCartItemsFromCheckoutState();
+}
+if (data.total_cart_price) {
+  localStorage.setItem('cart_total_price', data.total_cart_price);
+}
+ }
 
 
 
