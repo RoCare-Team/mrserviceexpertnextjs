@@ -34,35 +34,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     setPhoneError('');
   };
 
-  //   const syncCartItemsFromCheckoutState = () => {
-  //   try {
-  //     const checkoutState = localStorage.getItem('checkoutState');
-  //     if (checkoutState) {
-  //       const cartData = JSON.parse(checkoutState);
-  //       const serviceIds = [];
 
-  //       // Extract all service IDs from the cart data structure
-  //       cartData.forEach(category => {
-  //         if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
-  //           category.cart_dtls.forEach(item => {
-  //             if (item.service_id) {
-  //               serviceIds.push(item.service_id);
-  //             }
-  //           });
-  //         }
-  //       });
-
-  //       // Update cartItems in localStorage
-  //       localStorage.setItem('cartItems', JSON.stringify(serviceIds));
-  //       // console.log('all the ids of previous ids are here'+cartData);
-
-  //       return serviceIds;
-  //     }
-  //   } catch (error) {
-  //     console.error('Error syncing cart items:', error);
-  //   }
-  //   return [];
-  // };
 
   const syncCartItemsFromCheckoutState = () => {
     try {
@@ -117,86 +89,81 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
         //added the here new logic 
         // ✅ Check if a pending service needs to be added to cart after login
         const pendingService = localStorage.getItem('pendingServiceToAdd');
-       if (pendingService && data.c_id) {
-  const service_id = JSON.parse(pendingService);
+        if (pendingService && data.c_id) {
+          const service_id = JSON.parse(pendingService);
 
-  // ✅ Use latest cart data from API, not localStorage
-  const existingCheckout = data.AllCartDetails || [];
+          // ✅ Use latest cart data from API, not localStorage
+          const existingCheckout = data.AllCartDetails || [];
 
-  let quantity = 1;
-  const existingServiceEntry = existingCheckout.find(cartItem =>
-    cartItem.cart_dtls?.some(service => service.service_id == service_id)
-  );
+          let quantity = 1;
+          const existingServiceEntry = existingCheckout.find(cartItem =>
+            cartItem.cart_dtls?.some(service => service.service_id == service_id)
+          );
 
-  if (existingServiceEntry) {
-    const matchedService = existingServiceEntry.cart_dtls.find(service => service.service_id == service_id);
-    if (matchedService && Number(matchedService.quantity) > 1) {
-      quantity = Number(matchedService.quantity);
-    }
-  }
+          if (existingServiceEntry) {
+            const matchedService = existingServiceEntry.cart_dtls.find(service => service.service_id == service_id);
+            if (matchedService && Number(matchedService.quantity) > 1) {
+              quantity = Number(matchedService.quantity);
+            }
+          }
 
-  const type = 'add';
-  const cid = data.c_id;
+          const type = 'add';
+          const cid = data.c_id;
 
-  const payload = { service_id, quantity, cid, type };
+          const payload = { service_id, quantity, cid, type };
 
-  try {
-    const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+          try {
+            const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
 
-    const cartResponse = await res.json();
+            const cartResponse = await res.json();
 
-    localStorage.setItem('checkoutState', JSON.stringify(cartResponse.AllCartDetails || []));
-    localStorage.setItem('cart_total_price', cartResponse.total_price || 0);
+            localStorage.setItem('checkoutState', JSON.stringify(cartResponse.AllCartDetails || []));
+            localStorage.setItem('cart_total_price', cartResponse.total_price || 0);
 
-    const existingCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-    if (!existingCart.includes(service_id)) {
-      localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
-    }
-    syncCartItemsFromCheckoutState();
-    localStorage.removeItem('pendingServiceToAdd');
-  } catch (error) {
-    console.error("Error adding pending service to cart:", error);
-  }
-}
+            const existingCart = JSON.parse(localStorage.getItem('cartItems')) || [];
+            if (!existingCart.includes(service_id)) {
+              localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
+            }
+            syncCartItemsFromCheckoutState();
+            localStorage.removeItem('pendingServiceToAdd');
+          } catch (error) {
+            console.error("Error adding pending service to cart:", error);
+          }
+        }
 
 
         else {
 
+          // if (data.AllCartDetails) {
+          //   localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
+          //   syncCartItemsFromCheckoutState();
+          // }
+          // if (data.total_cart_price) {
+          //   localStorage.setItem('cart_total_price', data.total_cart_price);
+          // }
+
           if (data.AllCartDetails) {
-            localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
+            // 🔍 Filter out services with quantity 0
+            const filteredCart = data.AllCartDetails.filter(cartItem =>
+              cartItem.cart_dtls.some(service => Number(service.quantity) > 0)
+            ).map(cartItem => ({
+              ...cartItem,
+              cart_dtls: cartItem.cart_dtls.filter(service => Number(service.quantity) > 0)
+            }));
+
+            localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
             syncCartItemsFromCheckoutState();
           }
+
           if (data.total_cart_price) {
             localStorage.setItem('cart_total_price', data.total_cart_price);
           }
         }
 
-
-
-
-
-
-
-
-
-        // if (data.AllCartDetails) {
-        //   // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails || []));
-        //    const filteredCart = data.AllCartDetails.filter((item) =>
-        //     item.cart_dtls.some((service) => Number(service.quantity) > 0)
-        //   );
-
-        //   localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
-
-        //    syncCartItemsFromCheckoutState();
-        // }
-
-        // if (data.total_cart_price) {
-        //   localStorage.setItem('cart_total_price', data.total_cart_price || 0);
-        // }
 
         if (data.address) {
           let RecentAdd = JSON.stringify(data.address);
@@ -277,36 +244,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     }
   };
 
-  // const handlePhoneSubmit = async () => {
-  //   if (phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber)) {
-  //     setOtpLoader(true);
-  //     try {
-  //       const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/roservice_sendotp.php", {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ phoneNumber }),
-  //       });
 
-  //       const data = await res.json();
-
-  //       if (data.error === false) {
-  //         setOtpLoader(true);
-  //         toast.success(data.msg);
-  //         setShowModal(false);
-  //         setShowOtpModal(true);
-  //         setPhoneError('');
-  //       } else {
-  //         toast.error(data.msg);
-  //       }
-  //     } catch (error) {
-  //       toast.error("Error: " + error.message);
-  //     }
-  //   } else if (phoneNumber.length !== 10) {
-  //     setPhoneError('Phone number must be 10 digits');
-  //   } else {
-  //     setPhoneError('Please enter a valid phone number');
-  //   }
-  // };
 
   const handlePhoneSubmit = async () => {
     if (phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber)) {
@@ -352,11 +290,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     }
   };
 
-  // const handleKeyDown = (index, e) => {
-  //   if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-  //     otpInputRefs.current[index - 1].focus();
-  //   }
-  // };
+
 
   const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
@@ -453,17 +387,6 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
                 <p className="text-red-500 text-sm mt-1 w-full">{phoneError}</p>
               )}
 
-              {/* <button
-                  onClick={handlePhoneSubmit}
-                  className={`w-full py-3 rounded-lg font-medium mt-4 transition ${isPhoneValid
-                    ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                    }`}
-                  disabled={!isPhoneValid}
-                >
-                  Continue
-                </button> */}
-
               <button
                 onClick={handlePhoneSubmit}
                 className={`w-full py-3 rounded-lg font-medium mt-4 transition ${isPhoneValid && !otpLoader
@@ -504,18 +427,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
               <p className="text-gray-600 mb-6">A 4-digit verification code has been sent to +91 {phoneNumber}</p>
 
               <div className="flex justify-center gap-2 mb-6">
-                {/* {otpDigits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={el => otpInputRefs.current[index] = el}
-                    type='number'
-                    maxLength="1"
-                    className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                  />
-                ))} */}
+
                 {otpDigits.map((digit, index) => (
                   <input
                     key={index}
@@ -535,12 +447,7 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
               <div className="mb-2 md:mb-6 flex items-center gap-1.5 ">
                 <span className='text-gray-400'>Resend the code on</span>
                 <div className='flex items-center gap-2.5 justify-center mt-2'>
-                  {/* <button
-                    className={`px-4 py-2 rounded-md transition ${activeButton === 'whatsapp' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'}`}
-                    onClick={() => handleResendCode('whatsapp')}
-                  >
-                    WhatsApp
-                  </button> */}
+
                   <button
                     className={`px-4 py-2 rounded-md transition ${activeButton === 'sms' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
                     onClick={() => handleResendCode('sms')}
