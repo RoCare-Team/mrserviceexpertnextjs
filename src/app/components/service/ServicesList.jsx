@@ -9,7 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 // import {  useParams } from "react-router-dom";
 import { useParams } from "next/navigation";
 
-const ServicesList = ({cate, addedServices = [],state, handleCartLoading }) => {
+const ServicesList = ({cate, addedServices = [],state, handleCartLoading,cartLoaded }) => {
 //   const location = useLocation();
 const [serviceListCart, setServiceListCart] = useState([]);
 
@@ -46,7 +46,7 @@ const [clickedValues, setClickedValues] = useState([]);
     } else {
       setServiceListCart([]);
     }
-  }, [state]); //  dependency to change the cart states
+  }, [state,cartLoaded]); //  dependency to change the cart states
  
    // Initialize from localStorage and props when component mounts
    useEffect(() => {

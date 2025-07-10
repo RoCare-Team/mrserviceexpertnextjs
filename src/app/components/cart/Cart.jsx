@@ -8,33 +8,28 @@ import { toast } from "react-toastify";
 
 
 
-// const Cart = ({cartdata, total, onRemove, onIncrement, onDecrement, onCartLoad }) => {
+
 const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
   const [cartDataArray, setCartDataArray] = useState([]);
   const [finalTotal, setFinalTotal] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+
 
 
 
   const displayCartData = () => {
     const cartdata = localStorage.getItem('checkoutState');
-    // console.log(cartdata.leadtype_name[5].cart_dtls[5]);
 
-    // console.log(cartdata+'heres all details');
 
     const cartDataArray = cartdata ? JSON.parse(cartdata) || [] : [];
 
-    // console.log(cartDataArray);
 
-
-    // console.log(cartDataArray.cart_dtls[5]);
 
 
     setFinalTotal(localStorage.getItem('cart_total_price'));
 
-    // const finalTotal = cartDataArray
-    //   .map(item => Number(item.total_main)) // Convert string to number
-    //   .reduce((acc, price) => acc + price, 0); // Sum up prices
+
 
     const getPrice = localStorage.getItem('cart_total_price');
 
@@ -45,11 +40,10 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
     setFinalTotal(finalTotal);
 
-    console.log(finalTotal + "after making the actuall sum of all the things");
+    // console.log(finalTotal + "after making the actuall sum of all the things");
 
 
-    // const price_discount=cartDataArray.map(item => Number(item.total_cart_price)).reduce((acc, price) => acc + price, 0);
-    // alert(price_discount)
+
 
     setCartDataArray(cartDataArray);
   }
@@ -83,9 +77,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       console.log(data.total_main + 'on increase');
 
       displayCartData();
-      // toast.success(data.msg,{
-      //    autoClose: 1500,
-      // });
+
 
 
     } else {
@@ -170,11 +162,59 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       cartLoadedToggle();
     }
     displayCartData();
-    // toast.success(data.msg);
+
 
 
   };
+  useEffect(() => {
+    const getcartdata = async () => {
 
+      const cid = localStorage.getItem("customer_id");
+      try {
+        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/view_cart_details.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cid }),
+        });
+
+        const data = await res.json();
+        // console.log(JSON.stringify(data)+'adfasdgasdg');
+
+        setCartDataArray(data.AllCartDetails);
+        setFinalTotal(Number(data.total_price) || 0);
+        localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails) || JSON.stringify([]));
+        localStorage.setItem('cart_total_price', data.total_price || 0);
+
+        const serviceIds = data.AllCartDetails.flatMap(item =>
+          item.cart_dtls
+            .filter(service => Number(service.quantity) > 0)  // Optional: only if quantity > 0
+            .map(service => service.service_id)
+        );
+
+        localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+        setCartItems(serviceIds);
+
+        if (typeof cartLoadedToggle === 'function') {
+          cartLoadedToggle();
+        }
+
+      } catch (err) {
+        console.error("Error fetching sub-services:", err);
+        setCartDataArray([]);
+      }
+
+
+    };
+    getcartdata();
+
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+     if (typeof cartLoadedToggle === 'function') {
+          cartLoadedToggle();
+        }
+  }, [cartItems]);
 
   // console.log(finalTotal);
 
@@ -185,7 +225,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       <h2>Cart</h2>
 
 
-      {cartDataArray.length === 0 ? (
+      {cartDataArray?.length === 0 ? (
         <div className="emptyStyle">
           <img src="/assets/images/emptyCart.webp" alt="Empty Cart" className="emptyImg" height="auto" width={72} />
           <p className="text-center">No services added.</p>
