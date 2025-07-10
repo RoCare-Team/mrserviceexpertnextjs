@@ -11,6 +11,8 @@ const CheckOut = () => {
 
     const [phoneNumber, setPhoneNumber] = useState('');
     const [showModal, setShowModal] = useState(false);
+    const [bookingSlotsKey, setBookingSlotsKey] = useState(0);
+
 
     let handlePopup = () => {
         setShowModal(true)
@@ -301,7 +303,7 @@ const CheckOut = () => {
                     addressId: null
                 });
                 setBookingCompleted(false);
-
+ setBookingSlotsKey(prev => prev + 1);
                 displayCartData();
 
                 if (redirect) {
@@ -357,7 +359,7 @@ const CheckOut = () => {
                             ) : (
                                 <div className="address-section hidden_pay">
                                     <h3 className="mb-4 text-xl">Delivery Address</h3>
-                                    <BookingSlots phoneNumber={phoneNumber} />
+                                    <BookingSlots phoneNumber={phoneNumber} key={bookingSlotsKey} />
 
                                     <div className="cancellation-section hidden lg:block xl:block">
                                         <h3 className="mb-4 text-xl">Cancellation policy</h3>
