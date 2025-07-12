@@ -191,21 +191,7 @@ const City = ({ city, cityData }) => {
                             {/* <p className="catgoreyContent">{cityData?.city_detail?.city_content}</p> */}
                         </div>
                     </div>
-                    <div className="bg-white common-spacing">
-                        <h3 className="catgoreyTitle">Popular City in India</h3>
-                        <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
-                            {cityData.recent_cities?.map((city) => (
-                                <div className='brandsServices ' key={city.id}>
-                                    <a href={`${city.city_url}`} title={`${city.city_url}`}>
-                                        <li className='brand-btn-style'>
-                                            {city.city_name}
-                                            <span></span>
-                                        </li>
-                                    </a>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                  
                 </div>
             </>
 
