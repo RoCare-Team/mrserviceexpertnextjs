@@ -1,4 +1,6 @@
 import CityPage from "@/app/components/pages/city/City";
+import { faLocation } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound } from "next/navigation";
 
 
@@ -57,6 +59,9 @@ export default async function Page({ params }) {
 
     const data = await response.json();
 
+    console.log(JSON.stringify(data));
+    
+
       // console.log(data);
     if (data.error) {
 
@@ -64,9 +69,51 @@ export default async function Page({ params }) {
       
       return notFound();
     }
+
+     if (data.recent_cities && Array.isArray(data.recent_cities)) {
+      data.recent_cities = data.recent_cities.map(city => ({
+        id: city.id,
+        city_id: city.city_id,
+        parent_city: city.parent_city,
+        url: city.url,
+        city_name: city.city_name,
+        city_url: city.city_url,
+      }));
+    }
 // console.log(data);
 
-    return <CityPage cityData ={data} />;
+
+{/* <CityPage cityData ={data} /> */}
+    return <>
+    <CityPage cityData ={data} />
+    {data.recent_cities?.length > 0 && (
+  <div className="bg-white px-8 py-6">
+    <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+      <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+        <span>Popular Cities Near Me</span>
+        <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+      </summary>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {data.recent_cities.map((city) => (
+          <div className="brandsServices" key={city.id}>
+            <a
+              href={`/${city.city_url}`}
+              title={`${city.city_name}  services`}
+            >
+              <li className=" text-gray-500 list-none">
+                <FontAwesomeIcon icon={faLocation}/> {city.city_name},
+                <span></span>
+              </li>
+            </a>
+          </div>
+        ))}
+      </div>
+    </details>
+  </div>
+)}
+    
+    </>
   } catch (error) {
     console.error("Error fetching city page:", error);
     return notFound();
