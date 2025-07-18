@@ -90,39 +90,10 @@ export default async function Page({ params }) {
 {/*  */}
     return <>
     <ServicePage pagedata={data} city={city} cat={cat} />
-    {data.related_cities?.length > 0 && (
-  <div className="bg-white px-8 py-6">
-    <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
-      <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-        <span>Popular Cities Near Me</span>
-        <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
-      </summary>
-
-      <div className="mt-4 flex flex-wrap gap-2">
-        {data.related_cities.map((city) => (
-          <div className="brandsServices" key={city.id}>
-            <a
-              href={`/${city.city_url}/${cat}`}
-              title={`${city.city_name} ${cat} services`}
-            >
-              <li className=" text-gray-500 list-none">
-                <FontAwesomeIcon icon={faLocation}/> {city.city_name},
-                <span></span>
-              </li>
-            </a>
-          </div>
-        ))}
-      </div>
-    </details>
 
     
-  </div>
-
-  
-)}
-
 {  city==="bangalore"&&cat=="ro-water-purifier" && (
-  <div className="common-spacing">
+  <div className="common-spacing ">
     
  <div className="px-4 py-3">
       <h2 className="text-[17px] font-semibold mb-1">
@@ -532,6 +503,38 @@ export default async function Page({ params }) {
 
   
 }
+
+    {data.related_cities?.length > 0 && (
+  <div className="bg-white px-8 py-6">
+    <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+      <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+        <span>Popular Cities Near Me</span>
+        <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+      </summary>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {data.related_cities.map((city) => (
+          <div className="brandsServices" key={city.id}>
+            <a
+              href={`/${city.city_url}/${cat}`}
+              title={`${city.city_name} ${cat} services`}
+            >
+              <li className=" text-gray-500 list-none">
+                <FontAwesomeIcon icon={faLocation}/> {city.city_name},
+                <span></span>
+              </li>
+            </a>
+          </div>
+        ))}
+      </div>
+    </details>
+
+    
+  </div>
+
+  
+)}
+
 
     
 
