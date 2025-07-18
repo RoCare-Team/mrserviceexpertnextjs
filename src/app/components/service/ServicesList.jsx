@@ -163,14 +163,15 @@ setBrandName(cat);
       setClickedValues((prevValues) => [...prevValues, service.id]);
       const service_id = service.id;
       const quantity = 1;
-      console.log(quantity);
-      
       const type = localStorage.getItem('type');
       const cid = localStorage.getItem('customer_id');
+      const source="mrserviceexpert";
       // console.log(cid);
       if (cid != null) {
         // toast.success('Hope You Enjoy Our Services 🎉');
-        const payload = { service_id, quantity, cid, type };
+        const payload = { service_id, quantity, cid, type, source };
+        // console.log(JSON.stringify(payload)+'adsga');
+        
         const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
 
           method: "POST",
