@@ -218,7 +218,7 @@ const CheckOut = () => {
         const cust_id = localStorage.getItem("customer_id");
         const cust_mobile = localStorage.getItem("userPhone");
         const address_id = localStorage.getItem("address_id");
-        const cust_email = localStorage.getItem("email");
+        const cust_email = localStorage.getItem("email") || localStorage.getItem('userEmail') ;
         const chkout = JSON.parse(localStorage.getItem("checkoutState") || "[]");
         const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
         const cart_id = leadtype;

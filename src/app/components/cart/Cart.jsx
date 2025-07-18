@@ -5,6 +5,8 @@ import { IconButton } from "@mui/material";
 // import { Link, useNavigate } from "react-router-dom";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 
 
@@ -283,19 +285,12 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
           <div className="cart-footer">
 
-            {/* {discountPercentage > 0 && (
-              <div className="cart-discount">
-                <p className="congratsHeading">
-                  🎉 Congrats! You saved ₹<strong>{discountAmount.toFixed(2)}</strong>
-                </p>
-              </div>
-            )} */}
-
+           
 
             <div className="totalSection">
               <Link href={'/checkout'}><div className="cart-total forMb" style={{ cursor: 'pointer' }}>
                 <strong>Total: ₹{finalTotal}</strong>
-                <button>View Cart</button>
+                <button> <FontAwesomeIcon icon={faShoppingCart}  className="mr-1"/>View Cart</button>
               </div></Link>
             </div>
           </div>

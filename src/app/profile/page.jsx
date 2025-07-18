@@ -25,8 +25,8 @@ function Profile() {
     // Load user data from localStorage
     const loadUserData = () => {
         setUserPhone(localStorage.getItem('userPhone') || '');
-        setUserEmail(localStorage.getItem('email') || '');
-        setUserName(localStorage.getItem('name') || '');
+        setUserEmail(localStorage.getItem('email') || localStorage.getItem('userEmail')  || '');
+        setUserName(localStorage.getItem('name') || localStorage.getItem('userName')  || '');
 
 
 
