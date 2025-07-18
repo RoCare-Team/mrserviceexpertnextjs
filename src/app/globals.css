@@ -1265,15 +1265,17 @@ hr {
 }
 
 .cart-total {
-  display: flex;
-  /* background: darkgrey; */
-  background-color: rgb(142 102 255);
-  border-radius: 7px;
-  color: white;
-  padding: 4px 10px;
-  cursor: pointer;
-  align-items: center;
-  justify-content: space-between;
+color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+  background: linear-gradient(135deg, #c4b3f5, #8429d9);
+    border-radius: 25px;
+    margin: 10px 0;
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
 }
 
 .congratsHeading {
