@@ -195,6 +195,7 @@ setBrandName(cat);
        const newServiceListCart = [...serviceListCart, service.id];
        setServiceListCart(newServiceListCart);
        localStorage.setItem('cartItems', JSON.stringify(newServiceListCart));
+         window.dispatchEvent(new Event('cartItemsUpdated'));
        
        if (handleCartLoading) {
          handleCartLoading();

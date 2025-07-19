@@ -50,7 +50,25 @@ export default function Header() {
   }
 
 
+ // Function to read from localStorage
+  const updateCartCount = () => {
+    const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const totalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    setCartCount(totalCount);
+  };
 
+  useEffect(() => {
+    // Initial load
+    updateCartCount();
+ const handleStorageChange = () => updateCartCount();
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('cartItemsUpdated', handleStorageChange); // custom event
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cartItemsUpdated', handleStorageChange);
+    };
+  }, []);
 
   // For phone verification popup
   const [isPhoneModalOpen, setPhoneModalOpen] = useState(false);
@@ -459,6 +477,7 @@ export default function Header() {
               minWidth: '60px',
               borderRadius: '16px',
               transition: 'all 0.3s ease',
+              position:'relative',
               '&:hover': {
                 backgroundColor: '#f0fdf4',
                 transform: 'scale(1.05)',
@@ -488,8 +507,10 @@ export default function Header() {
                 fontWeight: 600,
                 color: '#374151',
                 textAlign: 'center',
+                
               }}
             >
+              {cartCount > 0 ? (<span className='cartCountStyle2 absolute  top-0 right-[27px] '>{cartCount}</span>) : (<></>)}
               Cart
             </Typography>
           </ListItem>

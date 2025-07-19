@@ -1278,6 +1278,10 @@ color: white;
     box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
 }
 
+
+.faqLink_d{
+  color: #333;
+}
 .congratsHeading {
   /* padding: 4px; */
   /* background: lightgrey; */
@@ -1503,6 +1507,14 @@ color: white;
   right: -6px;
 }
 
+.cartCountStyle2 {
+  border-radius: 50%;
+  background-color: #e2314b;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  /* top: 0; */
+}
 /* .modalBody{
   z-index: 500;
     justify-content: center;

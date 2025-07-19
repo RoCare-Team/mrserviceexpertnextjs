@@ -79,7 +79,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       console.log(data.total_main + 'on increase');
 
       displayCartData();
-
+  window.dispatchEvent(new Event('cartItemsUpdated'));
 
 
     } else {
@@ -121,6 +121,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       }
 
       displayCartData();
+        window.dispatchEvent(new Event('cartItemsUpdated'));
       // toast.success(data.msg);
 
 
@@ -164,6 +165,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       cartLoadedToggle();
     }
     displayCartData();
+      window.dispatchEvent(new Event('cartItemsUpdated'));
 
 
 
