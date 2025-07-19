@@ -154,6 +154,8 @@ export default function ServicePage({ pagedata, city, cat }) {
     }
   }, [selectedServices]);
 
+  
+
 
   // Debug logging
   // useEffect(() => {
@@ -773,7 +775,7 @@ export default function ServicePage({ pagedata, city, cat }) {
           </div>
         </div>
 
-       {city!="bangalore" && (   <div className="common-spacing">
+       {!(city === "bangalore" && cat === "ro-water-purifier") && (   <div className="common-spacing">
           <div className=" bg-white aboutStyle">
             <h3 className="catgoreyTitle">About Mr. Service Expert {pagedata.city_name}</h3>
     
@@ -827,10 +829,10 @@ export default function ServicePage({ pagedata, city, cat }) {
         </div>
       )}
     </div> */}
-        <div className="bg-white px-8 py-1">
+        {/* <div className="bg-white px-8 py-1">
           <h3 className="text-2xl font-bold">Quick Links</h3>
-        </div>
-
+        </div> */}
+{/* 
         <div className="bg-white px-8 py-2">
           <h3 className="text-2xl"><b>Popular Brand in {pagedata.city_name}</b></h3>
           <div className="brandsServices bg-gray-50 rounded-lg shadow p-4  flex items-center flex-wrap gap-2.5 ">
@@ -846,7 +848,7 @@ export default function ServicePage({ pagedata, city, cat }) {
             ))}
 
           </div>
-        </div>
+        </div> */}
 
       </div></>
   );

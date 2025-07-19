@@ -160,7 +160,9 @@ const CheckOut = () => {
                     const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
                     const updatedCartItems = oldCartItems.filter(id => id !== service_id);
                     localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+                     window.dispatchEvent(new Event('cartItemsUpdated'));
                 }
+                
                 displayCartData();
             } catch (error) {
                 toast.error("Error updating cart");
@@ -280,6 +282,7 @@ const CheckOut = () => {
                     });
 
                     localStorage.setItem('cartItems', JSON.stringify(remainingItems));
+                      window.dispatchEvent(new Event('cartItemsUpdated'));
                 } else if (leftOverItems.length === 0) {
                     localStorage.setItem('cartItems', JSON.stringify([]));
                 }
