@@ -10,6 +10,10 @@ Disallow: /admin/
 Disallow: /cgi-bin/
 Disallow: /amp/
 Disallow: /amp/
+Disallow: /dp/
+Disallow: /checkout/
+Disallow: /product-reviews/
+Disallow: /wow/
 
 Disallow: /cart/
 Disallow: /cart-checkout/

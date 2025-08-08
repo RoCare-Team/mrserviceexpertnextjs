@@ -779,56 +779,10 @@ export default function ServicePage({ pagedata, city, cat }) {
           <div className=" bg-white aboutStyle">
             <h3 className="catgoreyTitle">About Mr. Service Expert {pagedata.city_name}</h3>
     
-  <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" />
-
-
-          </div>
+  <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" /></div>
         </div>
         )}
 
-        {/* {pagedata?.related_cities?.length > 0 ? (<div className="bg-white px-8 py-2">
-          <h3 className="text-2xl"><b>Popular Cities Near Me</b></h3>
-          <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
-            {pagedata.related_cities?.map((city) => (
-              <div className='brandsServices ' key={city.id}>
-                <a href={`/${city.city_url}/${cat}`} title={`${city.city_url}  ${cat}   services`}>
-                  <li className='brand-btn-style'>
-                    {city.city_name}
-                    <span></span>
-                  </li>
-                </a>
-              </div>
-            ))}
-          </div>
-        </div>) : (<></>)} */}
-
-        {/* <div className="bg-white px-6 py-3 rounded-md shadow-sm">
-      <div
-        className="cursor-pointer flex justify-between items-center"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <h3 className="text-xl font-bold">Popular Cities Near Me</h3>
-        <span className="text-lg">{isOpen ? '▲' : '▼'}</span>
-      </div>
-
-      {isOpen && (
-        <div className="mt-3 flex flex-wrap gap-3">
-          {pagedata.related_cities.map((city) => (
-            <div className="brandsServices" key={city.id}>
-              <a
-                href={`/${city.city_url}/${cat}`}
-                title={`${city.city_url} ${cat} services`}
-              >
-                <li className="brand-btn-style list-none">
-                  {city.city_name}
-                  <span></span>
-                </li>
-              </a>
-            </div>
-          ))}
-        </div>
-      )}
-    </div> */}
         {/* <div className="bg-white px-8 py-1">
           <h3 className="text-2xl font-bold">Quick Links</h3>
         </div> */}
