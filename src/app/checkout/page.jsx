@@ -364,13 +364,14 @@ const CheckOut = () => {
                                     <h3 className="mb-4 text-xl">Delivery Address</h3>
                                     <BookingSlots phoneNumber={phoneNumber} key={bookingSlotsKey} />
 
-                                    <div className="cancellation-section hidden lg:block xl:block">
-                                        <h3 className="mb-4 text-xl">Cancellation policy</h3>
-                                        <p>Free cancellations if done more than 12 hrs before the service or if a professional isn't assigned. A fee will be charged otherwise.</p>
-                                        <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black">
-                                            <button>Read Full Privacy</button>
-                                        </a>
-                                    </div>
+                                    
+                               <div className="cancellation-section block md:hidden">
+    {/* <h3 className="mb-4 text-xl">Cancellation Policy</h3> */}
+    {/* <p>No questions asked </p> */}
+    <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black">
+        <button>Read Full Privacy</button>
+    </a>
+</div>
                                 </div>
                             )}
                         </div>
