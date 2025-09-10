@@ -3,6 +3,7 @@ import ServicePage from "@/app/components/pages/Services/ServicePage";
 import { faLocation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 // export async function generateMetadata({ params }) {
 //   const { city, cat } = params;
@@ -13,7 +14,12 @@ import { notFound } from 'next/navigation';
 // }
 
 export async function generateMetadata({ params }) {
-  const { city, cat } = await params;
+  // const { city, cat } = await params;
+    const resolvedParams = await params;
+  // const originalCity = resolvedParams.city;
+  // const lowercaseCity = originalCity.toLowerCase();
+  let city = resolvedParams.city.toLowerCase();
+  let cat = resolvedParams.cat.toLowerCase();
 
   const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
     method: 'POST',
@@ -37,13 +43,28 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { city, cat } = await params;
+  // const { city, cat } = await params;
+
+     const resolvedParams = await params;
+  const originalCity = resolvedParams.city;
+    const originalCat = resolvedParams.cat;
+  let city = originalCity.toLowerCase();
+  let cat=resolvedParams.cat.toLowerCase();
+
+  console.log(cat,city);
+  
+  
+  // Redirect if URL has uppercase
+ if (originalCity !== city || originalCat !== cat) {
+    redirect(`/${city}/${cat}`);
+  }
+
 
   try {
     const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ city, cat }),
+      body: JSON.stringify({city, cat }),
       cache: 'no-store',
     });
 
