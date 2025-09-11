@@ -327,6 +327,8 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                     inputMode: "numeric"
                   }
                 }}
+                helperText={`${formData.phone.length}/10 digits`}
+                error={formData.phone.length > 0 && formData.phone.length !== 10}
               />
 
             </Grid>
@@ -345,6 +347,8 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                     inputMode: "numeric"
                   }
                 }}
+                helperText={`${formData.alt_address_mob.length}/10 digits`}
+                error={formData.alt_address_mob.length > 0 && formData.alt_address_mob.length !== 10}
               />
 
             </Grid>
@@ -360,11 +364,15 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 value={formData.pincode}
                 onChange={handlePincodeChange}
                 slotProps={{ htmlInput: { maxLength: 6 } }}
+                helperText={`${formData.pincode.length}/6 digits`}
+                error={formData.pincode.length > 0 && formData.pincode.length !== 6}
                 InputProps={{
                   endAdornment: loading ? <CircularProgress size={20} /> : null
                 }}
-                helperText={message || "Enter 6-digit pincode to auto-fill location"}
+              // helperText={message || "Enter 6-digit pincode to auto-fill location"}
+
               />
+
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth required>
