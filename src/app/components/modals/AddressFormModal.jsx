@@ -33,9 +33,9 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
     full_address: '',
     phone: '',
     alt_address_mob: '',
-    phoneNumber:'',
-    home_office:'',
-    name:'',
+    phoneNumber: '',
+    home_office: '',
+    name: '',
   });
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
@@ -44,18 +44,18 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
   // const [phoneNumber,setPhoneNumber]=localStorage.getItem('userPhone');
 
 
-//  const [phoneNumber, setPhoneNumber] = useState('');
+  //  const [phoneNumber, setPhoneNumber] = useState('');
 
   // setPhoneNumber=;
 
-  
+
   // Load states when the component first loads
   useEffect(() => {
     async function loadStates() {
       try {
         setLoading(true);
         const response = await axios.get('https://www.waterpurifierservicecenter.in/wizard/app/getState.php');
-        
+
         if (response.data && response.data.AvailableState) {
           // Get just the state names from the response
           const stateList = response.data.AvailableState.map(item => item.state);
@@ -68,21 +68,33 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
         setLoading(false);
       }
     }
-    
+
     loadStates();
   }, []);
+
+
+  const handlePhoneChange = (e) => {
+    const { id, value } = e.target;
+    // Remove all non-numeric characters including spaces
+    const numericValue = value.replace(/[^0-9]/g, '');
+    setFormData({
+      ...formData,
+      [id]: numericValue
+    });
+  };
+
 
   // When state changes, load cities for that state
   useEffect(() => {
     async function loadCities() {
       if (!formData.state) return;
-      
+
       try {
         setLoading(true);
         setCities([]);
-        
+
         const response = await axios.get(`https://www.waterpurifierservicecenter.in/wizard/app/getCity.php?state=${formData.state}`);
-        
+
         if (response.data && response.data.AvailableCities) {
           // Get just the city names from the response
           const cityList = response.data.AvailableCities.map(item => item.city_name);
@@ -95,30 +107,30 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
         setLoading(false);
       }
     }
-    
+
     loadCities();
   }, [formData.state]);
 
   // Handle pincode lookup
   const handlePincodeChange = async (e) => {
     const newPincode = e.target.value;
-    
+
     // Update formData with new pincode
     setFormData({
       ...formData,
       pincode: newPincode
     });
-    
+
     // Clear message
     setMessage('');
-    
+
     // Only proceed if pincode is 6 digits
     if (newPincode.length === 6) {
       try {
         setLoading(true);
-        
+
         const response = await axios.get(`https://inet.waterpurifierservicecenter.in/include/ajax/get_city_with_pincode.php?pincode=${newPincode}`);
-        
+
         if (response.data && response.data.state) {
           // Update formData with state and city from pincode response
           setFormData(prev => ({
@@ -166,7 +178,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
     });
   };
 
-  const handleSubmit = async(event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     // setPhoneNumber=localStorage.getItem('userPhone', phoneNumber);
     // setPhoneNumber(localStorage.getItem('userPhone'));
@@ -178,31 +190,31 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
     //   }
     // }, []);
 
-    
+
     // const userMobile=localStorage.getItem('userPhone');
     // console.log(userMobile);
 
-    formData.phoneNumber=localStorage.getItem('userPhone');
- 
+    formData.phoneNumber = localStorage.getItem('userPhone');
+
     // Create formatted address for submission
-    const formattedAddress = `${formData.houseNo}, ${formData.street}, ${formData.landmark}, ${formData.city}, ${formData.state}, ${formData.pincode},${formData.alt_address_mob},${formData.phone},${ formData.phoneNumber},${formData.name}, (${addressType})`;
-   
+    const formattedAddress = `${formData.houseNo}, ${formData.street}, ${formData.landmark}, ${formData.city}, ${formData.state}, ${formData.pincode},${formData.alt_address_mob},${formData.phone},${formData.phoneNumber},${formData.name}, (${addressType})`;
+
     const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_address.php", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData)
-  });
- 
-  // console.log(formData.alt_address_mob+'hphph');
-  
-  const data = await res.json();
-  // console.log(data);
-  
-  // console.log(JSON.stringify(data.full_address));
-  localStorage.setItem("RecentAddress",JSON.stringify(data.address));
-  localStorage.setItem("booking_ads",data.full_address);
-  localStorage.setItem("address_id",JSON.stringify(data.address_id));
-  toast.success(data.msg);
+    });
+
+    // console.log(formData.alt_address_mob+'hphph');
+
+    const data = await res.json();
+    // console.log(data);
+
+    // console.log(JSON.stringify(data.full_address));
+    localStorage.setItem("RecentAddress", JSON.stringify(data.address));
+    localStorage.setItem("booking_ads", data.full_address);
+    localStorage.setItem("address_id", JSON.stringify(data.address_id));
+    toast.success(data.msg);
     if (onAddressSubmit) {
       onAddressSubmit({
         ...formData,
@@ -210,13 +222,13 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
         // phoneNumber :phoneNumber ,
         formattedAddress
       });
-      
+
     }
 
     handleClose();
   };
 
- 
+
 
   return (
     <Modal
@@ -286,51 +298,59 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
 
           <Grid container spacing={2}>
             {/* size={{  xs:6 ,sm:4, md:3,lg:2 }}  item xs={12} sm={6} */}
-          <Grid  size={{  xs:12 ,sm:6 }} >
-             <TextField
-             id='name'
-             label='Name'
-             variant='outlined'
-             fullWidth
-             required
-             value={formData.name}
-             onChange={handleInputChange}
-            
-             />
+            <Grid size={{ xs: 12, sm: 6 }} >
+              <TextField
+                id='name'
+                label='Name'
+                variant='outlined'
+                fullWidth
+                required
+                value={formData.name}
+                onChange={handleInputChange}
 
-            </Grid>
-        
-            <Grid size={{  xs:12 ,sm:6 }}>
-             <TextField
-             id='phone'
-             label='Phone Number'
-             variant='outlined'
-             fullWidth
-             required
-             value={formData.phone}
-             onChange={handleInputChange}
-           slotProps={{ htmlInput: { maxLength: 10 } }}
-            
-            
-             />
+              />
 
             </Grid>
 
-            <Grid size={{  xs:12 ,sm:6 }}>
-             <TextField
-             id='alt_address_mob'
-             label='Alternate Phone'
-             variant='outlined'
-             fullWidth
-             value={formData.alt_address_mob}
-             onChange={handleInputChange}
-             slotProps={{ htmlInput: { maxLength: 10 } }}
-             />
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                id='phone'
+                label='Phone Number'
+                variant='outlined'
+                fullWidth
+                required
+                value={formData.phone}
+                onChange={handlePhoneChange} // Use the specialized handler
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 10,
+                    inputMode: "numeric"
+                  }
+                }}
+              />
+
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                id='alt_address_mob'
+                label='Alternate Phone'
+                variant='outlined'
+                fullWidth
+                value={formData.alt_address_mob}
+                onChange={handlePhoneChange} // Use the specialized handler
+                slotProps={{
+                  htmlInput: {
+                    maxLength: 10,
+                    inputMode: "numeric"
+                  }
+                }}
+              />
 
             </Grid>
 
 
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="pincode"
                 label="PinCode"
@@ -346,7 +366,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 helperText={message || "Enter 6-digit pincode to auto-fill location"}
               />
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth required>
                 <InputLabel id="state-label">State</InputLabel>
                 <Select
@@ -364,7 +384,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth required>
                 <InputLabel id="city-label">City</InputLabel>
                 <Select
@@ -382,7 +402,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="houseNo"
                 label="House No"
@@ -393,7 +413,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="street"
                 label="Street"
@@ -404,7 +424,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="landmark"
                 label="Famous Landmark"
@@ -415,7 +435,7 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
                 onChange={handleInputChange}
               />
             </Grid>
-            <Grid size={{  xs:12 ,sm:6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 id="full_address"
                 label="Full Address"
@@ -440,11 +460,30 @@ function AddressFormModal({ open, handleClose, onAddressSubmit }) {
             <Button onClick={handleClose} variant="outlined">
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              variant="contained" 
+            {/* <Button
+              type="submit"
+              variant="contained"
               color="primary"
-              disabled={!formData.street || !formData.city || !formData.state || !formData.pincode || !formData.houseNo  || !formData.phone }
+              disabled={!formData.street || !formData.city || !formData.state || !formData.pincode || !formData.houseNo || !formData.phone.length !== 10 || !formData.pincode.length !== 6 || (formData.alt_address_mob && formData.alt_address_mob.length !== 10)} // If alternate phone exists, it should be 10 digits}
+            >
+              Save Address
+            </Button> */}
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={
+                !formData.street ||
+                !formData.city ||
+                !formData.state ||
+                !formData.pincode ||
+                !formData.houseNo ||
+                !formData.phone ||
+                !formData.name ||
+                formData.phone.length !== 10 ||  // Ensure phone is exactly 10 digits
+                formData.pincode.length !== 6 ||  // Ensure pincode is exactly 6 digits
+                (formData.alt_address_mob && formData.alt_address_mob.length !== 10) // If alternate phone exists, it should be 10 digits
+              }
             >
               Save Address
             </Button>
