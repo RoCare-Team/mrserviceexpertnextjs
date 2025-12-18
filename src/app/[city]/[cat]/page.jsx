@@ -51,7 +51,7 @@ export default async function Page({ params }) {
   let city = originalCity.toLowerCase();
   let cat=resolvedParams.cat.toLowerCase();
 
-  console.log(cat,city);
+  // console.log(cat,city);
   
   
   // Redirect if URL has uppercase

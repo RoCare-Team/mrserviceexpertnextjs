@@ -5,33 +5,6 @@ import { notFound } from "next/navigation";
 import { redirect } from 'next/navigation';
 
 
-// generate static params 
-// export async function generateStaticParams() {
-//   try {
-//     const response = await fetch("https://mannubhai.in/web_api/get_city_page_data.php", {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       cache: "force-cache", // Use static cache
-//       // Or: next: { revalidate: 86400 } for ISR (1 day)
-//     });
-
-//     const cities = await response.json();
-
-//     console.log(JSON.stringify(cities)+'casdfasdf');
-    
-
-   
-//     return cities.map((city) => ({
-//       city: city.city_url,
-//     }));
-//   } catch (error) {
-//     console.error("Error in generateStaticParams:", error);
-//     return [];
-//   }
-// }
-
 export async function generateStaticParams() {
   try {
     const response = await fetch("https://mannubhai.in/web_api/get_city_page_data.php", {
@@ -50,7 +23,7 @@ export async function generateStaticParams() {
       return [];
     }
 
-    console.log("Static params:", cities);
+    // console.log("Static params:", cities);
 
     return cities.filter(city => city.city_url).map((city) => ({
         city: city.city_url,
