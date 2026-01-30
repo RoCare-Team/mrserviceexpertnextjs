@@ -8,6 +8,7 @@ import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 import HomeCareService from "../../servicesSection/homeCareService";
 import Cart from "../../cart/Cart";
+import Popup from "@/app/components/popup"
 
 
 const City = ({ city, cityData }) => {
@@ -15,6 +16,15 @@ const City = ({ city, cityData }) => {
     const [selectedServices, setSelectedServices] = useState([]);
     const [cartChanged, setCartChanged] = useState(false);
     const [cartLoaded, setCartLoaded] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
+
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowPopup(true);
+        }, 12000);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const loadCartFromLocalStorage = () => {
@@ -191,7 +201,7 @@ const City = ({ city, cityData }) => {
                             {/* <p className="catgoreyContent">{cityData?.city_detail?.city_content}</p> */}
                         </div>
                     </div>
-                  
+
                 </div>
             </>
 
@@ -288,7 +298,26 @@ const City = ({ city, cityData }) => {
                     </div>
                 </div> */}
 
+                {showPopup && (
+                    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9999]">
+                        <div className="bg-white max-h-[90vh] overflow-y-auto rounded-xl shadow-xl w-full max-w-2xl relative hide-scrollbar">
 
+                            <div className="p-4">
+                                <img src="/mrserviceexpertbanner.webp" alt="popup banner" className='rounded-2xl h-[125px] lg:h-[225px] w-full' />
+                            </div>
+
+                            {/* Close Button */}
+                            <button
+                                onClick={() => setShowPopup(false)}
+                                className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full"
+                            >
+                                X
+                            </button>
+
+                            <Popup />
+                        </div>
+                    </div>
+                )}
             </div>
 
         );

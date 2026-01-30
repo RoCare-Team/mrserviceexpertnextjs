@@ -6,20 +6,28 @@ import ServicesList from "@/app/components/service/ServicesList";
 import Cart from "@/app/components/cart/Cart";
 import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
+import Popup from "@/app/components/popup";
 
 
-export default function ServicePage({ city, brand, cat,pagedata }) {
+export default function ServicePage({ city, brand, cat, pagedata }) {
   const [openItem, setOpenItem] = useState(0)
   // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [brandLoader, setBrandLoader] = useState(false);
-    const [cartChanged, setCartChanged] = useState(false);
-    const [cartLoaded, setCartLoaded] = useState(false);
+  const [cartChanged, setCartChanged] = useState(false);
+  const [cartLoaded, setCartLoaded] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, []);
 
- 
- const handleCartLoading = () => {
+
+  const handleCartLoading = () => {
     setCartLoaded(prevState => prevState + 1);
     setCartChanged(prev => !prev);
   };
@@ -54,7 +62,7 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
     loadCartFromLocalStorage();
   }, []);
 
-  
+
   const handleAddToCart = (service) => {
     // Update selectedServices state
     setSelectedServices((prev) => {
@@ -166,21 +174,21 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
       <div className="services-page common-spacing">
         <div className="left-side lg:w-1/4 flex-col mb-1.5">
           <div className="sticky top-20">
-           <h1 className=" cityHeadings"><b>{pagedata?.brandname} {pagedata?.categoryname} Services in {pagedata?.cityname}</b></h1>
+            <h1 className=" cityHeadings"><b>{pagedata?.brandname} {pagedata?.categoryname} Services in {pagedata?.cityname}</b></h1>
             <Tabs cater={cat} />
           </div>
         </div>
         <div className="right-side lg:w-3/4">
           <div className="rightSidePortion justify-center">
             <div className="lg:w-1/2">
-             <h3 className="ml-2.5 mt-1.5 text-[20px]"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
-              
+              <h3 className="ml-2.5 mt-1.5 text-[20px]"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
+
               <div className="mb-3.5 md:flex items-center justify-center hidden md:relative">
                 {!brandLoader && (
                   <div className="absolute w-full ">
                     <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
-                    borderRadius: '17px', width: '100%'
-                  }} />
+                      borderRadius: '17px', width: '100%'
+                    }} />
                   </div>
                 )}
 
@@ -196,7 +204,7 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
                 // onAddToCart={handleAddToCart}
                 // addedServices={addedServices}
                 // cate={cat}
-                  handleCartLoading={handleCartLoading}
+                handleCartLoading={handleCartLoading}
                 addedServices={addedServices}
                 cate={cat}
                 state={cartChanged}
@@ -210,8 +218,8 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
                   // onRemove={handleRemoveFromCart}
                   // onIncrement={handleIncrementService}
                   // onDecrement={handleDecrementService}
-                // onCartLoad={handleCartLoad}
-                 cartLoaded={cartLoaded}
+                  // onCartLoad={handleCartLoad}
+                  cartLoaded={cartLoaded}
                   cartLoadedToggle={handleCartLoading}
                 />
                 <Assurance />
@@ -396,6 +404,26 @@ export default function ServicePage({ city, brand, cat,pagedata }) {
                                   )} */}
         </div>
       </div>
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9999]">
+          <div className="bg-white max-h-[90vh] overflow-y-auto rounded-xl shadow-xl w-full max-w-2xl relative hide-scrollbar">
+
+            <div className="p-4">
+              <img src="/mrserviceexpertbanner.webp" alt="popup banner" className='rounded-2xl h-[125px] lg:h-[225px] w-full' />
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full"
+            >
+              X
+            </button>
+
+            <Popup />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

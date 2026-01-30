@@ -7,6 +7,7 @@ import Cart from "../../cart/Cart";
 import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Image from "next/image";
+import Popup from "@/app/components/popup"
 
 
 export default function ServicePage({ pagedata, city, cat }) {
@@ -19,11 +20,20 @@ export default function ServicePage({ pagedata, city, cat }) {
   const [cartChanged, setCartChanged] = useState(false);
   const [cartLoaded, setCartLoaded] = useState(false);
   const [imageLoader, setImageLoader] = useState(false);
+    const [showPopup, setShowPopup] = useState(false);
   const ifAcSchema = cat === 'ac';
   const ifRoSChema = cat === 'ro-water-purifier';
 
+
+
+
+
+
   const ifBangaloreSchema = city === 'bangalore';
   const ifBangaloreRoSchema = city === `${city}` && cat === 'ro-water-purifier'; // Add this line
+
+
+
 
   // if (!pagedata?.related_cities?.length) return null;
 
@@ -31,6 +41,7 @@ export default function ServicePage({ pagedata, city, cat }) {
     setCartLoaded(prevState => prevState + 1);
     setCartChanged(prev => !prev);
   };
+
 
   useEffect(() => {
     const loadCartFromLocalStorage = () => {
@@ -62,6 +73,13 @@ export default function ServicePage({ pagedata, city, cat }) {
   }, []);
 
 
+
+   useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowPopup(true);
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAddToCart = (service) => {
     // Update selectedServices state
@@ -804,6 +822,28 @@ export default function ServicePage({ pagedata, city, cat }) {
           </div>
         </div> */}
 
-      </div></>
+      </div>
+      
+       {showPopup && (
+        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9999]">
+          <div className="bg-white max-h-[90vh] overflow-y-auto rounded-xl shadow-xl w-full max-w-2xl relative hide-scrollbar">
+       
+            <div className="p-4">
+              <img src="/mrserviceexpertbanner.webp" alt="popup banner" className='rounded-2xl h-[125px] lg:h-[225px] w-full' />
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowPopup(false)}
+              className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full"
+            >
+              X
+            </button>
+
+            <Popup />
+          </div>
+        </div>
+      )}
+      </>
   );
 }
