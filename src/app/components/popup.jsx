@@ -898,7 +898,7 @@ export default function ServiceRequestForm() {
                             <button
                                 onClick={saveData}
                                 disabled={isLoading}
-                                className="w-full btn-style-1 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-[1.02] disabled:opacity-50"
+                                className="w-full btn-style-pop-up text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-[1.02] disabled:opacity-50"
                             >
                                 {isLoading ? 'Please Wait...' : 'Next Step'}
                             </button>
@@ -1033,7 +1033,7 @@ export default function ServiceRequestForm() {
                                 <button
                                     onClick={updateBrand}
                                     disabled={isLoading || !formData.brand}
-                                    className="flex-1 btn-style-1 text-white py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
+                                    className="flex-1 btn-style-pop-up text-white py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
                                 >
                                     {isLoading ? 'Loading...' : 'Next Step'}
                                 </button>
@@ -1136,7 +1136,7 @@ export default function ServiceRequestForm() {
                                 <button
                                     onClick={updateTimeSlot}
                                     disabled={isLoading || !formData.time_slots}
-                                    className="flex-1 btn-style-1  text-white py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
+                                    className="flex-1 btn-style-pop-up  text-white py-3 rounded-lg font-semibold hover:shadow-lg transition disabled:opacity-50"
                                 >
                                     {isLoading ? 'Loading...' : 'Next Step'}
                                 </button>
@@ -1277,7 +1277,7 @@ export default function ServiceRequestForm() {
                                 </button>
                                 <button
                                     onClick={pay_later}
-                                    className="flex-1 btn-style-2  text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-[1.02]"
+                                    className="flex-1 btn-style-pop-up-2  text-white py-3 rounded-lg font-semibold hover:shadow-lg transition transform hover:scale-[1.02]"
                                 >
                                     Submit Request
                                 </button>

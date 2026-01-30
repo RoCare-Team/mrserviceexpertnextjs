@@ -191,6 +191,15 @@ a:hover {
   cursor: pointer;
 }
 
+
+.btn-style-pop-up {
+  background-color: #2563eb;
+}
+
+.btn-style-pop-up-2{
+  background-color: rgb(90, 227, 90);
+}
+
 .book-btn-style:hover{
   background: #6a20b3;
 }
