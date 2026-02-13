@@ -9,6 +9,7 @@ function Blog() {
     const [categories, setCategories] = useState([]);
     const [blogContent, setBlogContent] = useState([]);
 
+    
     useEffect(() => {
         const blogContent = async () => {
             const response = await fetch("https://mannubhai.in/web_api/blog_category.php", {
