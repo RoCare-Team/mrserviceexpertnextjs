@@ -260,7 +260,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               <div className="benifits hidden lg:block">
                 <ul>
                   <li>✓<strong>Advanced RO system maintenance</strong></li>
-                  <li>✓<strong>Same-day emergency repairs</strong></li>
+                  <li>✓<strong>Same day emergency repairs</strong></li>
                   <li>✓<strong>Professional technicians at your doorstep</strong></li>
                 </ul>
 
