@@ -14,6 +14,7 @@ function Booking() {
     const [allLeadData, setAllLeadData] = useState([]);
     const [leadStatus, setLeadStatus] = useState([]);
     const [isSpinning, setIsSpinning] = useState(false);
+    
 
     const router = useRouter();
 
