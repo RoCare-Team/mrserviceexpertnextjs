@@ -8,15 +8,16 @@ import { notFound } from 'next/navigation';
 // singelton pattern const GET_BRAND_PAGE=`API/${get_drand_page_data.php}`;
 
 export async function generateMetadata({ params }) {
+  const slugs= await params
 
-  if (!params.params || params.params.length !== 3) {
+  if (!slugs.params || slugs.params.length !== 3) {
     return {
       title: 'Page Not Found',
       description: 'The page you are looking for does not exist.',
       robots: 'noindex, nofollow',
     };
   }
-    const [city, brand, cat] = params.params || [];
+    const [city, brand, cat] =  slugs.params || [];
 
   const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
     method: 'POST',
@@ -43,7 +44,8 @@ export default async function Page({ params }) {
 //   const { city,brand, cat } = params;
 // const [city, brand, cat] = params.params || [];
 
-const { params: pathParams } = params;
+
+const { params: pathParams } =  await params;
 
   if (!pathParams || pathParams.length !== 3) {
     // using this logic as we will make it return to 404 page whenever 
