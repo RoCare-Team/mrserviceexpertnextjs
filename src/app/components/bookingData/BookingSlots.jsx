@@ -6,7 +6,7 @@ import { faBook, faCalendarDays, faCalendarPlus, faCalendarTimes, faEnvelope, fa
 import { toast } from 'react-toastify';
 import { Payment } from '@mui/icons-material';
 
-function BookingSlots({ phoneNumber ,key}) {
+function BookingSlots({ phoneNumber ,bookingSlotsKey}) {
   // State to control the visibility of the TimeSlotModal
   const [addressOpen, setAddressOpen] = useState(false);
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);

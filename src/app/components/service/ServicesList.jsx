@@ -8,29 +8,31 @@ import PhoneVerification from "../PhoneVerification/PhoneVerification";
 import { toast, ToastContainer } from "react-toastify";
 // import {  useParams } from "react-router-dom";
 import { useParams } from "next/navigation";
+import ServicesSkeleton from "./ServicesSkeleton";
 
-const ServicesList = ({cate, addedServices = [],state, handleCartLoading,cartLoaded }) => {
-//   const location = useLocation();
-const [serviceListCart, setServiceListCart] = useState([]);
+const ServicesList = ({ cate, addedServices = [], state, handleCartLoading, cartLoaded }) => {
+  //   const location = useLocation();
+  const [serviceListCart, setServiceListCart] = useState([]);
 
-const [clickedValues, setClickedValues] = useState([]);
+  const [clickedValues, setClickedValues] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-// const handleButtonClick = (value) => {
-//   setClickedValues((prevValues) => [...prevValues, value]);
-// };
+  // const handleButtonClick = (value) => {
+  //   setClickedValues((prevValues) => [...prevValues, value]);
+  // };
 
-  const { city,brand,cat} = useParams(); 
+  const { city, brand, cat } = useParams();
   // const [city, brand, cat] = params.params || [];
 
-  const [catNam,setCatNam]=useState("");
-  const [servicedata,setServiceData]=useState([]);
-  const [catergoryTitle,setCatergoryTitle]=useState("");
-  const [BrandName,setBrandName]=useState("");
+  const [catNam, setCatNam] = useState("");
+  const [servicedata, setServiceData] = useState([]);
+  const [catergoryTitle, setCatergoryTitle] = useState("");
+  const [BrandName, setBrandName] = useState("");
   // const { city, cat } = useParams();
 
-// console.log(city +"-"+ brand );
+  // console.log(city +"-"+ brand );
 
-// console.log(BrandName);
+  // console.log(BrandName);
 
 
   // Define which categories should use the modal
@@ -38,7 +40,7 @@ const [clickedValues, setClickedValues] = useState([]);
   const [showModal, setShowModal] = useState(false);
 
   // const type = localStorage.setItem('type', 'add');
- 
+
   useEffect(() => {
     const storedCartItems = localStorage.getItem('cartItems');
     if (storedCartItems) {
@@ -46,16 +48,16 @@ const [clickedValues, setClickedValues] = useState([]);
     } else {
       setServiceListCart([]);
     }
-  }, [state,cartLoaded]); //  dependency to change the cart states
- 
-   // Initialize from localStorage and props when component mounts
-   useEffect(() => {
+  }, [state, cartLoaded]); //  dependency to change the cart states
+
+  // Initialize from localStorage and props when component mounts
+  useEffect(() => {
     // Load clickedValues from localStorage
     const storedClickedValues = localStorage.getItem('clickedValues');
     if (storedClickedValues) {
       setClickedValues(JSON.parse(storedClickedValues));
     }
-    
+
     // Initialize serviceListCart from both localStorage and props
     const storedCartItems = localStorage.getItem('cartItems');
     if (storedCartItems) {
@@ -64,7 +66,7 @@ const [clickedValues, setClickedValues] = useState([]);
       setServiceListCart(addedServices);
       localStorage.setItem('cartItems', JSON.stringify(addedServices));
     }
-    
+
     localStorage.setItem('type', 'add');
   }, []);
 
@@ -75,79 +77,85 @@ const [clickedValues, setClickedValues] = useState([]);
       localStorage.setItem('cartItems', JSON.stringify(addedServices));
     }
   }, [addedServices]);
-useEffect(()=>{
-  let lead_type = null;
+  useEffect(() => {
+    let lead_type = null;
 
-//   const cat=category;
+    //   const cat=category;
 
-  if (cat === "washing-machine-repair" ||city === "washing-machine-repair"|| cate === "washing-machine-repair") {
-    lead_type = 4;
-  } else if (cat === "ac" || city === "ac" || cate === "ac") {
-    lead_type = 2;
-  } else if (cat === "ro-water-purifier" ||city === "ro-water-purifier" ||cate === "ro-water-purifier") {
-    lead_type = 1;
-  }else if (cat === "microwav-repair" ||city === "microwav-repair"|| cate === "microwav-repair") {
-    lead_type = 9;
-  }else if (cat === "vacuum-cleaner-repair" ||city === "vacuum-cleaner-repair"|| cate === "vacuum-cleaner-repair") {
-    lead_type = 11;
-  }else if (cat === "geyser-repair" ||city === "geyser-repair"|| cate === "geyser-repair") {
-    lead_type = 5;
-  }else if (cat === "kitchen-chimney-repair" ||city === "kitchen-chimney-repair"|| cate === "kitchen-chimney-repair") {
-    lead_type = 10;
-  }else if (cat === "refrigerator-repair" ||city === "refrigerator-repair"|| cate === "refrigerator-repair") {
-    lead_type = 6;
-  }else if (cat === "led-tv-repair" ||city === "led-tv-repair"|| cate === "led-tv-repair") {
-    lead_type = 8;
-  }else if (cat === "air-purifier-repair" ||city === "air-purifier-repair"|| cate === "air-purifier-repair") {
-    lead_type = 18;
-  }else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
+    if (cat === "washing-machine-repair" || city === "washing-machine-repair" || cate === "washing-machine-repair") {
+      lead_type = 4;
+    } else if (cat === "ac" || city === "ac" || cate === "ac") {
+      lead_type = 2;
+    } else if (cat === "ro-water-purifier" || city === "ro-water-purifier" || cate === "ro-water-purifier") {
+      lead_type = 1;
+    } else if (cat === "microwav-repair" || city === "microwav-repair" || cate === "microwav-repair") {
+      lead_type = 9;
+    } else if (cat === "vacuum-cleaner-repair" || city === "vacuum-cleaner-repair" || cate === "vacuum-cleaner-repair") {
+      lead_type = 11;
+    } else if (cat === "geyser-repair" || city === "geyser-repair" || cate === "geyser-repair") {
+      lead_type = 5;
+    } else if (cat === "kitchen-chimney-repair" || city === "kitchen-chimney-repair" || cate === "kitchen-chimney-repair") {
+      lead_type = 10;
+    } else if (cat === "refrigerator-repair" || city === "refrigerator-repair" || cate === "refrigerator-repair") {
+      lead_type = 6;
+    } else if (cat === "led-tv-repair" || city === "led-tv-repair" || cate === "led-tv-repair") {
+      lead_type = 8;
+    } else if (cat === "air-purifier-repair" || city === "air-purifier-repair" || cate === "air-purifier-repair") {
+      lead_type = 18;
+    } else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
       lead_type = 32;
-    }else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
+    } else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
       lead_type = 29;
-    }else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
+    } else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
       lead_type = 33;
-    }else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
+    } else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
       lead_type = 34;
-    }else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
+    } else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
       lead_type = 39;
-    }else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
+    } else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
       lead_type = 35;
-    }else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
+    } else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
       lead_type = 30;
-    }else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
+    } else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
       lead_type = 31;
     }
 
-  
 
-  const cid = localStorage.getItem('customer_id');
-  
-  fetch('https://waterpurifierservicecenter.in/customer/ro_customer/all_services.php', {
-    method: 'POST',
-    headers: {
+
+    const cid = localStorage.getItem('customer_id');
+
+    fetch('https://waterpurifierservicecenter.in/customer/ro_customer/all_services.php', {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({cid:cid,lead_type:lead_type})
+      },
+      body: JSON.stringify({ cid: cid, lead_type: lead_type })
 
-})
-.then(res => res.json())
-.then(data => {
-// console.log("Service Response:", data);
-// console.log(data.Title);
+    })
+      .then(res => res.json())
+      .then(data => {
+        // console.log("Service Response:", data);
+        // console.log(data.Title);
 
-setServiceData(data.service_details);
-setCatergoryTitle(data.Title);
-setBrandName(cat);
+        setServiceData(data.service_details);
+        setCatergoryTitle(data.Title);
+        setBrandName(cat);
 
-},[])
+      }, []).catch(error => {
+        console.error('Error fetching services:', error);
+        // You might want to show an error message here
+      })
+      .finally(() => {
+        setIsLoading(false); // Set loading to false after fetch completes (success or error)
+      });
 
 
-  
-},[cat])
+
+  }, [cat])
 
 
 
-// console.log(servicedata);
+  // console.log(servicedata);
 
 
 
@@ -165,13 +173,13 @@ setBrandName(cat);
       const quantity = 1;
       const type = localStorage.getItem('type');
       const cid = localStorage.getItem('customer_id');
-      const source="mrserviceexpert";
+      const source = "mrserviceexpert";
       // console.log(cid);
       if (cid != null) {
         // toast.success('Hope You Enjoy Our Services 🎉');
         const payload = { service_id, quantity, cid, type, source };
         // console.log(JSON.stringify(payload)+'adsga');
-        
+
         const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
 
           method: "POST",
@@ -180,28 +188,28 @@ setBrandName(cat);
         });
 
         const data = await res.json();
-        localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? []: data.AllCartDetails));
-      localStorage.setItem('cart_total_price',data.total_price== null ? 0 : data.total_price);
+        localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+        localStorage.setItem('cart_total_price', data.total_price == null ? 0 : data.total_price);
 
-           // Update the addedServices array after successful API call
-      // setAddedServices(prev => [...prev, service.id]);
+        // Update the addedServices array after successful API call
+        // setAddedServices(prev => [...prev, service.id]);
 
-       // Update clickedValues and store in localStorage
-       const newClickedValues = [...clickedValues, service.id];
-       setClickedValues(newClickedValues);
-       localStorage.setItem('clickedValues', JSON.stringify(newClickedValues));
-       
-       // Update serviceListCart and store in localStorage
-       const newServiceListCart = [...serviceListCart, service.id];
-       setServiceListCart(newServiceListCart);
-       localStorage.setItem('cartItems', JSON.stringify(newServiceListCart));
-         window.dispatchEvent(new Event('cartItemsUpdated'));
-       
-       if (handleCartLoading) {
-         handleCartLoading();
-       }
+        // Update clickedValues and store in localStorage
+        const newClickedValues = [...clickedValues, service.id];
+        setClickedValues(newClickedValues);
+        localStorage.setItem('clickedValues', JSON.stringify(newClickedValues));
+
+        // Update serviceListCart and store in localStorage
+        const newServiceListCart = [...serviceListCart, service.id];
+        setServiceListCart(newServiceListCart);
+        localStorage.setItem('cartItems', JSON.stringify(newServiceListCart));
+        window.dispatchEvent(new Event('cartItemsUpdated'));
+
+        if (handleCartLoading) {
+          handleCartLoading();
+        }
       } else {
-          localStorage.setItem('pendingServiceToAdd', JSON.stringify(service.id));
+        localStorage.setItem('pendingServiceToAdd', JSON.stringify(service.id));
         setShowModal(true);
         // toast.error('Login before addding any service');
 
@@ -214,7 +222,12 @@ setBrandName(cat);
     }
   };
 
-// console.log(clickedValues);
+  // console.log(clickedValues);
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <ServicesSkeleton />;
+  }
 
 
   return (
@@ -222,60 +235,60 @@ setBrandName(cat);
       {/* <ToastContainer /> */}
       <h3 className="mt-3 ml-4"><b>{catergoryTitle}</b></h3>
       {servicedata?.map((service) => {
-              // const isAdded = addedServices.includes(service.id);
-              const isAdded = serviceListCart.includes(service.id)
-              // Fix: Define useModal variable here
-              const useModal = modalCategories.includes(service.category);
+        // const isAdded = addedServices.includes(service.id);
+        const isAdded = serviceListCart.includes(service.id)
+        // Fix: Define useModal variable here
+        const useModal = modalCategories.includes(service.category);
 
-              return (
-                
-                <div key={service.id} id={service.id} className="common-service-style">
-                   
-                  <div className="servicePortionDetails flex-col" >
-                  <div className="flex serviceWiseContainer">
-                    <div className="serviceDetails">
+        return (
 
-                      <h3 className="serviceVarities">{service.service_name}</h3>
-                      <div>
-                        <span className="serviceReview">
-                          <FontAwesomeIcon icon={faStar} /> {4.5} (30K+ reviews)
-                        </span>
-                        <div className="dashedLine"></div>
-                        <div className="prices flex gap-2.5">
-                          <span>
-                            ₹{service?.price}
-                          </span>
+          <div key={service.id} id={service.id} className="common-service-style">
 
-                          {/* removed this cause it was making it string {service?.price + 100 } */}
-                          <span className="actualPrice">₹{Number(service?.price) + 100}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="serviceImgContainer">
-                     
-                        <div className="serviceDetailsImg mb-0.5">
-                          <img src={service.image} alt={service.category_name || service.service_name}  height={72} width={72} title={service.category_name || service.service_name}/>
-                        </div>
-                     
-                      <div className=" ">
-                         
-                          <button
-                          title="Add"
-                            className={`add-to-cart-btn ${isAdded ? "bg-violet-300 px-2 py-1.5 cursor-not-allowed" : "IncrementDcrementBtn2"} rounded`}
-                            onClick={() => handleAddToCart(service)}
-                            disabled={isAdded}
-                          >
-                            {isAdded ? "Added" : "Add"}
-                        </button>
-                        
-                      </div>
+            <div className="servicePortionDetails flex-col" >
+              <div className="flex serviceWiseContainer">
+                <div className="serviceDetails">
+
+                  <h3 className="serviceVarities">{service.service_name}</h3>
+                  <div>
+                    <span className="serviceReview">
+                      <FontAwesomeIcon icon={faStar} /> {4.5} (30K+ reviews)
+                    </span>
+                    <div className="dashedLine"></div>
+                    <div className="prices flex gap-2.5">
+                      <span>
+                        ₹{service?.price}
+                      </span>
+
+                      {/* removed this cause it was making it string {service?.price + 100 } */}
+                      <span className="actualPrice">₹{Number(service?.price) + 100}</span>
                     </div>
                   </div>
-                   <div className="briefInfo2 w-full"  dangerouslySetInnerHTML={{ __html: service.description}}></div>
                 </div>
+                <div className="serviceImgContainer">
+
+                  <div className="serviceDetailsImg mb-0.5">
+                    <img src={service.image} alt={service.category_name || service.service_name} height={72} width={72} title={service.category_name || service.service_name} />
+                  </div>
+
+                  <div className=" ">
+
+                    <button
+                      title="Add"
+                      className={`add-to-cart-btn ${isAdded ? "bg-violet-300 px-2 py-1.5 cursor-not-allowed" : "IncrementDcrementBtn2"} rounded`}
+                      onClick={() => handleAddToCart(service)}
+                      disabled={isAdded}
+                    >
+                      {isAdded ? "Added" : "Add"}
+                    </button>
+
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+              <div className="briefInfo2 w-full" dangerouslySetInnerHTML={{ __html: service.description }}></div>
+            </div>
+          </div>
+        );
+      })}
       <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
 
     </div>

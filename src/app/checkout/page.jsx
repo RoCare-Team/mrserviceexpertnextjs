@@ -362,7 +362,7 @@ const CheckOut = () => {
                             ) : (
                                 <div className="address-section hidden_pay">
                                     <h3 className="mb-4 text-xl">Delivery Address</h3>
-                                    <BookingSlots phoneNumber={phoneNumber} key={bookingSlotsKey} />
+                                    <BookingSlots phoneNumber={phoneNumber} bookingSlotsKey={bookingSlotsKey} />
 
                                     
                                <div className="cancellation-section block md:hidden">
@@ -458,7 +458,7 @@ const CheckOut = () => {
                                         const categoryTotal = serverTotal || calculatedTotal;
 
                                         return (
-                                            <div key={service.cart_id}>
+                                            <div key={service.category_cart_id}>
                                                 <p className="text-xl"><b>{service.leadtype_name}</b></p>
                                                 {service.cart_dtls.map((serviceDetail) => (
                                                     <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">

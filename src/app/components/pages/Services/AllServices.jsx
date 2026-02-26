@@ -135,21 +135,18 @@ const AllServices = (cater) => {
 
   // console.log(names);
 
-
-
-
   return (
     <div className="w-full max-w-4xl mx-auto  ">
-      <div className="bg-white rounded-lg shadow-md p-4 sticky top-10 servicePortion gap-4 ">
+      <div className="bg-white rounded-lg shadow-md p-4 sticky h-[290px] md:h-auto top-10 servicePortion gap-4 ">
         <div className='flex gap-6 serviceHeading'>
           <h3 className=" font-semibold mb-0 text-center">Select a Service</h3>
           <span className='serviceHorizontal'></span>
         </div>
-        {isLoading ? (<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="flex flex-col items-center justify-center h-20 bg-gray-100 rounded-lg animate-pulse">
+        {isLoading ? (<div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col p-1 h-[100px] items-center justify-center bg-gray-100 rounded-lg animate-pulse">
               <div className="w-11 h-11 bg-gray-200 rounded-full mb-2"></div>
-              <div className="w-16 h-3 bg-gray-200 rounded"></div>
+              <div className="w-16 h-4 bg-gray-200 rounded"></div>
             </div>
           ))}
         </div>) : (

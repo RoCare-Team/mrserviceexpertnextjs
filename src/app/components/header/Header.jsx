@@ -13,6 +13,7 @@ import {
   ListItemText,
   Divider,
   ListItemIcon,
+  ListItemButton,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import SearchBar from '../searchbar/index';
@@ -44,13 +45,11 @@ export default function Header() {
     setIsLoggedIn(!!token);
   }, []);
 
-
   let handlePopup = () => {
     setShowModal(true)
   }
 
-
- // Function to read from localStorage
+  // Function to read from localStorage
   const updateCartCount = () => {
     const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
     const totalCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
@@ -60,7 +59,7 @@ export default function Header() {
   useEffect(() => {
     // Initial load
     updateCartCount();
- const handleStorageChange = () => updateCartCount();
+    const handleStorageChange = () => updateCartCount();
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('cartItemsUpdated', handleStorageChange); // custom event
 
@@ -74,8 +73,6 @@ export default function Header() {
   const [isPhoneModalOpen, setPhoneModalOpen] = useState(false);
 
   useEffect(() => {
-
-
 
     // Close popup when clicking outside
     const handleClickOutside = (event) => {
@@ -421,8 +418,7 @@ export default function Header() {
           }}
         >
           {/* Home */}
-          <ListItem
-            button
+          <ListItemButton
             onClick={() => handleNavigation('/')}
             sx={{
               flexDirection: 'column',
@@ -464,11 +460,10 @@ export default function Header() {
             >
               Home
             </Typography>
-          </ListItem>
+          </ListItemButton>
 
           {/* Cart */}
-          <ListItem
-            button
+          <ListItemButton
             onClick={() => handleNavigation('/checkout')}
             sx={{
               flexDirection: 'column',
@@ -477,7 +472,7 @@ export default function Header() {
               minWidth: '60px',
               borderRadius: '16px',
               transition: 'all 0.3s ease',
-              position:'relative',
+              position: 'relative',
               '&:hover': {
                 backgroundColor: '#f0fdf4',
                 transform: 'scale(1.05)',
@@ -507,20 +502,19 @@ export default function Header() {
                 fontWeight: 600,
                 color: '#374151',
                 textAlign: 'center',
-                
+
               }}
             >
               {cartCount > 0 ? (<span className='cartCountStyle2 absolute  top-0 right-[27px] '>{cartCount}</span>) : (<></>)}
               Cart
             </Typography>
-          </ListItem>
+          </ListItemButton>
 
           {/* Conditional Items */}
           {isLoggedIn ? (
             <>
               {/* Booking */}
-              <ListItem
-                button
+              <ListItemButton
                 // onClick={handleRefresh}
                 // onClick={() => handleNavigation('/booking'),handleRefresh}
                 onClick={() => {
@@ -569,11 +563,10 @@ export default function Header() {
                 >
                   Booking
                 </Typography>
-              </ListItem>
+              </ListItemButton>
 
               {/* Profile */}
-              <ListItem
-                button
+              <ListItemButton
                 onClick={() => handleNavigation('/profile')}
                 sx={{
                   flexDirection: 'column',
@@ -615,12 +608,11 @@ export default function Header() {
                 >
                   Profile
                 </Typography>
-              </ListItem>
+              </ListItemButton>
             </>
           ) : (
             /* Login */
-            <ListItem
-              button
+            <ListItemButton
               onClick={() => setShowModal(true)}
               sx={{
                 flexDirection: 'column',
@@ -662,7 +654,7 @@ export default function Header() {
               >
                 Login
               </Typography>
-            </ListItem>
+            </ListItemButton>
           )}
         </List>
       </Box>

@@ -79,7 +79,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       console.log(data.total_main + 'on increase');
 
       displayCartData();
-  window.dispatchEvent(new Event('cartItemsUpdated'));
+      window.dispatchEvent(new Event('cartItemsUpdated'));
 
 
     } else {
@@ -121,7 +121,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       }
 
       displayCartData();
-        window.dispatchEvent(new Event('cartItemsUpdated'));
+      window.dispatchEvent(new Event('cartItemsUpdated'));
       // toast.success(data.msg);
 
 
@@ -165,7 +165,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       cartLoadedToggle();
     }
     displayCartData();
-      window.dispatchEvent(new Event('cartItemsUpdated'));
+    window.dispatchEvent(new Event('cartItemsUpdated'));
 
 
 
@@ -215,12 +215,15 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
-     if (typeof cartLoadedToggle === 'function') {
-          cartLoadedToggle();
-        }
+    if (typeof cartLoadedToggle === 'function') {
+      cartLoadedToggle();
+    }
   }, [cartItems]);
 
   // console.log(finalTotal);
+
+  console.log('cart data', cartDataArray);
+  
 
 
   return (
@@ -238,12 +241,12 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
         <>
           {cartDataArray?.map((service) => (
             // key={service.cart_id}
-            <div key={service.service_id} className="max-h-90 overflow-x-auto">
+            <div key={service.category_cart_id} className="max-h-90 overflow-x-auto">
               <p className="ml-2.5">{service.leadtype_name}</p>
 
               {/* Assuming service.innerArray is the nested array */}
               {service.cart_dtls?.map((item, index) => (
-                <div className="cart-item-body" key={item.cart_id}>
+                <div className="cart-item-body" key={item.service_id}>
                   <div className="cart-item">
                     <div className="service-details flex items-start flex-col">
                       <div className="flex items-center gap-4 ">
@@ -287,12 +290,12 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
 
           <div className="cart-footer">
 
-           
+
 
             <div className="totalSection">
               <Link href={'/checkout'}><div className="cart-total forMb" style={{ cursor: 'pointer' }}>
                 <strong>Total: ₹{finalTotal}</strong>
-                <button> <FontAwesomeIcon icon={faShoppingCart}  className="mr-1"/>View Cart</button>
+                <button> <FontAwesomeIcon icon={faShoppingCart} className="mr-1" />View Cart</button>
               </div></Link>
             </div>
           </div>

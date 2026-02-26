@@ -8,30 +8,15 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-// Updated serviceCategories to match the Tabs component
-// const serviceCategories = [
-
-//     // RO Water Purifier, Air Conditioner, Washing Machine, then Other Services (Geyser, Microwave, Refrigerator, LED TV )
-//     // { id: "ro-service", name: "RO Service", showImage: true },
-//     { id: "ac", name: "Air Conditioner", showImage: true },
-//     { id: "washing-machine", name: "Washing Machine", showImage: true },
-//     { id: "water-purifier", name: "Water Purifier", showImage: true },
-//     { id: "gyeser", name: "Gyeser", showImage: true },
-//     { id: "refrigerator", name: 'Refrigerator', showImage: true },
-//     { id: "microwav-repair", name: "Microwave", showImage: true },
-//     { id: "vaccum-cleaner", name: "Vaccum Cleaner", showImage: true },
-//     { id: "led-tv-repair", name: "Led", showImage: true }
-// ];
-
 const serviceCategories = [
-    { id: "water-purifier", name: "RO Water Purifier", showImage: true }, 
+    { id: "water-purifier", name: "RO Water Purifier", showImage: true },
     { id: "ac", name: "Air Conditioner", showImage: true },
     { id: "washing-machine", name: "Washing Machine", showImage: true },
-    { id: "gyeser", name: "Geyser", showImage: true }, 
+    { id: "gyeser", name: "Geyser", showImage: true },
     { id: "microwav-repair", name: "Microwave", showImage: true },
     { id: "refrigerator", name: 'Refrigerator', showImage: true },
-    { id: "led-tv-repair", name: "LED TV", showImage: true }, 
-    { id: "vaccum-cleaner", name: "Vacuum Cleaner", showImage: true }, 
+    { id: "led-tv-repair", name: "LED TV", showImage: true },
+    { id: "vaccum-cleaner", name: "Vacuum Cleaner", showImage: true },
 ];
 
 const Services = () => {
