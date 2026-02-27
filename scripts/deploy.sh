@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-# Load NVM (if using)
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 22 || true
+# Load NVM properly
+export NVM_DIR="/home/ec2-user/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm use 22
 
-# Add custom npm global path (VERY IMPORTANT)
+# Ensure PM2 path available
 export PATH=$PATH:/home/ec2-user/.npm-global/bin
 
 cd /home/ec2-user/mrserviceexpertnextjs
@@ -14,6 +14,6 @@ cd /home/ec2-user/mrserviceexpertnextjs
 npm ci
 npm run build
 
-pm2 delete mrservice || true
-pm2 start npm --name "mrservice" -- start
-pm2 save
+/home/ec2-user/.npm-global/bin/pm2 delete mrservice || true
+/home/ec2-user/.npm-global/bin/pm2 start npm --name "mrservice" -- start
+/home/ec2-user/.npm-global/bin/pm2 save
