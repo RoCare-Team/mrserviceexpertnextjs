@@ -188,8 +188,9 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
         setFinalTotal(Number(data.total_price) || 0);
         localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails) || JSON.stringify([]));
         localStorage.setItem('cart_total_price', data.total_price || 0);
+        const cart_details= data?.AllCartDetails || [];
 
-        const serviceIds = data?.AllCartDetails.flatMap(item =>
+        const serviceIds = cart_details.flatMap(item =>
           item.cart_dtls
             .filter(service => Number(service.quantity) > 0)  // Optional: only if quantity > 0
             .map(service => service.service_id)
