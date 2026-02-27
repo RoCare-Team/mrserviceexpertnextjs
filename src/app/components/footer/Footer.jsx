@@ -98,7 +98,7 @@ const Footer = () => {
         <a href="/terms-and-conditions" target='_blank' title="terms-and-conditions" rel="noopener noreferrer" className="hover:text-yellow-400 transition mx-2">Terms</a> |
         <a href="/privacy-and-policy" target='_blank' title="privacy-and-policy" rel="noopener noreferrer" className="hover:text-yellow-400 transition mx-2">Privacy Policy</a> |
         <a href="/contact" target='_blank' rel="noopener  noreferrer" title="contact" className="hover:text-yellow-400 transition mx-2">Contact Us</a>|
-        <a href="/careers" target='_blank' rel="noopener noreferrer" title="careers" className="hover:text-yellow-400 transition mx-2">Join Us</a>
+        <a href="/careers" target='_blank' rel="noopener noreferrer" title="careers" className="hover:text-yellow-400 transition mx-2">Career</a>
 
       </div>
 
