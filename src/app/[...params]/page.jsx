@@ -44,7 +44,8 @@ export default async function Page({ params }) {
 //   const { city,brand, cat } = params;
 // const [city, brand, cat] = params.params || [];
 
-const { params: pathParams } = await params;
+
+const { params: pathParams } =  await params;
 
   if (!pathParams || pathParams.length !== 3) {
     // using this logic as we will make it return to 404 page whenever 
