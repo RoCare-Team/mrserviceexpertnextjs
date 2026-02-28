@@ -171,7 +171,7 @@ const AllServices = (cater) => {
                     title={service.service_name}
                   />
                 </div>
-                {/* first convert the strings to arrays using splits then length to make it ... if more than 2  */}
+                {/* first convert the strings to arrays using splits then length hii to make it ... if more than 2  */}
 
                 {/* Desktop version: Truncated */}
                 <span className="inline text-xs font-medium text-gray-700 text-center text-wrap">
