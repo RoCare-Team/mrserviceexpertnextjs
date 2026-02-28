@@ -137,7 +137,7 @@ const AllServices = (cater) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto  ">
-      <div className="bg-white rounded-lg shadow-md p-4 sticky h-[290px] md:h-auto top-10 servicePortion gap-4 ">
+      <div className="bg-white rounded-lg shadow-md p-4 sticky min-h-[290px] top-10 servicePortion gap-4 ">
         <div className='flex gap-6 serviceHeading'>
           <h3 className=" font-semibold mb-0 text-center">Select a Service</h3>
           <span className='serviceHorizontal'></span>
