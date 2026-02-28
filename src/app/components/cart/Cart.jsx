@@ -112,7 +112,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
       if (quantity === 0) {
         const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
         const updatedCartItems = oldCartItems.filter(id => id !== service_id);
-        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems) || JSON.stringify([]));
 
         // trigger parent update
         if (typeof cartLoadedToggle === 'function') {
@@ -158,7 +158,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     const updatedCartItems = oldCartItems.filter(id => id !== service_id);
     console.log("cart remove" + updatedCartItems);
 
-    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems) || JSON.stringify([]));
 
     // trigger parent update
     if (typeof cartLoadedToggle === 'function') {
@@ -189,13 +189,13 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
         localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails) || JSON.stringify([]));
         localStorage.setItem('cart_total_price', data.total_price || 0);
 
-        const serviceIds = data?.AllCartDetails.flatMap(item =>
+        const serviceIds = data?.AllCartDetails?.flatMap(item =>
           item.cart_dtls
             .filter(service => Number(service.quantity) > 0)  // Optional: only if quantity > 0
             .map(service => service.service_id)
         );
 
-        localStorage.setItem('cartItems', JSON.stringify(serviceIds));
+        localStorage.setItem('cartItems', JSON.stringify(serviceIds) || JSON.stringify([]));
         setCartItems(serviceIds);
 
         if (typeof cartLoadedToggle === 'function') {
@@ -214,7 +214,7 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    localStorage.setItem('cartItems', JSON.stringify(cartItems) || JSON.stringify([]));
     if (typeof cartLoadedToggle === 'function') {
       cartLoadedToggle();
     }
@@ -230,7 +230,6 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     <div className="cart">
 
       <h2>Cart</h2>
-
 
       {cartDataArray?.length === 0 ? (
         <div className="emptyStyle">

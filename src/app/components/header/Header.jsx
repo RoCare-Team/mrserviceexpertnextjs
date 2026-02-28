@@ -176,8 +176,7 @@ export default function Header() {
 
   return (
     <>
-      <AppBar
-        position="sticky"
+      <AppBar position="sticky"
         sx={{
           top: '0px',
           backgroundColor: "rgb(197, 180, 245)",

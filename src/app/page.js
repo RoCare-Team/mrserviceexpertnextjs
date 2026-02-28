@@ -245,9 +245,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
       <div className='common-spacing'>
         {/*=================hero section================================== */}
-        <div className="hero-section flex items-center  justify-around">
+        <div className="hero-section flex items-center justify-around">
 
-          <div className="leftHeroPortion w-7/12 py-2.5 flex items-center justify-end">
+          <div className="leftHeroPortion md:w-7/12 py-2.5 flex items-center justify-end w-[330px] h-[194px] md:h-auto">
             {/* <img src="/assets/images/BannerImg.webp" alt="Our Services" width={600} height='auto' title='Our Services' /> */}
             <img src="/assets/images/homeBanner.webp" alt="Our Services" width={600} height='auto' title='Our Services' />
           </div>
