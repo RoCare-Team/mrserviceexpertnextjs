@@ -16,6 +16,8 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
   const [cartDataArray, setCartDataArray] = useState([]);
   const [finalTotal, setFinalTotal] = useState(0);
   const [cartItems, setCartItems] = useState([]);
+    const [loading, setLoading] = useState(true);
+
 
 
 
@@ -166,54 +168,79 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
     }
     displayCartData();
     window.dispatchEvent(new Event('cartItemsUpdated'));
-
-
-
   };
-  useEffect(() => {
-    const getcartdata = async () => {
 
-      const cid = localStorage.getItem("customer_id");
-      try {
-        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/view_cart_details.php", {
+
+
+useEffect(() => {
+  const getcartdata = async () => {
+    setLoading(true);
+
+    const cid = localStorage.getItem("customer_id");
+
+    // Agar customer id hi nahi hai
+    if (!cid) {
+      setCartDataArray([]);
+      setCartItems([]);
+      setFinalTotal(0);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        "https://waterpurifierservicecenter.in/customer/ro_customer/view_cart_details.php",
+        {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cid }),
-        });
-
-        const data = await res.json();
-        // console.log(JSON.stringify(data)+'adfasdgasdg');
-
-        setCartDataArray(data.AllCartDetails);
-        setFinalTotal(Number(data.total_price) || 0);
-        localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails) || JSON.stringify([]));
-        localStorage.setItem('cart_total_price', data.total_price || 0);
-        const cart_details= data?.AllCartDetails || [];
-
-        const serviceIds = cart_details.flatMap(item =>
-          item.cart_dtls
-            .filter(service => Number(service.quantity) > 0)  // Optional: only if quantity > 0
-            .map(service => service.service_id)
-        );
-
-        localStorage.setItem('cartItems', JSON.stringify(serviceIds));
-        setCartItems(serviceIds);
-
-        if (typeof cartLoadedToggle === 'function') {
-          cartLoadedToggle();
         }
+      );
 
-      } catch (err) {
-        console.error("Error fetching sub-services:", err);
-        setCartDataArray([]);
+      const data = await res.json();
+
+      const cart_details = data?.AllCartDetails || [];
+
+      setCartDataArray(cart_details);
+      setFinalTotal(Number(data?.total_price) || 0);
+
+      localStorage.setItem(
+        "checkoutState",
+        JSON.stringify(cart_details)
+      );
+
+      localStorage.setItem(
+        "cart_total_price",
+        data?.total_price || 0
+      );
+
+      // 🔥 Safe flatMap (cart_dtls bhi check karenge)
+      const serviceIds = cart_details.flatMap(item =>
+        (item.cart_dtls || [])
+          .filter(service => Number(service.quantity) > 0)
+          .map(service => service.service_id)
+      );
+
+      localStorage.setItem("cartItems", JSON.stringify(serviceIds));
+      setCartItems(serviceIds);
+
+      if (typeof cartLoadedToggle === "function") {
+        cartLoadedToggle();
       }
 
+    } catch (err) {
+      console.error("Error fetching cart data:", err);
+      setCartDataArray([]);
+      setCartItems([]);
+      setFinalTotal(0);
+    } finally {
+      setLoading(false); // ✅ Always stop loading
+    }
+  };
 
-    };
-    getcartdata();
-
-  }, []);
-
+  getcartdata();
+}, []);
+  
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
     if (typeof cartLoadedToggle === 'function') {
@@ -224,6 +251,15 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
   // console.log(finalTotal);
 
   console.log('cart data', cartDataArray);
+
+
+if (loading) {
+  return (
+    <div className="flex justify-center items-center h-40">
+      <p className="text-lg font-semibold">Loading...</p>
+    </div>
+  );
+}
   
 
 
