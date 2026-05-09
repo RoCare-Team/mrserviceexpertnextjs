@@ -109,7 +109,7 @@ export default function Home() {
             {/* Subheading */}
             <p className="text-gray-300 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
               Fast replies, exclusive offers, expert support, and instant booking directly on WhatsApp. 
-              Join 10,000+ happy customers who trust us for instant solutions.
+              Join 10,000+ happy customers who trust us for instant solutions..
             </p>
 
             
