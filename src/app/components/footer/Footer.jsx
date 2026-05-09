@@ -8,8 +8,6 @@ const Footer = () => {
       {/* bg-gradient-to-r from-indigo-800 to-purple-900 */}
       <div className="flex flex-col gap-8">
 
-
-
         {/* Useful Links */}
         <div className="hidden">
           <h3 className="text-lg font-semibold ">Useful Links</h3>
@@ -77,7 +75,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <p className="text-sm leading-relaxed">
             Unit No. 831, 8th Floor, JMD Megapolis,
-            Sohna Road, Sector-48, Gurugram, Haryana 122018..
+            Sohna Road, Sector-48, Gurugram, Haryana 122018.
             </p>
 
           </div>
