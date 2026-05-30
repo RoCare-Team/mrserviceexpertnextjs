@@ -7,7 +7,7 @@ export async function POST(request) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-App-Token": process.env.OTP_TOKEN,
+        "X-App-Token": `${process.env.OTP_TOKEN}`,
       },
       body: JSON.stringify(body),
     }
