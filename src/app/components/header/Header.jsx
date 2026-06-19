@@ -92,8 +92,8 @@ export default function Header() {
     const data = JSON.parse(localStorage.getItem('cartItems')) || [];
     const totalQuantity = data.length;
     setCartCount(totalQuantity);
-    console.log("Cart items:", data);
-    console.log("Total quantity:", totalQuantity);
+    // console.log("Cart items:", data);
+    // console.log("Total quantity:", totalQuantity);
   }, []);
 
 
