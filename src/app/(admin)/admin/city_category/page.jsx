@@ -1,7 +1,26 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { X } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
+import {
+  PageHead,
+  Field,
+  SearchInput,
+  Input,
+  Select,
+  Textarea,
+  Button,
+  SortHeader,
+  StatusBadge,
+  Dash,
+  EditButton,
+  TableState,
+  Pagination,
+  Modal,
+  ConfirmDialog,
+  Toast,
+} from "@/app/(admin)/admin/components/AdminUI";
 
 function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city..." }) {
   const [q, setQ] = useState(valueLabel || "");
@@ -14,9 +33,7 @@ function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city...
     if (!open) return;
     const t = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/admin/edit_page?type=cities&q=${encodeURIComponent(q)}`
-        );
+        const res = await fetch(`/api/admin/edit_page?type=cities&q=${encodeURIComponent(q)}`);
         const d = await res.json();
         if (d.success) setResults(d.cities || []);
       } catch {}
@@ -25,10 +42,9 @@ function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city...
   }, [q, open]);
 
   return (
-    <div className="relative">
-      <div className="flex">
-        <input
-          className="border w-full p-2 rounded-lg text-sm"
+    <div className="adm-combo">
+      <div className="adm-combo-row">
+        <Input
           placeholder={placeholder}
           value={q}
           onChange={(e) => {
@@ -41,30 +57,30 @@ function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city...
         {onClear && q && (
           <button
             type="button"
+            className="adm-combo-clear"
+            aria-label="Clear city"
             onClick={() => {
               setQ("");
               onClear();
             }}
-            className="ml-1 px-2 border rounded-lg text-gray-400 hover:text-gray-700"
           >
-            ×
+            <X size={16} />
           </button>
         )}
       </div>
       {open && results.length > 0 && (
-        <ul className="absolute z-30 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-56 overflow-y-auto text-sm">
+        <ul className="adm-combo-menu">
           {results.map((c) => (
             <li
               key={c.id}
+              className="adm-combo-opt"
               onMouseDown={() => {
                 onPick(c);
                 setQ(c.city_name);
                 setOpen(false);
               }}
-              className="px-3 py-2 hover:bg-blue-50 cursor-pointer"
             >
-              {c.city_name}{" "}
-              <span className="text-gray-400 text-xs">/{c.city_url}</span>
+              {c.city_name} <small>/{c.city_url}</small>
             </li>
           ))}
         </ul>
@@ -75,11 +91,7 @@ function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city...
 
 // Derive a readable label from an unknown service-type row shape.
 const serviceTypeLabel = (row) =>
-  row.service_type_name ||
-  row.name ||
-  row.title ||
-  row.type ||
-  `Type ${row.id}`;
+  row.service_type_name || row.name || row.title || row.type || `Type ${row.id}`;
 
 export default function PageEditPage() {
   const [pages, setPages] = useState([]);
@@ -200,8 +212,7 @@ export default function PageEditPage() {
   };
 
   const openEdit = (pg) => setEditing({ ...pg });
-  const setField = (field, value) =>
-    setEditing((p) => ({ ...p, [field]: value }));
+  const setField = (field, value) => setEditing((p) => ({ ...p, [field]: value }));
 
   const doUpdate = async () => {
     setSaving(true);
@@ -227,50 +238,31 @@ export default function PageEditPage() {
     }
   };
 
-  const pageNumbers = () => {
-    const span = 2;
-    const start = Math.max(1, page - span);
-    const end = Math.min(totalPages, page + span);
-    const arr = [];
-    for (let i = start; i <= end; i++) arr.push(i);
-    return arr;
-  };
-
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
-
-  const SortIcon = ({ col }) =>
-    sortBy === col ? (
-      <span className="ml-1 text-blue-600">{sortDir === "ASC" ? "▲" : "▼"}</span>
-    ) : (
-      <span className="ml-1 text-gray-300">↕</span>
-    );
+  const sortProps = { sortBy, sortDir, onSort: toggleSort };
 
   return (
-    <div className="p-4 sm:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">Page Edit Panel</h1>
-        <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-          {total} pages
-        </span>
-      </div>
+    <div>
+      <PageHead
+        eyebrow="Catalogue"
+        title="City Pages"
+        subtitle="Edit the content for each city & category landing page."
+        count={total}
+        countLabel="pages"
+      />
 
       {/* Filters */}
-      <div className="bg-white border rounded-xl p-4 mb-4 grid grid-cols-2 md:grid-cols-6 gap-3 items-end shadow-sm">
-        <div className="col-span-2">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Search (title or URL)
-          </label>
-          <input
-            className="border w-full p-2 rounded-lg text-sm"
+      <div className="adm-toolbar">
+        <Field label="Search by title or URL" grow>
+          <SearchInput
             placeholder="e.g. ro service"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
-        </div>
+        </Field>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+        <Field label="City">
           <CityPicker
             valueLabel={filterCity?.city_name || ""}
             placeholder="All cities"
@@ -283,12 +275,10 @@ export default function PageEditPage() {
               setPage(1);
             }}
           />
-        </div>
+        </Field>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Category</label>
-          <select
-            className="border w-full p-2 rounded-lg text-sm"
+        <Field label="Category">
+          <Select
             value={categoryId}
             onChange={(e) => {
               setCategoryId(e.target.value);
@@ -301,13 +291,11 @@ export default function PageEditPage() {
                 {c.category_name}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Brand</label>
-          <select
-            className="border w-full p-2 rounded-lg text-sm"
+        <Field label="Brand">
+          <Select
             value={brandId}
             onChange={(e) => {
               setBrandId(e.target.value);
@@ -320,13 +308,11 @@ export default function PageEditPage() {
                 {b.brand_name}
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
 
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
-          <select
-            className="border w-full p-2 rounded-lg text-sm"
+        <Field label="Status">
+          <Select
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
@@ -336,12 +322,11 @@ export default function PageEditPage() {
             <option value="">All</option>
             <option value="1">Active</option>
             <option value="0">Inactive</option>
-          </select>
-        </div>
+          </Select>
+        </Field>
 
-        <div className="flex gap-2">
-          <select
-            className="border w-full p-2 rounded-lg text-sm"
+        <Field label="Per page">
+          <Select
             value={limit}
             onChange={(e) => {
               setLimit(parseInt(e.target.value, 10));
@@ -350,266 +335,207 @@ export default function PageEditPage() {
           >
             {[10, 25, 50, 100].map((n) => (
               <option key={n} value={n}>
-                {n}/page
+                {n}
               </option>
             ))}
-          </select>
-          <button
-            onClick={clearFilters}
-            className="px-3 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 whitespace-nowrap"
-          >
-            Clear
-          </button>
-        </div>
+          </Select>
+        </Field>
+
+        <Button onClick={clearFilters}>Clear</Button>
       </div>
 
       {/* Table */}
-      <div className="bg-white border rounded-xl shadow-sm overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-              <th className="px-4 py-3 text-left cursor-pointer" onClick={() => toggleSort("id")}>
-                ID <SortIcon col="id" />
-              </th>
-              <th className="px-4 py-3 text-left cursor-pointer" onClick={() => toggleSort("page_title")}>
-                Page Title <SortIcon col="page_title" />
-              </th>
-              <th className="px-4 py-3 text-left">City</th>
-              <th className="px-4 py-3 text-left">Category</th>
-              <th className="px-4 py-3 text-left">Brand</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {loading ? (
+      <div className="adm-tablecard">
+        <div className="adm-tablescroll">
+          <table className="adm-table">
+            <thead>
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                  Loading...
-                </td>
+                <SortHeader label="ID" col="id" {...sortProps} />
+                <SortHeader label="Page title" col="page_title" {...sortProps} />
+                <SortHeader label="City" col="city" sortable={false} />
+                <SortHeader label="Category" col="category" sortable={false} />
+                <SortHeader label="Brand" col="brand" sortable={false} />
+                <SortHeader label="Status" col="status" sortable={false} />
+                <SortHeader label="Action" col="action" sortable={false} />
               </tr>
-            ) : pages.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                  No pages found.
-                </td>
-              </tr>
-            ) : (
-              pages.map((pg) => (
-                <tr key={pg.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{pg.id}</td>
-                  <td className="px-4 py-3 font-medium max-w-xs truncate">
-                    {pg.page_title}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {pg.city_name || <span className="text-gray-300">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {pg.category_name || <span className="text-gray-300">—</span>}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {pg.brand_name || <span className="text-gray-300">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                        String(pg.status) === "1"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {String(pg.status) === "1" ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => openEdit(pg)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-        <p className="text-sm text-gray-500">
-          Showing {from}–{to} of {total}
-        </p>
-        <div className="flex items-center gap-1">
-          <button disabled={page <= 1} onClick={() => setPage(1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">«</button>
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">Prev</button>
-          {pageNumbers().map((n) => (
-            <button
-              key={n}
-              onClick={() => setPage(n)}
-              className={`px-3 py-1.5 border rounded-lg text-sm ${n === page ? "bg-blue-600 text-white border-blue-600" : ""}`}
-            >
-              {n}
-            </button>
-          ))}
-          <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">Next</button>
-          <button disabled={page >= totalPages} onClick={() => setPage(totalPages)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">»</button>
+            </thead>
+            <tbody>
+              {loading || pages.length === 0 ? (
+                <TableState
+                  colSpan={7}
+                  loading={loading}
+                  emptyTitle="No pages found"
+                  emptyHint="Try a different search or clear the filters."
+                />
+              ) : (
+                pages.map((pg) => (
+                  <tr key={pg.id}>
+                    <td className="col-id">{pg.id}</td>
+                    <td className="col-strong">
+                      <span className="adm-truncate" style={{ display: "block" }}>
+                        {pg.page_title}
+                      </span>
+                    </td>
+                    <td className="col-muted">{pg.city_name || <Dash />}</td>
+                    <td className="col-muted">{pg.category_name || <Dash />}</td>
+                    <td className="col-muted">{pg.brand_name || <Dash />}</td>
+                    <td>
+                      <StatusBadge status={pg.status} />
+                    </td>
+                    <td>
+                      <EditButton onClick={() => openEdit(pg)} />
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        from={from}
+        to={to}
+        total={total}
+        onPage={setPage}
+      />
 
       {/* Edit Modal */}
       {editing && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-start justify-center z-40 p-4 overflow-y-auto"
-          onClick={(e) => e.target === e.currentTarget && setEditing(null)}
+        <Modal
+          title={`Edit ${editing.page_title || "page"}`}
+          id={editing.id}
+          size="wide"
+          onClose={() => setEditing(null)}
+          footer={
+            <>
+              <Button onClick={() => setEditing(null)}>Cancel</Button>
+              <Button variant="primary" onClick={() => setConfirmOpen(true)}>
+                Save changes
+              </Button>
+            </>
+          }
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl my-8">
-            <div className="flex items-center justify-between border-b px-6 py-4 sticky top-0 bg-white rounded-t-xl">
-              <h2 className="text-xl font-bold truncate pr-4">
-                Edit: {editing.page_title}{" "}
-                <span className="text-sm font-normal text-gray-400">(ID {editing.id})</span>
-              </h2>
-              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
-            </div>
+          <div className="adm-formgrid">
+            <Field label="Page title">
+              <Input value={editing.page_title || ""} onChange={(e) => setField("page_title", e.target.value)} />
+            </Field>
+            <Field label="Page URL">
+              <Input value={editing.page_url || ""} onChange={(e) => setField("page_url", e.target.value)} />
+            </Field>
 
-            <div className="p-6 grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Page Title</label>
-                <input className="border w-full p-2 rounded-lg" value={editing.page_title || ""} onChange={(e) => setField("page_title", e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Page URL</label>
-                <input className="border w-full p-2 rounded-lg" value={editing.page_url || ""} onChange={(e) => setField("page_url", e.target.value)} />
-              </div>
-
-              {/* Relations */}
-              <div>
-                <label className="block text-sm font-medium mb-1">City</label>
-                <CityPicker
-                  valueLabel={editing.city_name || ""}
-                  onPick={(c) => setEditing((p) => ({ ...p, city_id: c.id, city_name: c.city_name }))}
+            <Field label="City">
+              <CityPicker
+                valueLabel={editing.city_name || ""}
+                onPick={(c) => setEditing((p) => ({ ...p, city_id: c.id, city_name: c.city_name }))}
+              />
+            </Field>
+            <Field label="Category">
+              <Select
+                value={String(editing.category_id ?? "")}
+                onChange={(e) => setField("category_id", e.target.value)}
+              >
+                <option value="">— none —</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.category_name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Brand">
+              <Select value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
+                <option value="">— none —</option>
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.brand_name}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Service type">
+              {serviceTypes.length > 0 ? (
+                <Select
+                  value={String(editing.service_type_id ?? "")}
+                  onChange={(e) => setField("service_type_id", e.target.value)}
+                >
+                  <option value="">— none —</option>
+                  {serviceTypes.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {serviceTypeLabel(s)}
+                    </option>
+                  ))}
+                </Select>
+              ) : (
+                <Input
+                  value={editing.service_type_id ?? ""}
+                  onChange={(e) => setField("service_type_id", e.target.value)}
+                  placeholder="service_type_id"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Category</label>
-                <select className="border w-full p-2 rounded-lg" value={String(editing.category_id ?? "")} onChange={(e) => setField("category_id", e.target.value)}>
-                  <option value="">— none —</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>{c.category_name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Brand</label>
-                <select className="border w-full p-2 rounded-lg" value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
-                  <option value="">— none —</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>{b.brand_name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Service Type</label>
-                {serviceTypes.length > 0 ? (
-                  <select className="border w-full p-2 rounded-lg" value={String(editing.service_type_id ?? "")} onChange={(e) => setField("service_type_id", e.target.value)}>
-                    <option value="">— none —</option>
-                    {serviceTypes.map((s) => (
-                      <option key={s.id} value={s.id}>{serviceTypeLabel(s)}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <input className="border w-full p-2 rounded-lg" value={editing.service_type_id ?? ""} onChange={(e) => setField("service_type_id", e.target.value)} placeholder="service_type_id" />
-                )}
-              </div>
+              )}
+            </Field>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select className="border w-full p-2 rounded-lg" value={String(editing.status)} onChange={(e) => setField("status", e.target.value)}>
-                  <option value="1">Active</option>
-                  <option value="0">Inactive</option>
-                </select>
-              </div>
+            <Field label="Status">
+              <Select value={String(editing.status)} onChange={(e) => setField("status", e.target.value)}>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </Select>
+            </Field>
 
-              <div className="col-span-2">
-                <label className="block text-sm font-medium mb-1">Meta Title</label>
-                <input className="border w-full p-2 rounded-lg" value={editing.meta_title || ""} onChange={(e) => setField("meta_title", e.target.value)} />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium mb-1">Meta Keywords</label>
-                <textarea rows={2} className="border w-full p-2 rounded-lg" value={editing.meta_keywords || ""} onChange={(e) => setField("meta_keywords", e.target.value)} />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium mb-1">Meta Description</label>
-                <textarea rows={3} className="border w-full p-2 rounded-lg" value={editing.meta_description || ""} onChange={(e) => setField("meta_description", e.target.value)} />
-              </div>
+            <Field label="Meta title" className="full">
+              <Input value={editing.meta_title || ""} onChange={(e) => setField("meta_title", e.target.value)} />
+            </Field>
+            <Field label="Meta keywords" className="full">
+              <Textarea rows={2} value={editing.meta_keywords || ""} onChange={(e) => setField("meta_keywords", e.target.value)} />
+            </Field>
+            <Field label="Meta description" className="full">
+              <Textarea rows={3} value={editing.meta_description || ""} onChange={(e) => setField("meta_description", e.target.value)} />
+            </Field>
 
-              <div className="col-span-2">
-                <label className="block text-sm font-medium mb-1">Page Content</label>
-                <TipTapEditorWithSEO content={editing.page_content || ""} onChange={(html) => setField("page_content", html)} />
-              </div>
+            <Field label="Page content" className="full">
+              <TipTapEditorWithSEO content={editing.page_content || ""} onChange={(html) => setField("page_content", html)} />
+            </Field>
 
-              {/* FAQs */}
-              <div className="col-span-2 border-t pt-4 mt-2">
-                <h3 className="font-semibold text-gray-800 mb-3">FAQs</h3>
-                <div className="space-y-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i} className="bg-gray-50 border rounded-lg p-3">
-                      <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Question {i}
-                      </label>
-                      <input
-                        className="border w-full p-2 rounded-lg mb-2"
-                        value={editing[`faqquestion${i}`] || ""}
-                        onChange={(e) => setField(`faqquestion${i}`, e.target.value)}
-                      />
-                      <label className="block text-xs font-medium text-gray-500 mb-1">
-                        Answer {i}
-                      </label>
-                      <textarea
-                        rows={2}
-                        className="border w-full p-2 rounded-lg"
-                        value={editing[`faqanswer${i}`] || ""}
-                        onChange={(e) => setField(`faqanswer${i}`, e.target.value)}
-                      />
-                    </div>
-                  ))}
+            {/* FAQs */}
+            <div className="full" style={{ borderTop: "1px solid var(--adm-border)", paddingTop: 18, marginTop: 4 }}>
+              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>FAQs</h3>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="adm-faqcard">
+                  <Field label={`Question ${i}`}>
+                    <Input
+                      value={editing[`faqquestion${i}`] || ""}
+                      onChange={(e) => setField(`faqquestion${i}`, e.target.value)}
+                    />
+                  </Field>
+                  <div style={{ height: 10 }} />
+                  <Field label={`Answer ${i}`}>
+                    <Textarea
+                      rows={2}
+                      value={editing[`faqanswer${i}`] || ""}
+                      onChange={(e) => setField(`faqanswer${i}`, e.target.value)}
+                    />
+                  </Field>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t px-6 py-4">
-              <button onClick={() => setEditing(null)} className="px-5 py-2 border rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
-              <button onClick={() => setConfirmOpen(true)} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Save Changes</button>
+              ))}
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {/* Confirm dialog */}
       {confirmOpen && editing && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm text-center">
-            <h3 className="text-lg font-semibold mb-2">Save changes?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Update page <strong>#{editing.id}</strong>? This overwrites the existing record.
-            </p>
-            <div className="flex gap-3">
-              <button disabled={saving} onClick={() => setConfirmOpen(false)} className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">No, go back</button>
-              <button disabled={saving} onClick={doUpdate} className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60">
-                {saving ? "Saving..." : "Yes, save"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Save changes?"
+          message={`Update page #${editing.id}? This overwrites the existing record.`}
+          saving={saving}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={doUpdate}
+        />
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-[60] px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
-          {toast.message}
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 }
