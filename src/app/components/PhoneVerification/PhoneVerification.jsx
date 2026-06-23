@@ -250,11 +250,18 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     if (phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber)) {
       setOtpLoader(true); // Start loading
       try {
-        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/roservice_sendotp.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phoneNumber }),
-        });
+
+
+        const source = "mrserviceexpert website";
+
+      const res = await fetch("/api/send_otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phoneNumber, source }),
+      });
+       
 
         const data = await res.json();
 
