@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { X, Plus } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
 import {
   PageHead,
@@ -342,6 +343,9 @@ export default function PageEditPage() {
         </Field>
 
         <Button onClick={clearFilters}>Clear</Button>
+        <Link href="/admin/create_page" className="adm-btn adm-btn-primary">
+          <Plus size={17} /> New page
+        </Link>
       </div>
 
       {/* Table */}

@@ -1,7 +1,21 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import { Loader2, ArrowLeft, ChevronDown } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
+import {
+  PageHead,
+  Field,
+  FieldNote,
+  SectionTitle,
+  FormCard,
+  Input,
+  Select,
+  Textarea,
+  Button,
+  Toast,
+} from "@/app/(admin)/admin/components/AdminUI";
 
 const FAQ_COUNT = 5;
 
@@ -35,6 +49,7 @@ export default function PageCreatePage() {
   // Relation data
   const [cities, setCities] = useState([]);
   const [citySearch, setCitySearch] = useState("");
+  const [cityOpen, setCityOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
@@ -50,7 +65,6 @@ export default function PageCreatePage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Load dropdowns on mount
   useEffect(() => {
     const base = "/api/admin/create_page";
     Promise.all([
@@ -64,7 +78,6 @@ export default function PageCreatePage() {
     });
   }, []);
 
-  // Debounced city search
   useEffect(() => {
     clearTimeout(cityTimer.current);
     cityTimer.current = setTimeout(() => {
@@ -79,7 +92,6 @@ export default function PageCreatePage() {
     setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
-  // Real-time page_url duplicate check
   const checkUrl = (value) => {
     clearTimeout(urlTimer.current);
     if (!value.trim()) {
@@ -95,10 +107,7 @@ export default function PageCreatePage() {
         );
         const data = await res.json();
         if (data.exists) {
-          setErrors((e) => ({
-            ...e,
-            page_url: "This page URL is already taken.",
-          }));
+          setErrors((e) => ({ ...e, page_url: "This page URL is already taken." }));
         } else {
           setErrors((e) => ({ ...e, page_url: undefined }));
         }
@@ -162,91 +171,38 @@ export default function PageCreatePage() {
 
   const isBusy = saving || urlChecking;
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
-  const inputClass = (field) =>
-    `border rounded-lg p-2.5 text-sm w-full focus:outline-none focus:ring-2 transition ${
-      errors[field]
-        ? "border-red-400 focus:ring-red-200"
-        : "border-gray-300 focus:ring-blue-200 focus:border-blue-400"
-    }`;
-
-  const Field = ({ label, required, error, checking, hint, children }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
-      {children}
-      {hint && !error && !checking && (
-        <p className="text-xs text-gray-400">{hint}</p>
-      )}
-      {checking && (
-        <p className="text-xs text-gray-400 flex items-center gap-1">
-          <span className="inline-block w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-          Checking availability…
-        </p>
-      )}
-      {error && !checking && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
-          <span>⚠</span> {error}
-        </p>
-      )}
-    </div>
-  );
-
-  const SectionHeader = ({ title }) => (
-    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
-      {title}
-    </p>
-  );
-
-  // ── Render ───────────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Create New Page</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Fields marked <span className="text-red-500">*</span> are required.
-          </p>
-        </div>
-        <a
-          href="/admin/pages"
-          className="text-sm text-blue-600 hover:underline hidden sm:block"
-        >
-          ← Back to pages
-        </a>
+    <div>
+      <PageHead
+        eyebrow="Catalogue"
+        title="Create City Page"
+        subtitle="Build a city &amp; category landing page with SEO meta, content and FAQs."
+      />
+
+      <div style={{ marginBottom: 18 }}>
+        <Link href="/admin/city_category" className="adm-btn adm-btn-sm">
+          <ArrowLeft size={15} /> Back to city pages
+        </Link>
       </div>
 
-      <div className="bg-white border rounded-xl shadow-sm p-6 space-y-8">
-
-        {/* ── Basic Info ────────────────────────────────────────────────────── */}
-        <div>
-          <SectionHeader title="Basic Info" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Field
-              label="Page Title"
-              required
-              error={errors.page_title}
-            >
-              <input
-                className={inputClass("page_title")}
+      <FormCard>
+        {/* Basic info */}
+        <div className="adm-section">
+          <SectionTitle>Basic info</SectionTitle>
+          <div className="adm-formgrid">
+            <Field label="Page title *">
+              <Input
+                className={errors.page_title ? "err" : ""}
                 placeholder="e.g. AC Repair in Delhi"
                 value={form.page_title}
                 onChange={(e) => setField("page_title", e.target.value)}
               />
+              {errors.page_title && <FieldNote tone="err">{errors.page_title}</FieldNote>}
             </Field>
 
-            <Field
-              label="Page URL"
-              required
-              error={errors.page_url}
-              checking={urlChecking}
-              hint="Auto-formatted to lowercase slug. Must be unique."
-            >
-              <input
-                className={inputClass("page_url")}
+            <Field label="Page URL *">
+              <Input
+                className={errors.page_url ? "err" : ""}
                 placeholder="e.g. ac-repair-delhi"
                 value={form.page_url}
                 onChange={(e) => {
@@ -258,111 +214,103 @@ export default function PageCreatePage() {
                   checkUrl(slug);
                 }}
               />
+              {urlChecking ? (
+                <FieldNote tone="checking">Checking availability…</FieldNote>
+              ) : errors.page_url ? (
+                <FieldNote tone="err">{errors.page_url}</FieldNote>
+              ) : (
+                <FieldNote tone="hint">Auto-formatted to a lowercase slug. Must be unique.</FieldNote>
+              )}
             </Field>
 
             <Field label="Status">
-              <select
-                className={inputClass("status")}
-                value={form.status}
-                onChange={(e) => setField("status", e.target.value)}
-              >
+              <Select value={form.status} onChange={(e) => setField("status", e.target.value)}>
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
-              </select>
+              </Select>
             </Field>
           </div>
         </div>
 
-        {/* ── Relations ─────────────────────────────────────────────────────── */}
-        <div className="border-t pt-6">
-          <SectionHeader title="Relations" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
+        {/* Relations */}
+        <div className="adm-section">
+          <SectionTitle>Relations</SectionTitle>
+          <div className="adm-formgrid">
             {/* City — searchable */}
-            <div className="sm:col-span-2">
-              <Field label="City">
-                <input
-                  className={inputClass("city_id")}
+            <Field label="City" className="full">
+              <div className="adm-combo">
+                <Input
                   placeholder="Search city…"
                   value={citySearch}
-                  onChange={(e) => setCitySearch(e.target.value)}
+                  onChange={(e) => {
+                    setCitySearch(e.target.value);
+                    setCityOpen(true);
+                  }}
+                  onFocus={() => setCityOpen(true)}
+                  onBlur={() => setTimeout(() => setCityOpen(false), 150)}
                 />
-                {cities.length > 0 && (
-                  <div className="border rounded-lg mt-1 max-h-48 overflow-y-auto shadow-sm">
-                    {/* Clear selection option */}
+                {cityOpen && cities.length > 0 && (
+                  <div className="adm-picker-menu">
                     <button
                       type="button"
-                      onClick={() => {
+                      className="adm-picker-opt"
+                      onMouseDown={() => {
                         setField("city_id", "");
                         setCitySearch("");
-                        setCities([]);
+                        setCityOpen(false);
                       }}
-                      className="w-full text-left px-3 py-2 text-sm text-gray-400 hover:bg-gray-50 border-b"
                     >
-                      — None —
+                      <span style={{ color: "var(--adm-faint)" }}>— None —</span>
                     </button>
                     {cities.map((c) => (
                       <button
                         key={c.id}
                         type="button"
-                        onClick={() => {
+                        className={`adm-picker-opt ${
+                          String(form.city_id) === String(c.id) ? "active" : ""
+                        }`}
+                        onMouseDown={() => {
                           setField("city_id", String(c.id));
                           setCitySearch(c.city_name);
-                          setCities([]);
+                          setCityOpen(false);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 flex justify-between ${
-                          String(form.city_id) === String(c.id)
-                            ? "bg-blue-50 text-blue-700 font-medium"
-                            : ""
-                        }`}
                       >
                         <span>{c.city_name}</span>
-                        <span className="text-gray-400 text-xs">{c.city_url}</span>
+                        <small>/{c.city_url}</small>
                       </button>
                     ))}
                   </div>
                 )}
-                {form.city_id && (
-                  <p className="text-xs text-green-600 mt-1">
-                    ✓ City ID {form.city_id} selected
-                  </p>
-                )}
-              </Field>
-            </div>
+              </div>
+              {form.city_id && (
+                <FieldNote tone="ok">City ID {form.city_id} selected</FieldNote>
+              )}
+            </Field>
 
             <Field label="Category">
-              <select
-                className={inputClass("category_id")}
-                value={form.category_id}
-                onChange={(e) => setField("category_id", e.target.value)}
-              >
+              <Select value={form.category_id} onChange={(e) => setField("category_id", e.target.value)}>
                 <option value="">— None —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.category_name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
 
             <Field label="Brand">
-              <select
-                className={inputClass("brand_id")}
-                value={form.brand_id}
-                onChange={(e) => setField("brand_id", e.target.value)}
-              >
+              <Select value={form.brand_id} onChange={(e) => setField("brand_id", e.target.value)}>
                 <option value="">— None —</option>
                 {brands.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.brand_name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
 
-            <Field label="Service Type">
-              <select
-                className={inputClass("service_type_id")}
+            <Field label="Service type" className="full">
+              <Select
                 value={form.service_type_id}
                 onChange={(e) => setField("service_type_id", e.target.value)}
               >
@@ -372,68 +320,57 @@ export default function PageCreatePage() {
                     {s.service_type_name || s.name || `ID ${s.id}`}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
           </div>
         </div>
 
-        {/* ── SEO / Meta ────────────────────────────────────────────────────── */}
-        <div className="border-t pt-6">
-          <SectionHeader title="SEO / Meta" />
-          <div className="space-y-5">
-            <Field label="Meta Title">
-              <input
-                className={inputClass("meta_title")}
+        {/* SEO / Meta */}
+        <div className="adm-section">
+          <SectionTitle>SEO / Meta</SectionTitle>
+          <div className="adm-formgrid">
+            <Field label="Meta title" className="full">
+              <Input
                 placeholder="Page title for search engines"
                 value={form.meta_title}
                 onChange={(e) => setField("meta_title", e.target.value)}
               />
             </Field>
-
-            <Field label="Meta Keywords">
-              <textarea
+            <Field label="Meta keywords" className="full">
+              <Textarea
                 rows={2}
-                className={inputClass("meta_keywords")}
                 placeholder="keyword1, keyword2, keyword3"
                 value={form.meta_keywords}
                 onChange={(e) => setField("meta_keywords", e.target.value)}
               />
             </Field>
-
-            <Field label="Meta Description">
-              <textarea
+            <Field label="Meta description" className="full">
+              <Textarea
                 rows={3}
-                className={inputClass("meta_description")}
                 placeholder="Brief description for search engines (150–160 chars recommended)"
                 value={form.meta_description}
                 onChange={(e) => setField("meta_description", e.target.value)}
               />
-              <p
-                className={`text-xs text-right ${
-                  form.meta_description.length > 160
-                    ? "text-red-400"
-                    : "text-gray-400"
-                }`}
-              >
+              <p className={`adm-counter ${form.meta_description.length > 160 ? "over" : ""}`}>
                 {form.meta_description.length} / 160
               </p>
             </Field>
           </div>
         </div>
 
-        {/* ── Page Content ──────────────────────────────────────────────────── */}
-        <div className="border-t pt-6">
-          <SectionHeader title="Page Content" />
+        {/* Content */}
+        <div className="adm-section">
+          <SectionTitle>Page content</SectionTitle>
           <TipTapEditorWithSEO
             content={form.page_content}
             onChange={(html) => setField("page_content", html)}
           />
         </div>
 
-        {/* ── FAQs ──────────────────────────────────────────────────────────── */}
-        <div className="border-t pt-6">
-          <SectionHeader title="FAQs (up to 5)" />
-          <div className="space-y-2">
+        {/* FAQs */}
+        <div className="adm-section">
+          <SectionTitle>FAQs (up to 5)</SectionTitle>
+          <div style={{ display: "grid", gap: 10 }}>
             {Array.from({ length: FAQ_COUNT }, (_, i) => {
               const n = i + 1;
               const qKey = `faqquestion${n}`;
@@ -442,45 +379,73 @@ export default function PageCreatePage() {
               const hasContent = form[qKey] || form[aKey];
 
               return (
-                <div key={n} className="border rounded-lg overflow-hidden">
+                <div key={n} className="adm-faqcard" style={{ padding: 0, overflow: "hidden" }}>
                   <button
                     type="button"
                     onClick={() => setOpenFaq(isOpen ? null : n)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-gray-50 text-left"
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "13px 16px",
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      color: "var(--adm-ink)",
+                    }}
                   >
-                    <span className="flex items-center gap-2">
+                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       FAQ {n}
                       {hasContent && (
-                        <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                        <span
+                          style={{
+                            width: 7,
+                            height: 7,
+                            borderRadius: "50%",
+                            background: "var(--adm-brand)",
+                            display: "inline-block",
+                          }}
+                        />
                       )}
                     </span>
-                    <span className="text-gray-400">{isOpen ? "▲" : "▼"}</span>
+                    <ChevronDown
+                      size={17}
+                      style={{
+                        color: "var(--adm-muted)",
+                        transform: isOpen ? "rotate(180deg)" : "none",
+                        transition: "transform .18s",
+                      }}
+                    />
                   </button>
 
                   {isOpen && (
-                    <div className="px-4 pb-4 space-y-3 border-t bg-gray-50">
-                      <div className="pt-3">
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Question
-                        </label>
-                        <input
-                          className="border rounded-lg p-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
-                          placeholder={`FAQ ${n} question`}
-                          value={form[qKey]}
-                          onChange={(e) => setField(qKey, e.target.value)}
-                        />
+                    <div
+                      style={{
+                        padding: "4px 16px 16px",
+                        borderTop: "1px solid var(--adm-border)",
+                      }}
+                    >
+                      <div style={{ marginTop: 12 }}>
+                        <Field label="Question">
+                          <Input
+                            placeholder={`FAQ ${n} question`}
+                            value={form[qKey]}
+                            onChange={(e) => setField(qKey, e.target.value)}
+                          />
+                        </Field>
                       </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Answer
-                        </label>
-                        <textarea
-                          rows={3}
-                          className="border rounded-lg p-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white"
-                          placeholder={`FAQ ${n} answer`}
-                          value={form[aKey]}
-                          onChange={(e) => setField(aKey, e.target.value)}
-                        />
+                      <div style={{ marginTop: 12 }}>
+                        <Field label="Answer">
+                          <Textarea
+                            rows={3}
+                            placeholder={`FAQ ${n} answer`}
+                            value={form[aKey]}
+                            onChange={(e) => setField(aKey, e.target.value)}
+                          />
+                        </Field>
                       </div>
                     </div>
                   )}
@@ -490,39 +455,22 @@ export default function PageCreatePage() {
           </div>
         </div>
 
-        {/* ── Actions ───────────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between border-t pt-5 gap-3">
-          <button
-            onClick={handleReset}
-            className="px-5 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
-          >
-            Reset Form
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isBusy}
-            className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition flex items-center gap-2"
-          >
-            {saving && (
-              <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+        {/* Actions */}
+        <div className="adm-formactions">
+          <Button onClick={handleReset}>Reset form</Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={isBusy}>
+            {saving ? (
+              <>
+                <Loader2 size={16} className="adm-spin" /> Creating…
+              </>
+            ) : (
+              "Create page"
             )}
-            {saving ? "Creating..." : "Create Page"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </FormCard>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all ${
-            toast.type === "success"
-              ? "bg-green-600 text-white"
-              : "bg-red-600 text-white"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 }

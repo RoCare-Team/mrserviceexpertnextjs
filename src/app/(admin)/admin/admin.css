@@ -582,3 +582,87 @@
   .adm-sidebar, .adm-main, .adm-stat, .adm-quick, .adm-content, .adm-modal, .adm-modal-overlay, .adm-toast { animation: none !important; transition: none !important; }
   .adm-skel, .adm-spin { animation: none; }
 }
+
+/* ============================================================
+   Create / edit form pages (full-page forms in adm theme)
+   ============================================================ */
+.adm-formcard { padding: 24px; }
+@media (max-width: 640px) { .adm-formcard { padding: 16px; } }
+
+/* Section block inside a form card */
+.adm-section + .adm-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--adm-border);
+}
+.adm-section-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--adm-faint);
+  margin: 0 0 16px;
+}
+
+/* Small note rendered under a field (hint / error / checking) */
+.adm-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+.adm-note.hint     { color: var(--adm-faint); }
+.adm-note.checking { color: var(--adm-muted); }
+.adm-note.err      { color: var(--adm-danger); }
+.adm-note.ok       { color: var(--adm-ok); }
+.adm-note .adm-spin { color: var(--adm-brand); }
+
+/* Char counter aligned right */
+.adm-counter { font-size: 12px; color: var(--adm-faint); text-align: right; margin-top: 6px; }
+.adm-counter.over { color: var(--adm-danger); }
+
+/* Input error state */
+.adm-input.err, .adm-select.err, .adm-textarea.err {
+  border-color: var(--adm-danger);
+}
+.adm-input.err:focus, .adm-select.err:focus, .adm-textarea.err:focus {
+  box-shadow: 0 0 0 3px var(--adm-danger-soft);
+}
+
+/* Sticky-ish action bar at the bottom of a form card */
+.adm-formactions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--adm-border);
+}
+
+/* Searchable select dropdown menu (city picker style, reused) */
+.adm-picker-menu {
+  position: absolute;
+  z-index: 20;
+  left: 0; right: 0;
+  margin-top: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border-strong);
+  border-radius: var(--adm-radius-sm);
+  box-shadow: var(--adm-shadow-lg);
+  padding: 4px;
+}
+.adm-picker-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 9px 10px; border-radius: 9px;
+  font-size: 13.5px; color: var(--adm-ink);
+  background: transparent; border: none; cursor: pointer;
+}
+.adm-picker-opt:hover { background: var(--adm-brand-soft); }
+.adm-picker-opt.active { background: var(--adm-brand-soft); color: var(--adm-brand); font-weight: 600; }
+.adm-picker-opt small { color: var(--adm-faint); font-family: var(--adm-mono); font-size: 11.5px; }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
 import {
   PageHead,
@@ -192,6 +194,9 @@ export default function CategoryEditPage() {
         </Field>
 
         <Button onClick={clearFilters}>Clear</Button>
+        <Link href="/admin/create_category" className="adm-btn adm-btn-primary">
+          <Plus size={17} /> New category
+        </Link>
       </div>
 
       {/* Table */}

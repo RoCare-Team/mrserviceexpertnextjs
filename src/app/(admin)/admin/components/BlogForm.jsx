@@ -2,7 +2,21 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Loader2, ArrowLeft } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
+import {
+  PageHead,
+  Field,
+  FieldNote,
+  SectionTitle,
+  FormCard,
+  Input,
+  Select,
+  Textarea,
+  Button,
+  Toast,
+} from "@/app/(admin)/admin/components/AdminUI";
 
 const EMPTY = {
   blog_title: "",
@@ -46,7 +60,6 @@ export default function BlogForm({ mode = "create", blogId = null }) {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // categories for the picker
   useEffect(() => {
     fetch("/api/admin/blogs?type=categories")
       .then((r) => r.json())
@@ -54,7 +67,6 @@ export default function BlogForm({ mode = "create", blogId = null }) {
       .catch(() => {});
   }, []);
 
-  // load existing blog when editing
   useEffect(() => {
     if (mode !== "edit" || !blogId) return;
     setLoading(true);
@@ -65,9 +77,7 @@ export default function BlogForm({ mode = "create", blogId = null }) {
           const b = d.blog;
           setForm({
             ...EMPTY,
-            ...Object.fromEntries(
-              Object.keys(EMPTY).map((k) => [k, b[k] ?? ""])
-            ),
+            ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, b[k] ?? ""])),
             status: String(b.status ?? "1"),
             blog_cat_id: b.blog_cat_id ? String(b.blog_cat_id) : "",
             publishdate: b.publishdate ? String(b.publishdate).slice(0, 10) : "",
@@ -85,7 +95,6 @@ export default function BlogForm({ mode = "create", blogId = null }) {
     setErrors((e) => ({ ...e, [field]: undefined }));
   };
 
-  // debounced duplicate check on blog_url
   const checkUrl = (value) => {
     clearTimeout(urlTimer.current);
     if (!value.trim()) {
@@ -98,9 +107,7 @@ export default function BlogForm({ mode = "create", blogId = null }) {
       try {
         const exclude = mode === "edit" && blogId ? `&excludeId=${blogId}` : "";
         const res = await fetch(
-          `/api/admin/blogs?type=check_duplicate&value=${encodeURIComponent(
-            value.trim()
-          )}${exclude}`
+          `/api/admin/blogs?type=check_duplicate&value=${encodeURIComponent(value.trim())}${exclude}`
         );
         const data = await res.json();
         setErrors((e) => ({
@@ -140,9 +147,7 @@ export default function BlogForm({ mode = "create", blogId = null }) {
       const data = await res.json();
       if (data.success) {
         showToast(
-          isEdit
-            ? "Blog updated successfully!"
-            : `Blog created! (ID: ${data.blog_id})`
+          isEdit ? "Blog updated successfully!" : `Blog created! (ID: ${data.blog_id})`
         );
         setTimeout(() => router.push("/admin/blogs"), 800);
       } else if (data.errors) {
@@ -158,97 +163,58 @@ export default function BlogForm({ mode = "create", blogId = null }) {
     }
   };
 
-  // ── shared styles / sub-components (same look as create_page) ──
-  const inputClass = (field) =>
-    `border rounded-lg p-2.5 text-sm w-full focus:outline-none focus:ring-2 transition ${
-      errors[field]
-        ? "border-red-400 focus:ring-red-200"
-        : "border-gray-300 focus:ring-blue-200 focus:border-blue-400"
-    }`;
-
-  const Field = ({ label, required, error, checking, hint, children }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
-      {children}
-      {hint && !error && !checking && (
-        <p className="text-xs text-gray-400">{hint}</p>
-      )}
-      {checking && (
-        <p className="text-xs text-gray-400 flex items-center gap-1">
-          <span className="inline-block w-3 h-3 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-          Checking availability…
-        </p>
-      )}
-      {error && !checking && (
-        <p className="text-xs text-red-500 flex items-center gap-1">
-          <span>⚠</span> {error}
-        </p>
-      )}
-    </div>
-  );
-
-  const SectionHeader = ({ title }) => (
-    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-4">
-      {title}
-    </p>
-  );
-
   if (loading) {
     return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="flex items-center gap-2 text-gray-400 text-sm">
-          <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-          Loading blog…
-        </div>
+      <div>
+        <PageHead eyebrow="Content" title="Edit Blog" subtitle="Loading the blog…" />
+        <FormCard>
+          <div className="adm-note checking" style={{ marginTop: 0 }}>
+            <Loader2 size={15} className="adm-spin" />
+            <span>Loading blog…</span>
+          </div>
+        </FormCard>
       </div>
     );
   }
 
+  const isEdit = mode === "edit";
+
   return (
-    <div className="p-4 sm:p-8 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            {mode === "edit" ? "Edit Blog" : "Create New Blog"}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Fields marked <span className="text-red-500">*</span> are required.
-          </p>
-        </div>
-        <a
-          href="/admin/blogs"
-          className="text-sm text-blue-600 hover:underline hidden sm:block"
-        >
-          ← Back to blogs
-        </a>
+    <div>
+      <PageHead
+        eyebrow="Content"
+        title={isEdit ? "Edit Blog" : "Create Blog"}
+        subtitle={
+          isEdit
+            ? "Update this article, its media and SEO meta."
+            : "Write a new article with media and SEO meta."
+        }
+      />
+
+      <div style={{ marginBottom: 18 }}>
+        <Link href="/admin/blogs" className="adm-btn adm-btn-sm">
+          <ArrowLeft size={15} /> Back to blogs
+        </Link>
       </div>
 
-      <div className="bg-white border rounded-xl shadow-sm p-6 space-y-8">
-        {/* Basic Info */}
-        <div>
-          <SectionHeader title="Basic Info" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Field label="Blog Title" required error={errors.blog_title}>
-              <input
-                className={inputClass("blog_title")}
+      <FormCard>
+        {/* Basic info */}
+        <div className="adm-section">
+          <SectionTitle>Basic info</SectionTitle>
+          <div className="adm-formgrid">
+            <Field label="Blog title *" className="full">
+              <Input
+                className={errors.blog_title ? "err" : ""}
                 placeholder="e.g. Why Regular Water Purifier Service Matters"
                 value={form.blog_title}
                 onChange={(e) => setField("blog_title", e.target.value)}
               />
+              {errors.blog_title && <FieldNote tone="err">{errors.blog_title}</FieldNote>}
             </Field>
 
-            <Field
-              label="Blog URL"
-              required
-              error={errors.blog_url}
-              checking={urlChecking}
-              hint="Auto-formatted to a lowercase slug. Must be unique."
-            >
-              <input
-                className={inputClass("blog_url")}
+            <Field label="Blog URL *">
+              <Input
+                className={errors.blog_url ? "err" : ""}
                 placeholder="e.g. why-regular-water-purifier-service"
                 value={form.blog_url}
                 onChange={(e) => {
@@ -260,20 +226,26 @@ export default function BlogForm({ mode = "create", blogId = null }) {
                   checkUrl(slug);
                 }}
               />
+              {urlChecking ? (
+                <FieldNote tone="checking">Checking availability…</FieldNote>
+              ) : errors.blog_url ? (
+                <FieldNote tone="err">{errors.blog_url}</FieldNote>
+              ) : (
+                <FieldNote tone="hint">Auto-formatted to a lowercase slug. Must be unique.</FieldNote>
+              )}
             </Field>
 
-            <Field label="Short Name" hint="Internal/short label (blog_name).">
-              <input
-                className={inputClass("blog_name")}
+            <Field label="Short name">
+              <Input
                 placeholder="e.g. Why Regular"
                 value={form.blog_name}
                 onChange={(e) => setField("blog_name", e.target.value)}
               />
+              <FieldNote tone="hint">Internal / short label (blog_name).</FieldNote>
             </Field>
 
-            <Field label="Blog Type">
-              <input
-                className={inputClass("blog_type")}
+            <Field label="Blog type">
+              <Input
                 placeholder="e.g. 1"
                 value={form.blog_type}
                 onChange={(e) => setField("blog_type", e.target.value)}
@@ -281,140 +253,123 @@ export default function BlogForm({ mode = "create", blogId = null }) {
             </Field>
 
             <Field label="Category">
-              <select
-                className={inputClass("blog_cat_id")}
-                value={form.blog_cat_id}
-                onChange={(e) => setField("blog_cat_id", e.target.value)}
-              >
+              <Select value={form.blog_cat_id} onChange={(e) => setField("blog_cat_id", e.target.value)}>
                 <option value="">— None —</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
                   </option>
                 ))}
-              </select>
+              </Select>
             </Field>
 
             <Field label="Author">
-              <input
-                className={inputClass("author_name")}
+              <Input
                 placeholder="Author name"
                 value={form.author_name}
                 onChange={(e) => setField("author_name", e.target.value)}
               />
             </Field>
 
-            <Field label="Publish Date">
-              <input
+            <Field label="Publish date">
+              <Input
                 type="date"
-                className={inputClass("publishdate")}
                 value={form.publishdate}
                 onChange={(e) => setField("publishdate", e.target.value)}
               />
             </Field>
 
             <Field label="Status">
-              <select
-                className={inputClass("status")}
-                value={form.status}
-                onChange={(e) => setField("status", e.target.value)}
-              >
+              <Select value={form.status} onChange={(e) => setField("status", e.target.value)}>
                 <option value="1">Active</option>
                 <option value="0">Inactive</option>
-              </select>
+              </Select>
             </Field>
           </div>
         </div>
 
         {/* Media */}
-        <div className="border-t pt-6">
-          <SectionHeader title="Media" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <Field label="Cover Image" hint="Path / URL (blog_image_cover).">
-              <input
-                className={inputClass("blog_image_cover")}
+        <div className="adm-section">
+          <SectionTitle>Media</SectionTitle>
+          <div className="adm-formgrid">
+            <Field label="Cover image">
+              <Input
                 placeholder="e.g. /uploads/cover.jpg"
                 value={form.blog_image_cover}
                 onChange={(e) => setField("blog_image_cover", e.target.value)}
               />
+              <FieldNote tone="hint">Path / URL (blog_image_cover).</FieldNote>
             </Field>
-            <Field label="Banner Image" hint="Path / URL (blog_image).">
-              <input
-                className={inputClass("blog_image")}
+            <Field label="Banner image">
+              <Input
                 placeholder="e.g. /uploads/banner.jpg"
                 value={form.blog_image}
                 onChange={(e) => setField("blog_image", e.target.value)}
               />
+              <FieldNote tone="hint">Path / URL (blog_image).</FieldNote>
             </Field>
-            <Field label="Extra Image" hint="Path / URL (image3).">
-              <input
-                className={inputClass("image3")}
+            <Field label="Extra image" className="full">
+              <Input
                 placeholder="e.g. /uploads/extra.jpg"
                 value={form.image3}
                 onChange={(e) => setField("image3", e.target.value)}
               />
+              <FieldNote tone="hint">Path / URL (image3).</FieldNote>
             </Field>
           </div>
         </div>
 
         {/* SEO / Meta */}
-        <div className="border-t pt-6">
-          <SectionHeader title="SEO / Meta" />
-          <div className="space-y-5">
-            <Field label="Meta Description (blog_description)">
-              <textarea
+        <div className="adm-section">
+          <SectionTitle>SEO / Meta</SectionTitle>
+          <div className="adm-formgrid">
+            <Field label="Meta description (blog_description)" className="full">
+              <Textarea
                 rows={3}
-                className={inputClass("blog_description")}
                 placeholder="Short description for listings & search engines"
                 value={form.blog_description}
                 onChange={(e) => setField("blog_description", e.target.value)}
               />
             </Field>
-            <Field label="Keywords (blog_keywords)">
-              <textarea
+            <Field label="Keywords (blog_keywords)" className="full">
+              <Textarea
                 rows={2}
-                className={inputClass("blog_keywords")}
                 placeholder="keyword1, keyword2, keyword3"
                 value={form.blog_keywords}
                 onChange={(e) => setField("blog_keywords", e.target.value)}
               />
             </Field>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Field label="Canonical URL">
-                <input
-                  className={inputClass("Canonical")}
-                  placeholder="https://example.com/blog/..."
-                  value={form.Canonical}
-                  onChange={(e) => setField("Canonical", e.target.value)}
-                />
-              </Field>
-              <Field label="Robots">
-                <input
-                  className={inputClass("Robots")}
-                  placeholder="index, follow"
-                  value={form.Robots}
-                  onChange={(e) => setField("Robots", e.target.value)}
-                />
-              </Field>
-            </div>
+            <Field label="Canonical URL">
+              <Input
+                placeholder="https://example.com/blog/..."
+                value={form.Canonical}
+                onChange={(e) => setField("Canonical", e.target.value)}
+              />
+            </Field>
+            <Field label="Robots">
+              <Input
+                placeholder="index, follow"
+                value={form.Robots}
+                onChange={(e) => setField("Robots", e.target.value)}
+              />
+            </Field>
           </div>
         </div>
 
         {/* Content */}
-        <div className="border-t pt-6">
-          <SectionHeader title="Blog Content (blog_content_text)" />
+        <div className="adm-section">
+          <SectionTitle>Blog content (blog_content_text)</SectionTitle>
           <TipTapEditorWithSEO
             content={form.blog_content_text}
             onChange={(html) => setField("blog_content_text", html)}
           />
         </div>
 
-        {/* Legacy CKEditor content (optional) */}
-        <div className="border-t pt-6">
-          <SectionHeader title="Legacy Content (ckeditercontant)" />
-          <textarea
+        {/* Legacy content */}
+        <div className="adm-section">
+          <SectionTitle>Legacy content (ckeditercontant)</SectionTitle>
+          <Textarea
             rows={4}
-            className="border border-gray-300 rounded-lg p-2.5 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
             placeholder="Optional legacy HTML content kept for backward compatibility"
             value={form.ckeditercontant}
             onChange={(e) => setField("ckeditercontant", e.target.value)}
@@ -422,43 +377,25 @@ export default function BlogForm({ mode = "create", blogId = null }) {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-between border-t pt-5 gap-3">
-          <a
-            href="/admin/blogs"
-            className="px-5 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
-          >
+        <div className="adm-formactions">
+          <Link href="/admin/blogs" className="adm-btn">
             Cancel
-          </a>
-          <button
-            onClick={handleSubmit}
-            disabled={saving || urlChecking}
-            className="px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-60 transition flex items-center gap-2"
-          >
-            {saving && (
-              <span className="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+          </Link>
+          <Button variant="primary" onClick={handleSubmit} disabled={saving || urlChecking}>
+            {saving ? (
+              <>
+                <Loader2 size={16} className="adm-spin" /> {isEdit ? "Saving…" : "Creating…"}
+              </>
+            ) : isEdit ? (
+              "Save changes"
+            ) : (
+              "Create blog"
             )}
-            {saving
-              ? mode === "edit"
-                ? "Saving..."
-                : "Creating..."
-              : mode === "edit"
-              ? "Save Changes"
-              : "Create Blog"}
-          </button>
+          </Button>
         </div>
-      </div>
+      </FormCard>
 
-      {toast && (
-        <div
-          className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium ${
-            toast.type === "success"
-              ? "bg-green-600 text-white"
-              : "bg-red-600 text-white"
-          }`}
-        >
-          {toast.message}
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 }

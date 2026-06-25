@@ -57,6 +57,28 @@ export function Input(props) {
   return <input {...props} className={`adm-input ${props.className || ""}`} />;
 }
 
+/** Small note under a field. tone: hint | checking | err | ok */
+export function FieldNote({ tone = "hint", children }) {
+  return (
+    <p className={`adm-note ${tone}`}>
+      {tone === "checking" && <Loader2 size={13} className="adm-spin" />}
+      {tone === "err" && <AlertCircle size={13} />}
+      {tone === "ok" && <CheckCircle2 size={13} />}
+      <span>{children}</span>
+    </p>
+  );
+}
+
+/** Uppercase section label used inside form cards. */
+export function SectionTitle({ children }) {
+  return <p className="adm-section-title">{children}</p>;
+}
+
+/** Padded card used as the body of a full-page form. */
+export function FormCard({ children, className = "" }) {
+  return <section className={`adm-card adm-formcard ${className}`}>{children}</section>;
+}
+
 export function SearchInput(props) {
   return (
     <div className="adm-inputwrap">
