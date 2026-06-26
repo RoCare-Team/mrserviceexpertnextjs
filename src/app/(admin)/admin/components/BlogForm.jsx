@@ -11,7 +11,7 @@ const EMPTY = {
   blog_type: "",
   blog_cat_id: "",
   author_name: "",
-  status: "1",
+  status: "active",
   publishdate: "",
   blog_image: "",
   blog_image_cover: "",
@@ -24,10 +24,12 @@ const EMPTY = {
   Robots: "",
 };
 
-/**
- * mode  : "create" | "edit"
- * blogId: required when mode === "edit"
- */
+const isActive = (s) => {
+  const v = String(s ?? "").trim().toLowerCase();
+  return v === "1" || v === "active" || v === "true" || v === "yes";
+};
+
+
 export default function BlogForm({ mode = "create", blogId = null }) {
   const router = useRouter();
 
@@ -68,7 +70,7 @@ export default function BlogForm({ mode = "create", blogId = null }) {
             ...Object.fromEntries(
               Object.keys(EMPTY).map((k) => [k, b[k] ?? ""])
             ),
-            status: String(b.status ?? "1"),
+            status: isActive(b.status) ? "active" : "inactive",
             blog_cat_id: b.blog_cat_id ? String(b.blog_cat_id) : "",
             publishdate: b.publishdate ? String(b.publishdate).slice(0, 10) : "",
           });
@@ -319,8 +321,8 @@ export default function BlogForm({ mode = "create", blogId = null }) {
                 value={form.status}
                 onChange={(e) => setField("status", e.target.value)}
               >
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </Field>
           </div>

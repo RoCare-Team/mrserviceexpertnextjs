@@ -4,6 +4,11 @@ import { useEffect, useState, useRef, useCallback } from "react";
 
 const LIMIT_OPTIONS = [10, 25, 50, 100];
 
+const isActive = (s) => {
+  const v = String(s ?? "").trim().toLowerCase();
+  return v === "1" || v === "active" || v === "true" || v === "yes";
+};
+
 export default function BlogsListPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -174,8 +179,8 @@ export default function BlogsListPage() {
           }}
         >
           <option value="">All status</option>
-          <option value="1">Active</option>
-          <option value="0">Inactive</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
 
@@ -274,12 +279,12 @@ export default function BlogsListPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          String(b.status) === "1"
+                          isActive(b.status)
                             ? "bg-green-100 text-green-700"
                             : "bg-gray-100 text-gray-500"
                         }`}
                       >
-                        {String(b.status) === "1" ? "Active" : "Inactive"}
+                        {isActive(b.status) ? "Active" : "Inactive"}
                       </span>
                     </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-gray-500 text-xs">
