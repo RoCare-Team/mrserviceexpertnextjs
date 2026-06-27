@@ -68,10 +68,10 @@ body {
 }
 
 
-a {
+/* a {
   color: white;
   text-decoration: none;
-}
+} */
 
 a:hover {
   color: #7533ea;
@@ -2317,4 +2317,106 @@ padding-block: 13px;
   .mobileBanner{
     display: none;
   }
+}
+/* ─────────────────────────────────────────────────────────────
+   Blog article content (rendered from the TipTap/CKEditor HTML)
+   Used by /blogs/[slug]. Scoped so it never leaks to the rest of
+   the site. Mirrors the purple brand used across the blog pages.
+   ───────────────────────────────────────────────────────────── */
+.blog-article-content {
+  color: #374151;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  word-break: break-word;
+}
+.blog-article-content > *:first-child { margin-top: 0; }
+.blog-article-content p { margin: 0 0 1.15rem; }
+.blog-article-content h1,
+.blog-article-content h2,
+.blog-article-content h3,
+.blog-article-content h4 {
+  color: #1b1430;
+  font-weight: 800;
+  line-height: 1.25;
+  margin: 2rem 0 0.85rem;
+  letter-spacing: -0.01em;
+}
+.blog-article-content h1 { font-size: 1.85rem; }
+.blog-article-content h2 { font-size: 1.5rem; }
+.blog-article-content h3 { font-size: 1.25rem; }
+.blog-article-content h4 { font-size: 1.08rem; }
+.blog-article-content h2 {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #f0ecf8;
+}
+.blog-article-content a {
+  color: #6e11b0;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.blog-article-content a:hover { color: #5b0f93; }
+.blog-article-content strong { color: #1b1430; font-weight: 700; }
+.blog-article-content ul,
+.blog-article-content ol { margin: 0 0 1.15rem; padding-left: 1.4rem; }
+.blog-article-content ul { list-style: disc; }
+.blog-article-content ol { list-style: decimal; }
+.blog-article-content li { margin-bottom: 0.45rem; padding-left: 0.25rem; }
+.blog-article-content li::marker { color: #8429d8; }
+.blog-article-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+  margin: 1.5rem 0;
+  box-shadow: 0 8px 25px -5px rgba(110, 17, 176, 0.18);
+}
+.blog-article-content blockquote {
+  margin: 1.5rem 0;
+  padding: 0.85rem 1.25rem;
+  border-left: 4px solid #8429d8;
+  background: #faf6ff;
+  border-radius: 0 10px 10px 0;
+  color: #4b3b66;
+  font-style: italic;
+}
+.blog-article-content blockquote p:last-child { margin-bottom: 0; }
+.blog-article-content code {
+  background: #f3eefb;
+  color: #6e11b0;
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+.blog-article-content pre {
+  background: #1f0a4f;
+  color: #ede9fe;
+  padding: 1rem 1.15rem;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  font-size: 0.92rem;
+}
+.blog-article-content pre code { background: transparent; color: inherit; padding: 0; }
+.blog-article-content hr { border: 0; border-top: 1px solid #ece7f6; margin: 2rem 0; }
+.blog-article-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+  display: block;
+  overflow-x: auto;
+}
+.blog-article-content th,
+.blog-article-content td {
+  border: 1px solid #eae6f4;
+  padding: 0.6rem 0.85rem;
+  text-align: left;
+}
+.blog-article-content th { background: #faf6ff; color: #1b1430; font-weight: 700; }
+.blog-article-content tr:nth-child(even) td { background: #fcfaff; }
+
+@media (max-width: 640px) {
+  .blog-article-content { font-size: 1rem; }
+  .blog-article-content h1 { font-size: 1.5rem; }
+  .blog-article-content h2 { font-size: 1.3rem; }
 }

@@ -72,7 +72,9 @@ export async function listBlogCategories() {
   try {
     connection = await db.getConnection();
     const cols = await getBlogColumns(connection);
-    const onlyPublished = cols.has("status") ? "AND b.status = '1'" : "";
+    const onlyPublished = cols.has("status")
+      ? "AND (b.status = '1' OR LOWER(b.status) = 'active')"
+      : "";
     const [rows] = await connection.query(
       `SELECT c.id, c.name, c.category_url,
               COUNT(b.id) AS blog_count
@@ -105,7 +107,8 @@ export async function listPublishedBlogs({
     const where = [];
     const params = [];
 
-    if (cols.has("status")) where.push("b.status = '1'");
+    if (cols.has("status"))
+      where.push("(b.status = '1' OR LOWER(b.status) = 'active')");
 
     if (search) {
       const fields = ["b.blog_title", "b.blog_name"];
@@ -162,7 +165,9 @@ export async function getPublishedBlogBySlug(slug) {
   try {
     connection = await db.getConnection();
     const cols = await getBlogColumns(connection);
-    const statusClause = cols.has("status") ? "AND b.status = '1'" : "";
+    const statusClause = cols.has("status")
+      ? "AND (b.status = '1' OR LOWER(b.status) = 'active')"
+      : "";
     const [rows] = await connection.query(
       `SELECT b.*, bc.name AS category_name, bc.category_url
        FROM blog b
@@ -201,7 +206,8 @@ export async function recentPublishedBlogs(excludeId = 0, limit = 4) {
     connection = await db.getConnection();
     const cols = await getBlogColumns(connection);
     const where = ["b.id <> ?"];
-    if (cols.has("status")) where.push("b.status = '1'");
+    if (cols.has("status"))
+      where.push("(b.status = '1' OR LOWER(b.status) = 'active')");
     const lim = Math.min(8, Math.max(1, limit));
     const [rows] = await connection.query(
       `SELECT ${listSelect(cols)}, bc.name AS category_name, bc.category_url

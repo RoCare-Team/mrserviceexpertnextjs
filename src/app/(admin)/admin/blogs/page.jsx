@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Button, PageHead, Pagination, SortHeader, TableState, Toast } from "../components/AdminUI";
+import { Button, ConfirmDialog, Dash, PageHead, Pagination, SortHeader, TableState, Toast } from "../components/AdminUI";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 
 const LIMIT_OPTIONS = [10, 25, 50, 100];
 
@@ -145,13 +145,18 @@ export default function BlogsListPage() {
         countLabel="posts"
       />
 
-      {/* Filters */}
+      {/* Create + Filters */}
+      <div className="flex justify-end mb-3">
+        <Link href="/admin/blogs/create" className="adm-btn adm-btn-primary adm-btn-sm">
+          <Plus size={15} /> New blog post
+        </Link>
+      </div>
       <div className="bg-white border rounded-xl shadow-sm p-4 mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
         <input
           className="border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 sm:col-span-2"
           placeholder="Search title, URL or author…"
-          defaultValue={search}
-          onChange={(e) => onSearchChange(e.target.value)}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
         />
         <select
           className="border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
