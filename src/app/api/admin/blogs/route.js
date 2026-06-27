@@ -48,6 +48,20 @@ const normalizeSlug = (v = "") =>
     .replace(/[^a-z0-9-]/g, "")
     .replace(/-+/g, "-");
 
+
+const ACTIVE_TOKENS = ["1", "active", "true", "yes", "on"];
+const INACTIVE_TOKENS = ["0", "inactive", "false", "no", "off"];
+
+const isActiveStatus = (v) =>
+  ACTIVE_TOKENS.includes(String(v ?? "").trim().toLowerCase());
+
+const normalizeStatus = (v) => {
+  const s = String(v ?? "").trim().toLowerCase();
+  if (ACTIVE_TOKENS.includes(s)) return "active";
+  if (INACTIVE_TOKENS.includes(s)) return "inactive";
+  return "active";
+};
+
 export async function GET(request) {
   let connection;
   try {
@@ -123,9 +137,12 @@ export async function GET(request) {
       where.push("(b.blog_title LIKE ? OR b.blog_url LIKE ? OR b.author_name LIKE ?)");
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
     }
-    if (status === "0" || status === "1") {
-      where.push("b.status = ?");
-      params.push(status);
+    // Status filter accepts "1"/"0" or "active"/"inactive" from the UI and
+    // matches rows stored in either form (legacy "1"/"0" or text).
+    if (status) {
+      const wantActive = isActiveStatus(status);
+      where.push("(LOWER(b.status) = ? OR b.status = ?)");
+      params.push(wantActive ? "active" : "inactive", wantActive ? "1" : "0");
     }
     if (blogCatId) {
       where.push("b.blog_cat_id = ?");
@@ -211,8 +228,10 @@ export async function POST(request) {
       );
     }
 
-    // Build column list from the whitelist, forcing the normalized slug.
+    // Build column list from the whitelist, forcing the normalized slug and
+    // canonical status text.
     const cleaned = { ...body, blog_title: blogTitle, blog_url: blogUrl };
+    if (body.status !== undefined) cleaned.status = normalizeStatus(body.status);
     const cols = WRITABLE.filter((f) => cleaned[f] !== undefined);
     const values = cols.map((f) => (cleaned[f] === "" ? null : cleaned[f]));
 
@@ -292,6 +311,7 @@ export async function PUT(request) {
     }
 
     const cleaned = { ...body, blog_title: blogTitle, blog_url: blogUrl };
+    if (body.status !== undefined) cleaned.status = normalizeStatus(body.status);
     const cols = WRITABLE.filter((f) => cleaned[f] !== undefined);
     if (!cols.length) {
       return NextResponse.json(

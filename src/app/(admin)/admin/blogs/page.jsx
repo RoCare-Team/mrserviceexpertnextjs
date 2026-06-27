@@ -1,22 +1,16 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { Button, PageHead, Pagination, SortHeader, TableState, Toast } from "../components/AdminUI";
 import Link from "next/link";
-import { Plus, Trash2, FolderTree } from "lucide-react";
-import {
-  PageHead,
-  Field,
-  SearchInput,
-  Select,
-  Button,
-  SortHeader,
-  Badge,
-  Dash,
-  TableState,
-  Pagination,
-  ConfirmDialog,
-  Toast,
-} from "@/app/(admin)/admin/components/AdminUI";
+import { Trash2 } from "lucide-react";
+
+const LIMIT_OPTIONS = [10, 25, 50, 100];
+
+const isActive = (s) => {
+  const v = String(s ?? "").trim().toLowerCase();
+  return v === "1" || v === "active" || v === "true" || v === "yes";
+};
 
 export default function BlogsListPage() {
   const [rows, setRows] = useState([]);
@@ -152,69 +146,40 @@ export default function BlogsListPage() {
       />
 
       {/* Filters */}
-      <div className="adm-toolbar">
-        <Field label="Search by title, URL or author" grow>
-          <SearchInput
-            placeholder="e.g. ac service"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </Field>
-
-        <Field label="Category">
-          <Select
-            value={catId}
-            onChange={(e) => {
-              setCatId(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Field label="Status">
-          <Select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">All</option>
-            <option value="1">Active</option>
-            <option value="0">Inactive</option>
-          </Select>
-        </Field>
-
-        <Field label="Per page">
-          <Select
-            value={limit}
-            onChange={(e) => {
-              setLimit(parseInt(e.target.value, 10));
-              setPage(1);
-            }}
-          >
-            {[10, 25, 50, 100].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </Select>
-        </Field>
-
-        <Button onClick={clearFilters}>Clear</Button>
-        <Link href="/admin/blog-categories" className="adm-btn">
-          <FolderTree size={16} /> Categories
-        </Link>
-        <Link href="/admin/blogs/create" className="adm-btn adm-btn-primary">
-          <Plus size={17} /> New blog
-        </Link>
+      <div className="bg-white border rounded-xl shadow-sm p-4 mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <input
+          className="border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 sm:col-span-2"
+          placeholder="Search title, URL or author…"
+          defaultValue={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
+        <select
+          className="border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          value={catId}
+          onChange={(e) => {
+            setPage(1);
+            setCatId(e.target.value);
+          }}
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <select
+          className="border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          value={status}
+          onChange={(e) => {
+            setPage(1);
+            setStatus(e.target.value);
+          }}
+        >
+          <option value="">All status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
       {/* Table */}
@@ -250,12 +215,24 @@ export default function BlogsListPage() {
                       </span>
                       <span className="col-url">/{b.blog_url}</span>
                     </td>
-                    <td className="col-muted">{b.category_name || <Dash />}</td>
-                    <td className="col-muted">{b.author_name || <Dash />}</td>
-                    <td>
-                      <Badge tone={String(b.status) === "1" ? "ok" : "off"}>
-                        {String(b.status) === "1" ? "Active" : "Inactive"}
-                      </Badge>
+                    <td className="px-4 py-3 hidden md:table-cell text-gray-600">
+                      {b.category_name || (
+                        <span className="text-gray-300">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 hidden lg:table-cell text-gray-600">
+                      {b.author_name || <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
+                          isActive(b.status)
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {isActive(b.status) ? "Active" : "Inactive"}
+                      </span>
                     </td>
                     <td className="col-muted">
                       {b.created_at ? String(b.created_at).slice(0, 10) : <Dash />}
