@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { Plus, Info, Search as SearchIcon, FileText } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
 import {
   PageHead,
@@ -19,7 +20,179 @@ import {
   Modal,
   ConfirmDialog,
   Toast,
+  Tabs,
 } from "@/app/(admin)/admin/components/AdminUI";
+
+const NEW_CITY = {
+  city_name: "",
+  city_url: "",
+  state: "",
+  status: "1",
+  meta_title: "",
+  meta_keywords: "",
+  meta_description: "",
+  city_content: "",
+};
+
+const slugify = (v) =>
+  v
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+
+/* ── Add-city modal: tabbed, themed, wired to /api/admin/create_city ── */
+function CreateCityModal({ states, onClose, onCreated, showToast }) {
+  const [tab, setTab] = useState("basic");
+  const [form, setForm] = useState(NEW_CITY);
+  const [urlEdited, setUrlEdited] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const set = (field, value) =>
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "city_name" && !urlEdited) next.city_url = slugify(value);
+      return next;
+    });
+
+  const validate = () => {
+    if (!form.city_name.trim()) return "City name is required.";
+    if (!form.city_url.trim()) return "City URL is required.";
+    return null;
+  };
+
+  const handleSaveClick = () => {
+    const err = validate();
+    if (err) {
+      setTab("basic");
+      return showToast(err, "error");
+    }
+    setConfirmOpen(true);
+  };
+
+  const doCreate = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/create_city", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast(`City created (ID: ${data.cityId})`);
+        onCreated();
+        onClose();
+      } else {
+        showToast(data.message || "Failed to create city.", "error");
+        setConfirmOpen(false);
+      }
+    } catch (e) {
+      showToast(e.message, "error");
+      setConfirmOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const TABS = [
+    { key: "basic", label: "Basic Info", icon: Info },
+    { key: "seo", label: "SEO", icon: SearchIcon },
+    { key: "content", label: "Content", icon: FileText },
+  ];
+
+  return (
+    <>
+      <Modal
+        title="Add city"
+        size="wide"
+        onClose={onClose}
+        footer={
+          <>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button variant="primary" onClick={handleSaveClick}>
+              Create city
+            </Button>
+          </>
+        }
+      >
+        <Tabs tabs={TABS} active={tab} onChange={setTab} />
+
+        {tab === "basic" && (
+          <div className="adm-formgrid adm-tabpanel">
+            <Field label="City name">
+              <Input value={form.city_name} onChange={(e) => set("city_name", e.target.value)} placeholder="e.g. Mumbai" />
+            </Field>
+            <Field label="City URL">
+              <Input
+                value={form.city_url}
+                onChange={(e) => {
+                  setUrlEdited(true);
+                  set("city_url", e.target.value);
+                }}
+                placeholder="e.g. mumbai"
+              />
+            </Field>
+            <Field label="State">
+              <Input
+                value={form.state}
+                onChange={(e) => set("state", e.target.value)}
+                placeholder="e.g. Maharashtra"
+                list="adm-states"
+              />
+              <datalist id="adm-states">
+                {states.map((s) => (
+                  <option key={s} value={s} />
+                ))}
+              </datalist>
+            </Field>
+            <Field label="Status">
+              <Select value={form.status} onChange={(e) => set("status", e.target.value)}>
+                <option value="1">Active</option>
+                <option value="0">Inactive</option>
+              </Select>
+            </Field>
+          </div>
+        )}
+
+        {tab === "seo" && (
+          <div className="adm-formgrid adm-tabpanel">
+            <Field label="Meta title" className="full">
+              <Input value={form.meta_title} onChange={(e) => set("meta_title", e.target.value)} placeholder="50–60 characters recommended" />
+            </Field>
+            <Field label="Meta keywords" className="full">
+              <Textarea rows={2} value={form.meta_keywords} onChange={(e) => set("meta_keywords", e.target.value)} placeholder="keyword1, keyword2" />
+            </Field>
+            <Field label="Meta description" className="full">
+              <Textarea rows={3} value={form.meta_description} onChange={(e) => set("meta_description", e.target.value)} placeholder="120–160 characters recommended" />
+            </Field>
+          </div>
+        )}
+
+        {tab === "content" && (
+          <div className="adm-tabpanel">
+            <Field label="City content">
+              <TipTapEditorWithSEO content={form.city_content} onChange={(html) => set("city_content", html)} />
+            </Field>
+          </div>
+        )}
+      </Modal>
+
+      {confirmOpen && (
+        <ConfirmDialog
+          title="Create this city?"
+          message={`Add "${form.city_name}" (/${form.city_url}) to the catalogue.`}
+          saving={saving}
+          confirmLabel="Yes, create"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={doCreate}
+        />
+      )}
+    </>
+  );
+}
 
 export default function CityEditPage() {
   const [cities, setCities] = useState([]);
@@ -46,6 +219,7 @@ export default function CityEditPage() {
   // edit modal + confirm
   const [editing, setEditing] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const [toast, setToast] = useState(null);
   const showToast = (message, type = "success") => {
@@ -221,6 +395,9 @@ export default function CityEditPage() {
         </Field>
 
         <Button onClick={clearFilters}>Clear</Button>
+        <Button variant="primary" onClick={() => setCreating(true)}>
+          <Plus size={17} /> Add city
+        </Button>
       </div>
 
       {/* Table */}
@@ -333,6 +510,19 @@ export default function CityEditPage() {
           saving={saving}
           onCancel={() => setConfirmOpen(false)}
           onConfirm={doUpdate}
+        />
+      )}
+
+      {/* Create Modal */}
+      {creating && (
+        <CreateCityModal
+          states={states}
+          showToast={showToast}
+          onClose={() => setCreating(false)}
+          onCreated={() => {
+            setPage(1);
+            fetchCities();
+          }}
         />
       )}
 

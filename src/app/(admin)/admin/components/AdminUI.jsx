@@ -43,6 +43,44 @@ export function PageHead({ eyebrow, title, subtitle, count, countLabel }) {
   );
 }
 
+/* ---- Tabs ----------------------------------------------------------- */
+/**
+ * Horizontal, scrollable tab bar for sectioned forms (Basic Info / SEO / …).
+ * tabs: [{ key, label, icon? }]
+ */
+export function Tabs({ tabs, active, onChange }) {
+  return (
+    <div className="adm-tabs" role="tablist">
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        const on = active === t.key;
+        return (
+          <button
+            key={t.key}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            className={`adm-tab ${on ? "on" : ""}`}
+            onClick={() => onChange(t.key)}
+          >
+            {Icon && <Icon size={15} />}
+            <span>{t.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Read-only value shown in a disabled-looking field (e.g. ID, timestamps). */
+export function ReadOnly({ value, mono = false }) {
+  return (
+    <div className={`adm-readonly ${mono ? "mono" : ""}`}>
+      {value === null || value === undefined || value === "" ? "—" : String(value)}
+    </div>
+  );
+}
+
 /* ---- Form bits ------------------------------------------------------ */
 export function Field({ label, children, grow = false, className = "" }) {
   return (

@@ -23,6 +23,7 @@ const UPDATE_FIELDS = [
   "page_title",
   "page_url",
   "page_content",
+  "youtube_url",
   "status",
   "city_id",
   "category_id",
@@ -33,6 +34,16 @@ const UPDATE_FIELDS = [
   "meta_description",
   ...FAQ_FIELDS,
 ];
+
+// Cache of columns that actually exist on page_master_tb, so writing an
+// optional column (e.g. youtube_url) never 500s if the migration wasn't run.
+let _pageColumns = null;
+async function getPageColumns(connection) {
+  if (_pageColumns) return _pageColumns;
+  const [cols] = await connection.query(`SHOW COLUMNS FROM page_master_tb`);
+  _pageColumns = new Set(cols.map((c) => c.Field));
+  return _pageColumns;
+}
 
 export async function GET(request) {
   let connection;
@@ -186,9 +197,16 @@ export async function PUT(request) {
     );
 
     connection = await db.getConnection();
+
+    // keep only columns that exist (youtube_url is optional)
+    const existing = await getPageColumns(connection);
+    const fields = UPDATE_FIELDS.filter((f) => existing.has(f));
+    const setSql = fields.map((f) => `${f}=?`).join(", ");
+    const setVals = fields.map((f) => (body[f] === undefined ? null : body[f]));
+
     await connection.query(
-      `UPDATE page_master_tb SET ${sets}, updated_at=NOW() WHERE id=?`,
-      [...values, id]
+      `UPDATE page_master_tb SET ${setSql}, updated_at=NOW() WHERE id=?`,
+      [...setVals, id]
     );
 
     return NextResponse.json({

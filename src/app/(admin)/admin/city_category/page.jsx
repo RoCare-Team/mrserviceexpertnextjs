@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Info, Search as SearchIcon, Network, HelpCircle, Clock } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
 import {
   PageHead,
@@ -21,7 +21,11 @@ import {
   Modal,
   ConfirmDialog,
   Toast,
+  Tabs,
+  ReadOnly,
 } from "@/app/(admin)/admin/components/AdminUI";
+
+const fmtTs = (v) => (v ? new Date(v).toLocaleString("en-IN") : "—");
 
 function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city..." }) {
   const [q, setQ] = useState(valueLabel || "");
@@ -124,6 +128,7 @@ export default function PageEditPage() {
 
   // edit + confirm
   const [editing, setEditing] = useState(null);
+  const [editTab, setEditTab] = useState("basic");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [toast, setToast] = useState(null);
@@ -212,7 +217,10 @@ export default function PageEditPage() {
     setPage(1);
   };
 
-  const openEdit = (pg) => setEditing({ ...pg });
+  const openEdit = (pg) => {
+    setEditTab("basic");
+    setEditing({ ...pg });
+  };
   const setField = (field, value) => setEditing((p) => ({ ...p, [field]: value }));
 
   const doUpdate = async () => {
@@ -422,89 +430,121 @@ export default function PageEditPage() {
             </>
           }
         >
-          <div className="adm-formgrid">
-            <Field label="Page title">
-              <Input value={editing.page_title || ""} onChange={(e) => setField("page_title", e.target.value)} />
-            </Field>
-            <Field label="Page URL">
-              <Input value={editing.page_url || ""} onChange={(e) => setField("page_url", e.target.value)} />
-            </Field>
+          <Tabs
+            tabs={[
+              { key: "basic", label: "Basic Info", icon: Info },
+              { key: "seo", label: "SEO", icon: SearchIcon },
+              { key: "relations", label: "Relations", icon: Network },
+              { key: "faqs", label: "FAQs", icon: HelpCircle },
+              { key: "timestamps", label: "Timestamps", icon: Clock },
+            ]}
+            active={editTab}
+            onChange={setEditTab}
+          />
 
-            <Field label="City">
-              <CityPicker
-                valueLabel={editing.city_name || ""}
-                onPick={(c) => setEditing((p) => ({ ...p, city_id: c.id, city_name: c.city_name }))}
-              />
-            </Field>
-            <Field label="Category">
-              <Select
-                value={String(editing.category_id ?? "")}
-                onChange={(e) => setField("category_id", e.target.value)}
-              >
-                <option value="">— none —</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.category_name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Brand">
-              <Select value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
-                <option value="">— none —</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.brand_name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Service type">
-              {serviceTypes.length > 0 ? (
-                <Select
-                  value={String(editing.service_type_id ?? "")}
-                  onChange={(e) => setField("service_type_id", e.target.value)}
-                >
+          {/* ── Basic Info ───────────────────────────────── */}
+          {editTab === "basic" && (
+            <div className="adm-formgrid adm-tabpanel">
+              <Field label="ID (read-only)">
+                <ReadOnly value={editing.id} mono />
+              </Field>
+              <Field label="Status">
+                <Select value={String(editing.status)} onChange={(e) => setField("status", e.target.value)}>
+                  <option value="1">Active</option>
+                  <option value="0">Inactive</option>
+                </Select>
+              </Field>
+              <Field label="Page title" className="full">
+                <Input value={editing.page_title || ""} onChange={(e) => setField("page_title", e.target.value)} />
+              </Field>
+              <Field label="Page URL" className="full">
+                <Input value={editing.page_url || ""} onChange={(e) => setField("page_url", e.target.value)} />
+              </Field>
+              <Field label="YouTube URL" className="full">
+                <Input
+                  value={editing.youtube_url || ""}
+                  onChange={(e) => setField("youtube_url", e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=…"
+                />
+              </Field>
+              <Field label="Page content" className="full">
+                <TipTapEditorWithSEO content={editing.page_content || ""} onChange={(html) => setField("page_content", html)} />
+              </Field>
+            </div>
+          )}
+
+          {/* ── SEO ──────────────────────────────────────── */}
+          {editTab === "seo" && (
+            <div className="adm-formgrid adm-tabpanel">
+              <Field label="Meta title" className="full">
+                <Input value={editing.meta_title || ""} onChange={(e) => setField("meta_title", e.target.value)} />
+              </Field>
+              <Field label="Meta keywords" className="full">
+                <Textarea rows={2} value={editing.meta_keywords || ""} onChange={(e) => setField("meta_keywords", e.target.value)} />
+              </Field>
+              <Field label="Meta description" className="full">
+                <Textarea rows={3} value={editing.meta_description || ""} onChange={(e) => setField("meta_description", e.target.value)} />
+              </Field>
+            </div>
+          )}
+
+          {/* ── Relations ────────────────────────────────── */}
+          {editTab === "relations" && (
+            <div className="adm-formgrid adm-tabpanel">
+              <Field label="City">
+                <CityPicker
+                  valueLabel={editing.city_name || ""}
+                  onPick={(c) => setEditing((p) => ({ ...p, city_id: c.id, city_name: c.city_name }))}
+                />
+              </Field>
+              <Field label="Category">
+                <Select value={String(editing.category_id ?? "")} onChange={(e) => setField("category_id", e.target.value)}>
                   <option value="">— none —</option>
-                  {serviceTypes.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {serviceTypeLabel(s)}
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.category_name}
                     </option>
                   ))}
                 </Select>
-              ) : (
-                <Input
-                  value={editing.service_type_id ?? ""}
-                  onChange={(e) => setField("service_type_id", e.target.value)}
-                  placeholder="service_type_id"
-                />
-              )}
-            </Field>
+              </Field>
+              <Field label="Brand">
+                <Select value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
+                  <option value="">— none —</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.brand_name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Service type">
+                {serviceTypes.length > 0 ? (
+                  <Select
+                    value={String(editing.service_type_id ?? "")}
+                    onChange={(e) => setField("service_type_id", e.target.value)}
+                  >
+                    <option value="">— none —</option>
+                    {serviceTypes.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {serviceTypeLabel(s)}
+                      </option>
+                    ))}
+                  </Select>
+                ) : (
+                  <Input
+                    value={editing.service_type_id ?? ""}
+                    onChange={(e) => setField("service_type_id", e.target.value)}
+                    placeholder="service_type_id"
+                  />
+                )}
+              </Field>
+            </div>
+          )}
 
-            <Field label="Status">
-              <Select value={String(editing.status)} onChange={(e) => setField("status", e.target.value)}>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-              </Select>
-            </Field>
-
-            <Field label="Meta title" className="full">
-              <Input value={editing.meta_title || ""} onChange={(e) => setField("meta_title", e.target.value)} />
-            </Field>
-            <Field label="Meta keywords" className="full">
-              <Textarea rows={2} value={editing.meta_keywords || ""} onChange={(e) => setField("meta_keywords", e.target.value)} />
-            </Field>
-            <Field label="Meta description" className="full">
-              <Textarea rows={3} value={editing.meta_description || ""} onChange={(e) => setField("meta_description", e.target.value)} />
-            </Field>
-
-            <Field label="Page content" className="full">
-              <TipTapEditorWithSEO content={editing.page_content || ""} onChange={(html) => setField("page_content", html)} />
-            </Field>
-
-            {/* FAQs */}
-            <div className="full" style={{ borderTop: "1px solid var(--adm-border)", paddingTop: 18, marginTop: 4 }}>
-              <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>FAQs</h3>
+          {/* ── FAQs ─────────────────────────────────────── */}
+          {editTab === "faqs" && (
+            <div className="adm-tabpanel">
+              <p className="adm-tabhint">Up to 5 question / answer pairs shown on the live page.</p>
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="adm-faqcard">
                   <Field label={`Question ${i}`}>
@@ -524,7 +564,25 @@ export default function PageEditPage() {
                 </div>
               ))}
             </div>
-          </div>
+          )}
+
+          {/* ── Timestamps ───────────────────────────────── */}
+          {editTab === "timestamps" && (
+            <div className="adm-formgrid adm-tabpanel">
+              <Field label="ID (read-only)">
+                <ReadOnly value={editing.id} mono />
+              </Field>
+              <Field label="Status">
+                <ReadOnly value={String(editing.status) === "1" ? "Active" : "Inactive"} />
+              </Field>
+              <Field label="Created at (read-only)">
+                <ReadOnly value={fmtTs(editing.created_at)} mono />
+              </Field>
+              <Field label="Updated at (read-only)">
+                <ReadOnly value={fmtTs(editing.updated_at)} mono />
+              </Field>
+            </div>
+          )}
         </Modal>
       )}
 

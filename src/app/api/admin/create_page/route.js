@@ -8,6 +8,7 @@ const INSERT_FIELDS = [
   "page_title",
   "page_url",
   "page_content",
+  "youtube_url",
   "status",
   "city_id",
   "category_id",
@@ -18,6 +19,14 @@ const INSERT_FIELDS = [
   "meta_description",
   ...FAQ_FIELDS,
 ];
+
+let _pageColumns = null;
+async function getPageColumns(connection) {
+  if (_pageColumns) return _pageColumns;
+  const [cols] = await connection.query(`SHOW COLUMNS FROM page_master_tb`);
+  _pageColumns = new Set(cols.map((c) => c.Field));
+  return _pageColumns;
+}
 
 export async function GET(request) {
   let connection;
@@ -131,8 +140,9 @@ export async function POST(request) {
       );
     }
 
-    // --- Build insert from whitelisted fields ---
-    const fields = INSERT_FIELDS;
+    // --- Build insert from whitelisted fields that actually exist ---
+    const existing = await getPageColumns(connection);
+    const fields = INSERT_FIELDS.filter((f) => existing.has(f));
     const values = fields.map((f) => {
       if (f === "page_url") return trimmedUrl;
       if (f === "page_title") return page_title.trim();

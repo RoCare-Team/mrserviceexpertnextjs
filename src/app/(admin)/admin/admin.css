@@ -666,3 +666,114 @@
 .adm-picker-opt:hover { background: var(--adm-brand-soft); }
 .adm-picker-opt.active { background: var(--adm-brand-soft); color: var(--adm-brand); font-weight: 600; }
 .adm-picker-opt small { color: var(--adm-faint); font-family: var(--adm-mono); font-size: 11.5px; }
+
+/* =====================================================================
+   Tabs (sectioned form modals)  — added for tab-wise edit/create
+   ===================================================================== */
+.adm-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--adm-border);
+  margin: -6px -4px 20px;
+  padding: 0 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.adm-tabs::-webkit-scrollbar { height: 0; }
+.adm-tab {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 11px 14px;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--adm-muted);
+  background: transparent; border: none; cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color .16s, border-color .16s;
+}
+.adm-tab:hover { color: var(--adm-ink); }
+.adm-tab.on { color: var(--adm-brand); border-bottom-color: var(--adm-brand); }
+.adm-tab svg { flex-shrink: 0; }
+
+.adm-tabpanel { animation: admFade .18s ease; }
+@keyframes admFade { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+
+.adm-readonly {
+  display: flex; align-items: center;
+  min-height: 42px;
+  padding: 10px 13px;
+  border-radius: var(--adm-radius-sm);
+  background: var(--adm-surface-2);
+  border: 1px solid var(--adm-border);
+  color: var(--adm-muted);
+  font-size: 14px;
+}
+.adm-readonly.mono { font-family: var(--adm-mono); font-size: 13px; }
+
+.adm-tabhint {
+  font-size: 12px; color: var(--adm-faint);
+  margin: -8px 0 14px;
+}
+
+/* =====================================================================
+   Login screen
+   ===================================================================== */
+.adm-login {
+  min-height: 100vh;
+  display: grid; place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(900px 500px at 100% -10%, rgba(124, 58, 237, .14), transparent 60%),
+    radial-gradient(700px 420px at -5% 110%, rgba(110, 17, 176, .12), transparent 60%),
+    var(--adm-bg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  color: var(--adm-ink);
+}
+.adm-login-card {
+  width: 100%; max-width: 410px;
+  background: var(--adm-surface);
+  border: 1px solid var(--adm-border);
+  border-radius: var(--adm-radius);
+  box-shadow: var(--adm-shadow-lg);
+  padding: 34px 30px;
+}
+.adm-login-brand {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+}
+.adm-login-mark {
+  width: 46px; height: 46px; border-radius: 13px;
+  display: grid; place-items: center;
+  font-weight: 800; color: #fff; font-size: 16px;
+  background: linear-gradient(135deg, #8429d8, #b06bff);
+  box-shadow: 0 10px 26px rgba(132, 41, 216, .45);
+}
+.adm-login-brand b { display: block; font-size: 16px; }
+.adm-login-brand span { font-size: 12px; color: var(--adm-muted); }
+.adm-login h1 { font-size: 21px; font-weight: 800; letter-spacing: -.01em; }
+.adm-login p.sub { color: var(--adm-muted); font-size: 13.5px; margin: 4px 0 22px; }
+.adm-login form { display: grid; gap: 15px; }
+.adm-login .adm-passwrap { position: relative; }
+.adm-login .adm-passwrap button {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--adm-faint);
+  padding: 6px; border-radius: 8px;
+}
+.adm-login .adm-passwrap button:hover { color: var(--adm-brand); background: var(--adm-brand-soft); }
+.adm-login-err {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--adm-danger-soft); color: var(--adm-danger);
+  border: 1px solid #f6c9d6; border-radius: var(--adm-radius-sm);
+  padding: 10px 12px; font-size: 13px; font-weight: 500;
+}
+.adm-login-foot { margin-top: 18px; text-align: center; font-size: 12px; color: var(--adm-faint); }
+
+/* =====================================================================
+   Role badge (admins page)
+   ===================================================================== */
+.adm-rolebadge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; letter-spacing: .01em;
+}
+.adm-rolebadge.super { background: var(--adm-brand-soft); color: var(--adm-brand); }
+.adm-rolebadge.admin { background: #eef1f6; color: #475467; }

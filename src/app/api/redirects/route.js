@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { getSession } from "@/lib/session";
+
+export const runtime = "nodejs";
+
+// The `?lookup=` GET is called by middleware (no session) and is read-only.
+// Everything else (admin list + create/update/delete) requires a session.
+async function requireAuth(request) {
+  const session = await getSession(request);
+  if (!session)
+    return NextResponse.json(
+      { success: false, message: "Authentication required." },
+      { status: 401 }
+    );
+  return null;
+}
 
 const ALLOWED_TYPES = [301, 302, 410, 404];
 
@@ -41,6 +56,9 @@ export async function GET(request) {
     }
 
     // ── paginated admin list ──
+    const authErr = await requireAuth(request);
+    if (authErr) return authErr;
+
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(
       100,
@@ -110,6 +128,8 @@ export async function GET(request) {
 // POST — create
 // ─────────────────────────────────────────────
 export async function POST(request) {
+  const authErr = await requireAuth(request);
+  if (authErr) return authErr;
   let connection;
   try {
     const body = await request.json();
@@ -202,6 +222,8 @@ export async function POST(request) {
 // PUT — update
 // ─────────────────────────────────────────────
 export async function PUT(request) {
+  const authErr = await requireAuth(request);
+  if (authErr) return authErr;
   let connection;
   try {
     const body = await request.json();
@@ -283,6 +305,8 @@ export async function PUT(request) {
 // DELETE — ?id=
 // ─────────────────────────────────────────────
 export async function DELETE(request) {
+  const authErr = await requireAuth(request);
+  if (authErr) return authErr;
   let connection;
   try {
     const { searchParams } = new URL(request.url);

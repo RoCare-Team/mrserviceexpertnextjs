@@ -1,41 +1,43 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { Plus, Trash2, ArrowRight } from "lucide-react";
+import {
+  PageHead,
+  Field,
+  SearchInput,
+  Input,
+  Select,
+  Button,
+  SortHeader,
+  Badge,
+  Dash,
+  TableState,
+  Pagination,
+  Modal,
+  ConfirmDialog,
+  Toast,
+} from "@/app/(admin)/admin/components/AdminUI";
 
-// ─── constants ────────────────────────────────────────────────────────────────
 const REDIRECT_TYPES = [
-  { value: 301, label: "301 – Permanent", color: "bg-green-100 text-green-700" },
-  { value: 302, label: "302 – Temporary", color: "bg-blue-100 text-blue-700" },
-  { value: 410, label: "410 – Gone",      color: "bg-red-100 text-red-700" },
-  { value: 404, label: "404 – Not Found", color: "bg-gray-100 text-gray-600" },
+  { value: 301, label: "301 – Permanent", tone: "ok" },
+  { value: 302, label: "302 – Temporary", tone: "info" },
+  { value: 410, label: "410 – Gone", tone: "off" },
+  { value: 404, label: "404 – Not Found", tone: "off" },
 ];
-
 const TYPE_MAP = Object.fromEntries(REDIRECT_TYPES.map((t) => [t.value, t]));
-
-const INITIAL_FORM = {
-  source_url: "",
-  redirect_url: "",
-  redirect_type: 301,
-  status: "1",
-  note: "",
-};
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
+const INITIAL_FORM = { source_url: "", redirect_url: "", redirect_type: 301, status: "1", note: "" };
 const needsDest = (type) => type === 301 || type === 302;
 
-// ─── component ────────────────────────────────────────────────────────────────
 export default function RedirectsPage() {
-  // list state
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
-  // pagination
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
-  // filters
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -43,11 +45,10 @@ export default function RedirectsPage() {
   const [sortBy, setSortBy] = useState("id");
   const [sortDir, setSortDir] = useState("DESC");
 
-  // modals
-  const [modalMode, setModalMode] = useState(null); // 'create' | 'edit'
+  const [modalMode, setModalMode] = useState(null);
   const [form, setForm] = useState(INITIAL_FORM);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null); // { id, source_url }
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
@@ -55,40 +56,26 @@ export default function RedirectsPage() {
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 3500);
   };
 
-  // ── debounce search ────────────────────────────────────────────────────────
   useEffect(() => {
     clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => {
-      setSearch(searchInput);
-      setPage(1);
-    }, 400);
+    searchTimer.current = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
   }, [searchInput]);
 
-  // ── fetch list ─────────────────────────────────────────────────────────────
   const fetchRows = useCallback(async () => {
     setLoading(true);
     try {
       const qs = new URLSearchParams({
-        page: String(page),
-        limit: String(limit),
-        search,
-        status: statusFilter,
-        redirect_type: typeFilter,
-        sortBy,
-        sortDir,
+        page: String(page), limit: String(limit), search,
+        status: statusFilter, redirect_type: typeFilter, sortBy, sortDir,
       });
       const res = await fetch(`/api/redirects?${qs}`);
       const data = await res.json();
       if (data.success) {
-        setRows(data.data);
-        setTotal(data.total);
-        setTotalPages(data.totalPages);
-      } else {
-        showToast(data.message || "Failed to load.", "error");
-      }
+        setRows(data.data); setTotal(data.total); setTotalPages(data.totalPages);
+      } else showToast(data.message || "Failed to load.", "error");
     } catch (e) {
       showToast(e.message, "error");
     } finally {
@@ -98,52 +85,31 @@ export default function RedirectsPage() {
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
-  // ── sorting ────────────────────────────────────────────────────────────────
   const toggleSort = (col) => {
     if (sortBy === col) setSortDir((d) => (d === "ASC" ? "DESC" : "ASC"));
     else { setSortBy(col); setSortDir("ASC"); }
     setPage(1);
   };
 
-  const SortIcon = ({ col }) =>
-    sortBy === col
-      ? <span className="ml-1 text-blue-600">{sortDir === "ASC" ? "▲" : "▼"}</span>
-      : <span className="ml-1 text-gray-300">↕</span>;
-
-  // ── form helpers ───────────────────────────────────────────────────────────
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const openCreate = () => {
-    setForm(INITIAL_FORM);
-    setModalMode("create");
-  };
-
+  const openCreate = () => { setForm(INITIAL_FORM); setModalMode("create"); };
   const openEdit = (row) => {
     setForm({
-      id: row.id,
-      source_url: row.source_url || "",
-      redirect_url: row.redirect_url || "",
-      redirect_type: row.redirect_type,
-      status: String(row.status),
-      note: row.note || "",
+      id: row.id, source_url: row.source_url || "", redirect_url: row.redirect_url || "",
+      redirect_type: row.redirect_type, status: String(row.status), note: row.note || "",
     });
     setModalMode("edit");
   };
-
   const closeModal = () => { setModalMode(null); setConfirmOpen(false); };
 
-  // ── validate before confirm ────────────────────────────────────────────────
   const handleSaveClick = () => {
-    if (!form.source_url.trim()) {
-      showToast("Source URL is required.", "error"); return;
-    }
-    if (needsDest(Number(form.redirect_type)) && !form.redirect_url.trim()) {
-      showToast("Redirect URL is required for 301/302.", "error"); return;
-    }
+    if (!form.source_url.trim()) return showToast("Source URL is required.", "error");
+    if (needsDest(Number(form.redirect_type)) && !form.redirect_url.trim())
+      return showToast("Redirect URL is required for 301/302.", "error");
     setConfirmOpen(true);
   };
 
-  // ── submit ─────────────────────────────────────────────────────────────────
   const doSave = async () => {
     setSaving(true);
     try {
@@ -154,48 +120,31 @@ export default function RedirectsPage() {
         body: JSON.stringify({
           ...form,
           redirect_type: Number(form.redirect_type),
-          // clear dest for 410/404
-          redirect_url: needsDest(Number(form.redirect_type))
-            ? form.redirect_url
-            : "",
+          redirect_url: needsDest(Number(form.redirect_type)) ? form.redirect_url : "",
         }),
       });
       const data = await res.json();
-      if (data.success) {
-        showToast(data.message);
-        closeModal();
-        fetchRows();
-      } else {
-        showToast(data.message || "Failed.", "error");
-        setConfirmOpen(false);
-      }
+      if (data.success) { showToast(data.message); closeModal(); fetchRows(); }
+      else { showToast(data.message || "Failed.", "error"); setConfirmOpen(false); }
     } catch (e) {
-      showToast(e.message, "error");
-      setConfirmOpen(false);
+      showToast(e.message, "error"); setConfirmOpen(false);
     } finally {
       setSaving(false);
     }
   };
 
-  // ── delete ─────────────────────────────────────────────────────────────────
-  const confirmDelete = (row) => setDeleteTarget(row);
-
   const doDelete = async () => {
     if (!deleteTarget) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/redirects?id=${deleteTarget.id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(`/api/redirects?id=${deleteTarget.id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
         showToast("Redirect deleted.");
         setDeleteTarget(null);
         if (rows.length === 1 && page > 1) setPage((p) => p - 1);
         else fetchRows();
-      } else {
-        showToast(data.message || "Delete failed.", "error");
-      }
+      } else showToast(data.message || "Delete failed.", "error");
     } catch (e) {
       showToast(e.message, "error");
     } finally {
@@ -203,418 +152,171 @@ export default function RedirectsPage() {
     }
   };
 
-  // ── pagination ─────────────────────────────────────────────────────────────
-  const pageNums = () => {
-    const span = 2;
-    const arr = [];
-    for (
-      let i = Math.max(1, page - span);
-      i <= Math.min(totalPages, page + span);
-      i++
-    ) arr.push(i);
-    return arr;
+  const clearFilters = () => {
+    setSearchInput(""); setSearch(""); setStatusFilter(""); setTypeFilter("");
+    setSortBy("id"); setSortDir("DESC"); setPage(1);
   };
 
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
+  const sortProps = { sortBy, sortDir, onSort: toggleSort };
 
-  // ── clear filters ──────────────────────────────────────────────────────────
-  const clearFilters = () => {
-    setSearchInput(""); setSearch("");
-    setStatusFilter(""); setTypeFilter("");
-    setSortBy("id"); setSortDir("DESC");
-    setPage(1);
-  };
-
-  // ── type badge ─────────────────────────────────────────────────────────────
-  const TypeBadge = ({ type }) => {
-    const t = TYPE_MAP[type];
-    if (!t) return <span className="text-gray-400 text-xs">{type}</span>;
-    return (
-      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${t.color}`}>
-        {t.value}
-      </span>
-    );
-  };
-
-  // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="p-4 sm:p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Redirect Manager</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage 301, 302, 410 and 404 rules for your URLs.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">
-            {total} rules
-          </span>
-          <button
-            onClick={openCreate}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
-          >
-            + New Redirect
-          </button>
-        </div>
-      </div>
-
-      {/* Type legend */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {REDIRECT_TYPES.map((t) => (
-          <span key={t.value} className={`px-3 py-1 rounded-full text-xs font-medium ${t.color}`}>
-            {t.label}
-          </span>
-        ))}
-      </div>
+    <div>
+      <PageHead
+        eyebrow="System"
+        title="Redirects"
+        subtitle="301, 302, 410 and 404 rules — applied live by the site middleware."
+        count={total}
+        countLabel="rules"
+      />
 
       {/* Filters */}
-      <div className="bg-white border rounded-xl p-4 mb-4 flex flex-wrap gap-3 items-end shadow-sm">
-        <div className="flex-1 min-w-[220px]">
-          <label className="block text-xs font-medium text-gray-500 mb-1">
-            Search (source, destination, note)
-          </label>
-          <input
-            className="border w-full p-2 rounded-lg text-sm"
-            placeholder="e.g. /old-page"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Type</label>
-          <select
-            className="border p-2 rounded-lg text-sm"
-            value={typeFilter}
-            onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
-          >
+      <div className="adm-toolbar">
+        <Field label="Search (source, destination, note)" grow>
+          <SearchInput placeholder="e.g. /old-page" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+        </Field>
+        <Field label="Type">
+          <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}>
             <option value="">All types</option>
-            {REDIRECT_TYPES.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Status</label>
-          <select
-            className="border p-2 rounded-lg text-sm"
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          >
+            {REDIRECT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+          </Select>
+        </Field>
+        <Field label="Status">
+          <Select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}>
             <option value="">All</option>
             <option value="1">Active</option>
             <option value="0">Disabled</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Per page</label>
-          <select
-            className="border p-2 rounded-lg text-sm"
-            value={limit}
-            onChange={(e) => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}
-          >
-            {[10, 25, 50, 100].map((n) => (
-              <option key={n} value={n}>{n}</option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          onClick={clearFilters}
-          className="px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50"
-        >
-          Clear
-        </button>
+          </Select>
+        </Field>
+        <Field label="Per page">
+          <Select value={limit} onChange={(e) => { setLimit(parseInt(e.target.value, 10)); setPage(1); }}>
+            {[10, 25, 50, 100].map((n) => (<option key={n} value={n}>{n}</option>))}
+          </Select>
+        </Field>
+        <Button onClick={clearFilters}>Clear</Button>
+        <Button variant="primary" onClick={openCreate}><Plus size={17} /> New redirect</Button>
       </div>
 
       {/* Table */}
-      <div className="bg-white border rounded-xl shadow-sm overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50 text-gray-600">
-            <tr>
-              <th className="px-4 py-3 text-left cursor-pointer select-none w-16"
-                onClick={() => toggleSort("id")}>
-                ID <SortIcon col="id" />
-              </th>
-              <th className="px-4 py-3 text-left cursor-pointer select-none"
-                onClick={() => toggleSort("source_url")}>
-                Source URL <SortIcon col="source_url" />
-              </th>
-              <th className="px-4 py-3 text-left cursor-pointer select-none"
-                onClick={() => toggleSort("redirect_url")}>
-                Destination <SortIcon col="redirect_url" />
-              </th>
-              <th className="px-4 py-3 text-left cursor-pointer select-none w-24"
-                onClick={() => toggleSort("redirect_type")}>
-                Type <SortIcon col="redirect_type" />
-              </th>
-              <th className="px-4 py-3 text-left w-24">Status</th>
-              <th className="px-4 py-3 text-left">Note</th>
-              <th className="px-4 py-3 text-left w-28">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {loading ? (
+      <div className="adm-tablecard">
+        <div className="adm-tablescroll">
+          <table className="adm-table">
+            <thead>
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                  Loading...
-                </td>
+                <SortHeader label="ID" col="id" {...sortProps} />
+                <SortHeader label="Source URL" col="source_url" {...sortProps} />
+                <SortHeader label="Destination" col="redirect_url" {...sortProps} />
+                <SortHeader label="Type" col="redirect_type" {...sortProps} />
+                <SortHeader label="Status" col="status" sortable={false} />
+                <SortHeader label="Note" col="note" sortable={false} />
+                <SortHeader label="Actions" col="action" sortable={false} />
               </tr>
-            ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-400">
-                  No redirect rules found.{" "}
-                  <button onClick={openCreate} className="text-blue-600 hover:underline">
-                    Create one
-                  </button>
-                </td>
-              </tr>
-            ) : (
-              rows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{row.id}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-800 max-w-[200px] truncate">
-                    {row.source_url}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-500 max-w-[200px] truncate">
-                    {row.redirect_url || (
-                      <span className="text-gray-300 font-sans">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <TypeBadge type={row.redirect_type} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      String(row.status) === "1"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-500"
-                    }`}>
-                      {String(row.status) === "1" ? "Active" : "Off"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500 text-xs max-w-[160px] truncate">
-                    {row.note || <span className="text-gray-300">—</span>}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEdit(row)}
-                        className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(row)}
-                        className="px-2.5 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs hover:bg-red-100"
-                      >
-                        Del
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
-        <p className="text-sm text-gray-500">Showing {from}–{to} of {total}</p>
-        <div className="flex items-center gap-1">
-          <button disabled={page <= 1} onClick={() => setPage(1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">«</button>
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">Prev</button>
-          {pageNums().map((n) => (
-            <button key={n} onClick={() => setPage(n)}
-              className={`px-3 py-1.5 border rounded-lg text-sm ${n === page ? "bg-blue-600 text-white border-blue-600" : ""}`}>
-              {n}
-            </button>
-          ))}
-          <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">Next</button>
-          <button disabled={page >= totalPages} onClick={() => setPage(totalPages)} className="px-3 py-1.5 border rounded-lg text-sm disabled:opacity-40">»</button>
+            </thead>
+            <tbody>
+              {loading || rows.length === 0 ? (
+                <TableState colSpan={7} loading={loading} emptyTitle="No redirect rules" emptyHint="Create your first 301/302 rule." />
+              ) : (
+                rows.map((row) => (
+                  <tr key={row.id}>
+                    <td className="col-id">{row.id}</td>
+                    <td className="col-url"><span className="adm-truncate" style={{ display: "block", maxWidth: 220 }}>{row.source_url}</span></td>
+                    <td className="col-url">{row.redirect_url ? <span className="adm-truncate" style={{ display: "block", maxWidth: 220 }}>{row.redirect_url}</span> : <Dash />}</td>
+                    <td><Badge tone={TYPE_MAP[row.redirect_type]?.tone || "off"} code>{row.redirect_type}</Badge></td>
+                    <td><Badge tone={String(row.status) === "1" ? "ok" : "off"}>{String(row.status) === "1" ? "Active" : "Off"}</Badge></td>
+                    <td className="col-muted"><span className="adm-truncate" style={{ display: "block", maxWidth: 160 }}>{row.note || <Dash />}</span></td>
+                    <td>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(row)}>Edit</Button>
+                        <Button size="sm" variant="danger" onClick={() => setDeleteTarget(row)}><Trash2 size={14} /></Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      {/* ── Create / Edit Modal ──────────────────────────────────────────── */}
+      <Pagination page={page} totalPages={totalPages} from={from} to={to} total={total} onPage={setPage} />
+
+      {/* Create / Edit modal */}
       {modalMode && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-start justify-center z-40 p-4 overflow-y-auto"
-          onClick={(e) => e.target === e.currentTarget && closeModal()}
+        <Modal
+          title={modalMode === "create" ? "New redirect rule" : `Edit rule`}
+          id={modalMode === "edit" ? form.id : undefined}
+          onClose={closeModal}
+          footer={
+            <>
+              <Button onClick={closeModal}>Cancel</Button>
+              <Button variant="primary" onClick={handleSaveClick}>{modalMode === "create" ? "Create rule" : "Save changes"}</Button>
+            </>
+          }
         >
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl my-8">
-            {/* header */}
-            <div className="flex items-center justify-between border-b px-6 py-4">
-              <h2 className="text-lg font-bold">
-                {modalMode === "create" ? "New Redirect Rule" : `Edit Rule #${form.id}`}
-              </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-gray-700 text-2xl leading-none">×</button>
-            </div>
-
-            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Source URL */}
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">
-                  Source URL <span className="text-red-500">*</span>
-                </label>
-                <input
-                  className="border w-full p-2 rounded-lg font-mono text-sm"
-                  placeholder="/old-page-url"
-                  value={form.source_url}
-                  onChange={(e) => setField("source_url", e.target.value)}
-                />
-                <p className="text-xs text-gray-400 mt-0.5">
-                  The URL that visitors currently hit. Use a relative path like <code>/gurgaon</code> or a full URL.
-                </p>
+          <div className="adm-formgrid">
+            <Field label="Source URL" className="full">
+              <Input value={form.source_url} onChange={(e) => setField("source_url", e.target.value)} placeholder="/old-page-url" />
+            </Field>
+            <Field label="Redirect type">
+              <Select value={form.redirect_type} onChange={(e) => setField("redirect_type", parseInt(e.target.value))}>
+                {REDIRECT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+              </Select>
+            </Field>
+            <Field label="Status">
+              <Select value={form.status} onChange={(e) => setField("status", e.target.value)}>
+                <option value="1">Active</option>
+                <option value="0">Disabled</option>
+              </Select>
+            </Field>
+            {needsDest(Number(form.redirect_type)) ? (
+              <Field label="Destination URL" className="full">
+                <Input value={form.redirect_url} onChange={(e) => setField("redirect_url", e.target.value)} placeholder="/new-page  or  https://example.com/page" />
+              </Field>
+            ) : (
+              <div className="full adm-tabhint" style={{ background: "var(--adm-surface-2)", border: "1px solid var(--adm-border)", borderRadius: 11, padding: "10px 12px", margin: 0 }}>
+                {Number(form.redirect_type) === 410
+                  ? "410 Gone — no destination needed. Search engines will drop this URL."
+                  : "404 Not Found — no destination needed. Visitors get the standard 404."}
               </div>
-
-              {/* Redirect Type */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Redirect Type <span className="text-red-500">*</span></label>
-                <select
-                  className="border w-full p-2 rounded-lg text-sm"
-                  value={form.redirect_type}
-                  onChange={(e) => setField("redirect_type", parseInt(e.target.value))}
-                >
-                  {REDIRECT_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <select
-                  className="border w-full p-2 rounded-lg text-sm"
-                  value={form.status}
-                  onChange={(e) => setField("status", e.target.value)}
-                >
-                  <option value="1">Active</option>
-                  <option value="0">Disabled</option>
-                </select>
-              </div>
-
-              {/* Destination URL — only shown for 301/302 */}
-              {needsDest(Number(form.redirect_type)) && (
-                <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium mb-1">
-                    Destination URL <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    className="border w-full p-2 rounded-lg font-mono text-sm"
-                    placeholder="/new-page-url  or  https://example.com/page"
-                    value={form.redirect_url}
-                    onChange={(e) => setField("redirect_url", e.target.value)}
-                  />
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    Where should visitors be sent? Can be relative or absolute.
-                  </p>
-                </div>
-              )}
-
-              {/* 410/404 info box */}
-              {!needsDest(Number(form.redirect_type)) && (
-                <div className="sm:col-span-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
-                  {Number(form.redirect_type) === 410
-                    ? "410 Gone — no destination needed. Visitors see your 410 page. Google will drop this URL from its index."
-                    : "404 Not Found — no destination needed. Visitors see your standard 404 page."}
-                </div>
-              )}
-
-              {/* Note */}
-              <div className="sm:col-span-2">
-                <label className="block text-sm font-medium mb-1">Internal Note</label>
-                <input
-                  className="border w-full p-2 rounded-lg text-sm"
-                  placeholder="e.g. Old city page removed after restructure"
-                  value={form.note}
-                  onChange={(e) => setField("note", e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 border-t px-6 py-4">
-              <button onClick={closeModal} className="px-5 py-2 border rounded-lg text-gray-700 hover:bg-gray-50 text-sm">
-                Cancel
-              </button>
-              <button onClick={handleSaveClick} className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                {modalMode === "create" ? "Create Rule" : "Save Changes"}
-              </button>
-            </div>
+            )}
+            <Field label="Internal note" className="full">
+              <Input value={form.note} onChange={(e) => setField("note", e.target.value)} placeholder="e.g. Old city page removed after restructure" />
+            </Field>
           </div>
-        </div>
+        </Modal>
       )}
 
-      {/* ── Save Confirm ─────────────────────────────────────────────────── */}
       {confirmOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm text-center">
-            <h3 className="text-lg font-semibold mb-2">
-              {modalMode === "create" ? "Create this redirect?" : "Save changes?"}
-            </h3>
-            <div className="text-left bg-gray-50 rounded-lg p-3 mb-5 text-xs font-mono space-y-1">
-              <div><span className="text-gray-400">From: </span>{form.source_url || "—"}</div>
-              {needsDest(Number(form.redirect_type)) && (
-                <div><span className="text-gray-400">To:   </span>{form.redirect_url || "—"}</div>
-              )}
-              <div>
-                <span className="text-gray-400">Type: </span>
-                {TYPE_MAP[Number(form.redirect_type)]?.label || form.redirect_type}
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button disabled={saving} onClick={() => setConfirmOpen(false)}
-                className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                Go back
-              </button>
-              <button disabled={saving} onClick={doSave}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 text-sm font-medium">
-                {saving ? "Saving..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title={modalMode === "create" ? "Create this redirect?" : "Save changes?"}
+          message={
+            <span style={{ fontFamily: "var(--adm-mono)", fontSize: 12.5 }}>
+              {form.source_url || "—"}
+              {needsDest(Number(form.redirect_type)) && (<>{" "}<ArrowRight size={12} style={{ display: "inline" }} />{" "}{form.redirect_url || "—"}</>)}
+              {"  ·  "}{TYPE_MAP[Number(form.redirect_type)]?.label}
+            </span>
+          }
+          saving={saving}
+          confirmLabel="Confirm"
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={doSave}
+        />
       )}
 
-      {/* ── Delete Confirm ───────────────────────────────────────────────── */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm text-center">
-            <h3 className="text-lg font-semibold mb-2 text-red-600">Delete this rule?</h3>
-            <p className="text-sm text-gray-500 mb-1">
-              Source: <code className="bg-gray-100 px-1 rounded">{deleteTarget.source_url}</code>
-            </p>
-            <p className="text-xs text-gray-400 mb-6">
-              This cannot be undone. The URL will no longer redirect.
-            </p>
-            <div className="flex gap-3">
-              <button disabled={saving} onClick={() => setDeleteTarget(null)}
-                className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50 text-sm">
-                Cancel
-              </button>
-              <button disabled={saving} onClick={doDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-60 text-sm font-medium">
-                {saving ? "Deleting..." : "Yes, Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Delete this rule?"
+          message={`Source ${deleteTarget.source_url} will no longer redirect. This cannot be undone.`}
+          tone="danger"
+          confirmLabel="Yes, delete"
+          saving={saving}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={doDelete}
+        />
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-[60] px-4 py-3 rounded-lg shadow-lg text-sm font-medium max-w-sm ${
-          toast.type === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"
-        }`}>
-          {toast.message}
-        </div>
-      )}
+      <Toast toast={toast} />
     </div>
   );
 }
