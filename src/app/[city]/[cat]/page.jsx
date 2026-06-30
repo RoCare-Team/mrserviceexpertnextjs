@@ -1,117 +1,109 @@
-// app/[city]/[cat]/page.tsx
+// app/[city]/[cat]/page.jsx
 import ServicePage from "@/app/components/pages/Services/ServicePage";
 import { faLocation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { notFound } from 'next/navigation';
-import { redirect } from 'next/navigation';
+import { notFound, redirect } from "next/navigation";
+import { getCityCategoryPageData } from "@/lib/cityCategoryPageData";
 
-// export async function generateMetadata({ params }) {
-//   const { city, cat } = params;
-//   return {
-//     title: `Service in ${city} - ${cat} | Your Brand`,
-//     description: `Find the best ${cat} services in ${city}. Book now!`,
-//   };
-// }
+export const dynamic = "force-dynamic"; // always read fresh from the DB
 
 export async function generateMetadata({ params }) {
-  // const { city, cat } = await params;
-    const resolvedParams = await params;
-  // const originalCity = resolvedParams.city;
-  // const lowercaseCity = originalCity.toLowerCase();
-  let city = resolvedParams.city.toLowerCase();
-  let cat = resolvedParams.cat.toLowerCase();
+  const resolvedParams = await params;
+  const city = resolvedParams.city.toLowerCase();
+  const cat = resolvedParams.cat.toLowerCase();
 
-  const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ city, cat }),
-    cache: 'no-store',
-  });
+  try {
+    const data = await getCityCategoryPageData(city, cat);
 
-  const data = await response.json();
-  // console.log(data);
+    // Page not found → don't index.
+    if (!data) {
+      return {
+        title: `Service in ${city} | Your Brand`,
+        description: `Find the best services in ${city}. Book now!`,
+        robots: "noindex, nofollow",
+      };
+    }
 
-  return {
-    title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
-    description: data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
-    keywords: data?.content?.meta_keywords || `services in ${city}, ${city} services`,
-    alternates: {
-      canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
-    },
-    robots: 'index, follow',
-  };
+    return {
+      title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
+      description:
+        data?.content?.meta_description ||
+        `Find the best services in ${city}. Book now!`,
+      keywords:
+        data?.content?.meta_keywords ||
+        `services in ${city}, ${city} services`,
+      alternates: {
+        canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
+      },
+      robots: "index, follow",
+    };
+  } catch (error) {
+    console.error("generateMetadata error:", error);
+    return {
+      title: `Service in ${city} | Your Brand`,
+      description: `Find the best services in ${city}. Book now!`,
+      robots: "noindex, nofollow",
+    };
+  }
 }
 
 export default async function Page({ params }) {
-  // const { city, cat } = await params;
-
-     const resolvedParams = await params;
+  const resolvedParams = await params;
   const originalCity = resolvedParams.city;
-    const originalCat = resolvedParams.cat;
-  let city = originalCity.toLowerCase();
-  let cat=resolvedParams.cat.toLowerCase();
+  const originalCat = resolvedParams.cat;
+  const city = originalCity.toLowerCase();
+  const cat = resolvedParams.cat.toLowerCase();
 
-  // console.log(cat,city);
-  
-  
   // Redirect if URL has uppercase
- if (originalCity !== city || originalCat !== cat) {
+  if (originalCity !== city || originalCat !== cat) {
     redirect(`/${city}/${cat}`);
   }
 
-
+  let data = null;
   try {
-    const response = await fetch('https://mannubhai.in/web_api/get_page_data.php', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({city, cat }),
-      cache: 'no-store',
-    });
+    data = await getCityCategoryPageData(city, cat);
+  } catch (error) {
+    // Only real DB/connection failures land here.
+    console.error("Error fetching city/category page:", error);
+  }
 
-    const data = await response.json();
+  // notFound() throws — keep it outside the try/catch so it isn't swallowed.
+  if (!data) {
+    return notFound();
+  }
 
-    if (data.error) {
-      notFound();
-    }
+  // Filter only matching category
+  const matchedCategory = data?.category?.filter(
+    (catItem) =>
+      catItem.category_name?.toLowerCase().replace(/\s+/g, "-") ===
+      cat?.toLowerCase()
+  );
 
-    // console.log(JSON.stringify(data?.category)+'category and service data');
+  // if (!matchedCategory || matchedCategory.length === 0) {
+  //   notFound(); // If no matching category found
+  // }
 
-    // Filter only matching category
-    const matchedCategory = data?.category?.filter(catItem =>
-      catItem.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
-    );
+  data.category = matchedCategory;
 
-    // if (!matchedCategory || matchedCategory.length === 0) {
-    //   notFound(); // If no matching category found
-    // }
+  // making the cities and category_services empty as right now getting different
+  // description which is not good for seo purposes
+  data.cities = [];
+  data.category_services = [];
 
-    data.category = matchedCategory;
-    // console.log(JSON.stringify(matchedCategory) + ' filtered category and service data');
-    // making the cities  and category_services empty as right now getting different description which is not good for seo purposes
-    data.cities = [];
-    data.category_services = [];
+  if (data.related_cities && Array.isArray(data.related_cities)) {
+    data.related_cities = data.related_cities.map((city) => ({
+      id: city.id,
+      city_id: city.city_id,
+      parent_city: city.parent_city,
+      url: city.url,
+      city_name: city.city_name,
+      city_url: city.city_url,
+    }));
+  }
 
-    if (data.related_cities && Array.isArray(data.related_cities)) {
-      data.related_cities = data.related_cities.map(city => ({
-        id: city.id,
-        city_id: city.city_id,
-        parent_city: city.parent_city,
-        url: city.url,
-        city_name: city.city_name,
-        city_url: city.city_url,
-      }));
-    }
-
-    // console.log(data);
-
-    // const filteredServices = data?.services?.filter(service =>
-    //   service.category_name?.toLowerCase().replace(/\s+/g, '-') === cat?.toLowerCase()
-    // );
-    // data.services = filteredServices;
-    {/*  */ }
-    return <>
+  return (
+    <>
       <ServicePage pagedata={data} city={city} cat={cat} />
-
 
       {city === "bangalore" && cat == "ro-water-purifier" && (
         <div className="common-spacing ">
@@ -500,7 +492,7 @@ export default async function Page({ params }) {
         </div>
       )
       }
-  {( <div className="bg-white px-8 py-1">
+      {( <div className="bg-white px-8 py-1">
           <h3 className="text-2xl font-bold">Quick Links</h3>
         </div>)}
       {data.related_cities?.length > 0 && (
@@ -561,10 +553,6 @@ export default async function Page({ params }) {
 
 
 
-    </>;
-  } catch (error) {
-    // console.error('Error fetching city page:', error);
-    notFound(); // if API fails or wrong city, go to 404
-  }
-
+    </>
+  );
 }
