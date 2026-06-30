@@ -1,80 +1,82 @@
-// app/[city]/[cat]/page.tsx
+
+
 import ServicePage from "@/app/components/pages/Services/brands";
-import { notFound } from 'next/navigation';
+import { notFound } from "next/navigation";
+import { getBrandPageData } from "@/lib/brandPageData";
 
-
-// const API= https://mannubhai.in/web_api;
-// await fetch(GET_BRAND_PAGE)
-// singelton pattern const GET_BRAND_PAGE=`API/${get_drand_page_data.php}`;
+export const dynamic = "force-dynamic"; // always read fresh from the DB
 
 export async function generateMetadata({ params }) {
-  let slug = await params;
+  const resolved = await params;
+  const pathParams = resolved.params;
 
-  if (!slug.params || slug.params.length !== 3) {
+  if (!pathParams || pathParams.length !== 3) {
     return {
-      title: 'Page Not Found',
-      description: 'The page you are looking for does not exist.',
-      robots: 'noindex, nofollow',
+      title: "Page Not Found",
+      description: "The page you are looking for does not exist.",
+      robots: "noindex, nofollow",
     };
   }
-    const [city, brand, cat] = slug.params || [];
 
-  const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ city,brand,cat }),
-    cache: 'no-store',
-  });
+  const [city, brand, cat] = pathParams;
 
-  const data = await response.json();
-// console.log(data);
+  try {
+    const data = await getBrandPageData(city, brand, cat);
 
-  return {
-    title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
-    description: data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
-    keywords: data?.content?.meta_keywords || `services in ${city}, ${city} services`,
-    alternates: {
-      canonical: `https://www.mrserviceexpert.com/${city}/${brand}/${cat}`,
-    },
-    robots: 'index, follow',
-  };
+    // Page not found → don't let crawlers index it.
+    if (!data) {
+      return {
+        title: `Service in ${city} | Your Brand`,
+        description: `Find the best services in ${city}. Book now!`,
+        robots: "noindex, nofollow",
+      };
+    }
+
+    return {
+      title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
+      description:
+        data?.content?.meta_description ||
+        `Find the best services in ${city}. Book now!`,
+      keywords:
+        data?.content?.meta_keywords ||
+        `services in ${city}, ${city} services`,
+      alternates: {
+        canonical: `https://www.mrserviceexpert.com/${city}/${brand}/${cat}`,
+      },
+      robots: "index, follow",
+    };
+  } catch (error) {
+    console.error("generateMetadata error:", error);
+    return {
+      title: `Service in ${city} | Your Brand`,
+      description: `Find the best services in ${city}. Book now!`,
+      robots: "noindex, nofollow",
+    };
+  }
 }
 
 export default async function Page({ params }) {
-//   const { city,brand, cat } = params;
-// const [city, brand, cat] = params.params || [];
-
-
-const { params: pathParams } =  await params;
+  const resolved = await params;
+  const pathParams = resolved.params;
 
   if (!pathParams || pathParams.length !== 3) {
-    // using this logic as we will make it return to 404 page whenever 
     return notFound();
   }
 
   const [city, brand, cat] = pathParams;
 
- 
-  
-   try {
-      const response = await fetch('https://mannubhai.in/web_api/get_drand_page_data.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ city,brand, cat }),
-        cache: 'no-store',
-      });
-  
-      const data = await response.json();
-  // console.log(data);
-  
-      if (data.error) {
-        notFound(); 
-      }
-  
-      return <ServicePage city={city} brand={brand} pagedata={data} cat={cat} />;
-    } catch (error) {
-      console.error('Error fetching city page:', error);
-      notFound(); 
-    }
+  let data = null;
+  try {
+    data = await getBrandPageData(city, brand, cat);
+  } catch (error) {
+    // Only real DB/connection failures land here.
+    console.error("Error fetching brand page:", error);
+  }
 
-    }
+  // notFound() throws — keep it outside the try/catch so it isn't swallowed.
+  if (!data) {
+    return notFound();
+  }
+
+  return <ServicePage city={city} brand={brand} pagedata={data} cat={cat} />;
+}
