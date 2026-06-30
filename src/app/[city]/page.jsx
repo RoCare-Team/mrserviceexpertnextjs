@@ -2,20 +2,28 @@ import CityPage from "@/app/components/pages/city/City";
 import { faLocation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound, redirect } from "next/navigation";
-import { getAllCities, getCityByUrl } from "@/lib/cityData";
+import {
+  getAllCities,
+  getAllCategories,
+  getPageByUrl,
+} from "@/lib/cityData";
 
 export async function generateStaticParams() {
   try {
-    const cities = await getAllCities();
+    const [cities, categories] = await Promise.all([
+      getAllCities(),
+      getAllCategories(),
+    ]);
 
-    if (!Array.isArray(cities)) {
-      console.error("getAllCities did not return an array:", cities);
-      return [];
-    }
+    const cityParams = (Array.isArray(cities) ? cities : [])
+      .filter((c) => c.city_url)
+      .map((c) => ({ city: c.city_url }));
 
-    return cities
-      .filter((city) => city.city_url)
-      .map((city) => ({ city: city.city_url }));
+    const categoryParams = (Array.isArray(categories) ? categories : [])
+      .filter((c) => c.category_url)
+      .map((c) => ({ city: c.category_url })); // same [city] dynamic segment
+
+    return [...cityParams, ...categoryParams];
   } catch (error) {
     console.error("Error in generateStaticParams:", error);
     return [];
@@ -27,18 +35,17 @@ export const generateMetadata = async ({ params }) => {
   const city = resolvedParams.city.toLowerCase();
 
   try {
-    const data = await getCityByUrl(city);
+    const data = await getPageByUrl(city);
 
-   
     if (!data) {
       return {
         title: `no services in ${city}`,
         description: `no Find services in ${city}`,
         robots: "noindex, nofollow",
-        Keywords: `no services, ${city}`,
-         alternates: {
-        canonical: `https://www.mrserviceexpert.com/${city}`,
-      },
+        keywords: `no services, ${city}`,
+        alternates: {
+          canonical: `https://www.mrserviceexpert.com/${city}`,
+        },
       };
     }
 
@@ -64,7 +71,6 @@ export const generateMetadata = async ({ params }) => {
       },
     };
   } catch (error) {
-    
     console.error("generateMetadata error:", error);
     return {
       title: `no Services in ${city}`,
@@ -86,10 +92,10 @@ export default async function Page({ params }) {
 
   let data = null;
   try {
-    data = await getCityByUrl(lowercaseCity);
+    data = await getPageByUrl(lowercaseCity);
   } catch (error) {
     // Only real DB/connection failures land here now.
-    console.error("Error fetching city page:", error);
+    console.error("Error fetching page:", error);
   }
 
   // notFound() works by THROWING, so it must stay outside the try/catch above —
@@ -109,9 +115,13 @@ export default async function Page({ params }) {
     }));
   }
 
+  // City handles BOTH layouts internally via cityData.status, so always pass
+  // the resolved object as `cityData` whether it's a city or a category.
   return (
     <>
       <CityPage cityData={data} />
+
+      {/* recent_cities only has entries for city pages, so this self-hides for categories */}
       {data.recent_cities?.length > 0 && (
         <div className="bg-white px-8 py-6">
           <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
