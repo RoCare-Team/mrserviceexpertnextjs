@@ -15,6 +15,7 @@ import {
   Save,
 } from "lucide-react";
 import TipTapEditorWithSEO from "@/app/(admin)/admin/components/TipTapEditorWithSEO";
+import ImageUploader from "@/app/(admin)/admin/components/ImageUploader";
 import { Toast } from "@/app/(admin)/admin/components/AdminUI";
 
 const EMPTY = {
@@ -555,19 +556,8 @@ function ImageField({ label, hint, value, onChange }) {
   return (
     <div className="adm-field">
       <label className="adm-label">{label}</label>
-      <input
-        className="adm-input"
-        placeholder="/uploads/image.jpg or https://…"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-      {value ? (
-        <div className="adm-imgthumb">
-          <img src={value} alt="" onError={(e) => (e.currentTarget.parentElement.style.display = "none")} />
-        </div>
-      ) : (
-        hint && <p className="adm-note hint">{hint}</p>
-      )}
+      {hint && <p className="adm-note hint" style={{ marginTop: 0, marginBottom: 8 }}>{hint}</p>}
+      <ImageUploader value={value} onChange={onChange} storagePath="blogs" />
     </div>
   );
 }
