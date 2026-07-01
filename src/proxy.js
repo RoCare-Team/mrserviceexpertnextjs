@@ -49,7 +49,6 @@ export async function proxy(req) {
     const session = await getSession(req);
 
     if (pathname === LOGIN_PATH) {
-      // already signed in? skip the login screen
       if (session) return NextResponse.redirect(new URL(ADMIN_PREFIX, req.url));
       return NextResponse.next();
     }
