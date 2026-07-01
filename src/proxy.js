@@ -33,7 +33,7 @@ const json401 = () =>
     { status: 401, headers: { "content-type": "application/json" } }
   );
 
-export async function middleware(req) {
+export async function proxy(req) {
   const { pathname, search, origin } = req.nextUrl;
 
   /* ── 0. Protect the admin data APIs ────────────────────────── */
