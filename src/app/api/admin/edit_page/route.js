@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 
+// Columns allowed for ORDER BY. Both tables share these names
+// (brand_id is NULL for without-brand rows, which sorts fine).
 const SORTABLE = [
   "id",
   "page_title",
@@ -14,20 +16,24 @@ const SORTABLE = [
   "updated_at",
 ];
 
-// 5 FAQ pairs (matches the columns in your table screenshot).
+// 5 FAQ pairs (present in BOTH tables).
 const FAQ_FIELDS = [];
 for (let i = 1; i <= 5; i++) FAQ_FIELDS.push(`faqquestion${i}`, `faqanswer${i}`);
 
-// Whitelisted columns the PUT is allowed to write (prevents arbitrary columns).
-const UPDATE_FIELDS = [
+// The two page sources. _source in the payload / query picks one.
+const TABLES = {
+  brand: "page_master_tb",
+  nobrand: "master_tb_withoutbrand",
+};
+
+// Fields shared by both tables that the PUT may write.
+const COMMON_UPDATE_FIELDS = [
   "page_title",
   "page_url",
   "page_content",
-  "youtube_url",
   "status",
   "city_id",
   "category_id",
-  "brand_id",
   "service_type_id",
   "meta_title",
   "meta_keywords",
@@ -35,14 +41,23 @@ const UPDATE_FIELDS = [
   ...FAQ_FIELDS,
 ];
 
-// Cache of columns that actually exist on page_master_tb, so writing an
-// optional column (e.g. youtube_url) never 500s if the migration wasn't run.
-let _pageColumns = null;
-async function getPageColumns(connection) {
-  if (_pageColumns) return _pageColumns;
-  const [cols] = await connection.query(`SHOW COLUMNS FROM page_master_tb`);
-  _pageColumns = new Set(cols.map((c) => c.Field));
-  return _pageColumns;
+// Table-specific extras. These are intersected with each table's real
+// columns, so a column that a table lacks is simply skipped:
+//   brand_id / youtube_url -> only page_master_tb
+//   robots                 -> only master_tb_withoutbrand
+const EXTRA_UPDATE_FIELDS = ["brand_id", "youtube_url", "robots"];
+
+const CANDIDATE_UPDATE_FIELDS = [...COMMON_UPDATE_FIELDS, ...EXTRA_UPDATE_FIELDS];
+
+// Cache real columns per table so we never try to write a column a table
+// doesn't have and never 500 if an optional migration wasn't run.
+const _colCache = new Map();
+async function getColumns(connection, table) {
+  if (_colCache.has(table)) return _colCache.get(table);
+  const [cols] = await connection.query(`SHOW COLUMNS FROM \`${table}\``);
+  const set = new Set(cols.map((c) => c.Field));
+  _colCache.set(table, set);
+  return set;
 }
 
 export async function GET(request) {
@@ -78,8 +93,6 @@ export async function GET(request) {
       return NextResponse.json({ success: true, brands: rows });
     }
     if (type === "service_types") {
-      // TODO: confirm your service-type table name. Guessing `service_type_tb`.
-      // Wrapped so a wrong name just yields an empty list instead of a 500.
       try {
         const [rows] = await connection.query(
           `SELECT * FROM service_type_tb ORDER BY id ASC`
@@ -90,7 +103,65 @@ export async function GET(request) {
       }
     }
 
-    // ---- paginated list ----
+    // ---- full single-row detail (used when opening the edit modal) ----
+    // Returns EVERY column (page_content, SEO, FAQs, …) for one row so the
+    // modal edits the real data instead of the trimmed list row. This is the
+    // fix for empty fields / accidental content wipes on save.
+    if (type === "detail") {
+      const id = (searchParams.get("id") || "").trim();
+      let src = (searchParams.get("source") || "brand").trim();
+      if (!TABLES[src]) src = "brand";
+      if (!id) {
+        return NextResponse.json(
+          { success: false, message: "Missing id" },
+          { status: 400 }
+        );
+      }
+
+      if (src === "brand") {
+        const [rows] = await connection.query(
+          `SELECT p.*, c.city_name, cat.category_name, b.brand_name
+           FROM page_master_tb p
+           LEFT JOIN city_tb c       ON p.city_id = c.id
+           LEFT JOIN category_tb cat ON p.category_id = cat.id
+           LEFT JOIN brand_tb b      ON p.brand_id = b.id
+           WHERE p.id = ? LIMIT 1`,
+          [id]
+        );
+        if (!rows.length) {
+          return NextResponse.json(
+            { success: false, message: "Not found" },
+            { status: 404 }
+          );
+        }
+        return NextResponse.json({
+          success: true,
+          page: { ...rows[0], _source: "brand" },
+        });
+      }
+
+      // without-brand
+      const [rows] = await connection.query(
+        `SELECT w.*, c.city_name, cat.category_name
+         FROM master_tb_withoutbrand w
+         LEFT JOIN city_tb c       ON w.city_id = c.id
+         LEFT JOIN category_tb cat ON w.category_id = cat.id
+         WHERE w.id = ? LIMIT 1`,
+        [id]
+      );
+      if (!rows.length) {
+        return NextResponse.json(
+          { success: false, message: "Not found" },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        page: { ...rows[0], _source: "nobrand", brand_name: null },
+      });
+    }
+
+    // ---- paginated list (UNION of both page tables) ----
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(
       100,
@@ -105,60 +176,117 @@ export async function GET(request) {
     const brandId = (searchParams.get("brand_id") || "").trim();
     const serviceTypeId = (searchParams.get("service_type_id") || "").trim();
 
+    // "" = both, "brand" = only page_master_tb, "nobrand" = only without-brand
+    let source = (searchParams.get("source") || "").trim();
+    if (!["", "brand", "nobrand"].includes(source)) source = "";
+
     let sortBy = searchParams.get("sortBy") || "id";
     if (!SORTABLE.includes(sortBy)) sortBy = "id";
     let sortDir = (searchParams.get("sortDir") || "DESC").toUpperCase();
     if (!["ASC", "DESC"].includes(sortDir)) sortDir = "DESC";
 
-    const where = [];
-    const params = [];
+    // Build WHERE for one half. `alias` qualifies the base table so the
+    // joined lookup tables never make a column ambiguous.
+    const halfWhere = (alias, isBrand) => {
+      const w = [];
+      const p = [];
+      if (search) {
+        w.push(`(${alias}.page_title LIKE ? OR ${alias}.page_url LIKE ?)`);
+        p.push(`%${search}%`, `%${search}%`);
+      }
+      if (status === "0" || status === "1") {
+        w.push(`${alias}.status = ?`);
+        p.push(status);
+      }
+      if (cityId) {
+        w.push(`${alias}.city_id = ?`);
+        p.push(cityId);
+      }
+      if (categoryId) {
+        w.push(`${alias}.category_id = ?`);
+        p.push(categoryId);
+      }
+      if (serviceTypeId) {
+        w.push(`${alias}.service_type_id = ?`);
+        p.push(serviceTypeId);
+      }
+      if (isBrand && brandId) {
+        w.push(`${alias}.brand_id = ?`);
+        p.push(brandId);
+      }
+      return { sql: w.length ? `WHERE ${w.join(" AND ")}` : "", params: p };
+    };
 
-    if (search) {
-      where.push("(p.page_title LIKE ? OR p.page_url LIKE ?)");
-      params.push(`%${search}%`, `%${search}%`);
+    // A brand filter excludes the without-brand rows entirely.
+    const includeBrand = source !== "nobrand";
+    const includeNoBrand = source !== "brand" && !brandId;
+
+    // ---- total (two cheap counts summed) ----
+    let total = 0;
+    if (includeBrand) {
+      const bw = halfWhere("p", true);
+      const [cr] = await connection.query(
+        `SELECT COUNT(*) AS total FROM page_master_tb p ${bw.sql}`,
+        bw.params
+      );
+      total += cr[0].total;
     }
-    if (status === "0" || status === "1") {
-      where.push("p.status = ?");
-      params.push(status);
-    }
-    if (cityId) {
-      where.push("p.city_id = ?");
-      params.push(cityId);
-    }
-    if (categoryId) {
-      where.push("p.category_id = ?");
-      params.push(categoryId);
-    }
-    if (brandId) {
-      where.push("p.brand_id = ?");
-      params.push(brandId);
-    }
-    if (serviceTypeId) {
-      where.push("p.service_type_id = ?");
-      params.push(serviceTypeId);
+    if (includeNoBrand) {
+      const nw = halfWhere("w", false);
+      const [cr] = await connection.query(
+        `SELECT COUNT(*) AS total FROM master_tb_withoutbrand w ${nw.sql}`,
+        nw.params
+      );
+      total += cr[0].total;
     }
 
-    const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
+    // ---- rows (lean columns; full data is loaded via ?type=detail) ----
+    const pieces = [];
+    const unionParams = [];
 
-    const [countRows] = await connection.query(
-      `SELECT COUNT(*) AS total FROM page_master_tb p ${whereSql}`,
-      params
-    );
-    const total = countRows[0].total;
+    if (includeBrand) {
+      const bw = halfWhere("p", true);
+      pieces.push(`
+        SELECT p.id, 'brand' AS _source, p.page_title, p.page_url, p.status,
+               p.city_id, p.category_id, p.brand_id, p.service_type_id,
+               p.created_at, p.updated_at,
+               c.city_name, cat.category_name, b.brand_name
+        FROM page_master_tb p
+        LEFT JOIN city_tb c       ON p.city_id = c.id
+        LEFT JOIN category_tb cat ON p.category_id = cat.id
+        LEFT JOIN brand_tb b      ON p.brand_id = b.id
+        ${bw.sql}
+      `);
+      unionParams.push(...bw.params);
+    }
 
-    // Join the three known relations to show real names. limit/offset are
-    // validated ints -> safe to inline.
-    const [rows] = await connection.query(
-      `SELECT p.*, c.city_name, cat.category_name, b.brand_name
-       FROM page_master_tb p
-       LEFT JOIN city_tb c       ON p.city_id = c.id
-       LEFT JOIN category_tb cat ON p.category_id = cat.id
-       LEFT JOIN brand_tb b      ON p.brand_id = b.id
-       ${whereSql}
-       ORDER BY p.${sortBy} ${sortDir}
-       LIMIT ${limit} OFFSET ${offset}`,
-      params
-    );
+    if (includeNoBrand) {
+      const nw = halfWhere("w", false);
+      pieces.push(`
+        SELECT w.id, 'nobrand' AS _source, w.page_title, w.page_url, w.status,
+               w.city_id, w.category_id, NULL AS brand_id, w.service_type_id,
+               w.created_at, w.updated_at,
+               c.city_name, cat.category_name, NULL AS brand_name
+        FROM master_tb_withoutbrand w
+        LEFT JOIN city_tb c       ON w.city_id = c.id
+        LEFT JOIN category_tb cat ON w.category_id = cat.id
+        ${nw.sql}
+      `);
+      unionParams.push(...nw.params);
+    }
+
+    let rows = [];
+    if (pieces.length > 0) {
+      const unionSql = pieces.join(" UNION ALL ");
+      // sortBy is whitelisted; sortDir/limit/offset are validated -> safe to inline.
+      const [r] = await connection.query(
+        `SELECT * FROM ( ${unionSql} ) u
+         ORDER BY u.${sortBy} ${sortDir}
+         LIMIT ${limit} OFFSET ${offset}`,
+        unionParams
+      );
+      rows = r;
+    }
 
     return NextResponse.json({
       success: true,
@@ -182,7 +310,7 @@ export async function PUT(request) {
   let connection;
   try {
     const body = await request.json();
-    const { id } = body;
+    const { id, _source } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -191,21 +319,22 @@ export async function PUT(request) {
       );
     }
 
-    const sets = UPDATE_FIELDS.map((f) => `${f}=?`).join(", ");
-    const values = UPDATE_FIELDS.map((f) =>
-      body[f] === undefined ? null : body[f]
-    );
+    // Route to the correct table. Default to the branded table for
+    // backward compatibility with any caller that omits _source.
+    const table = TABLES[_source] || TABLES.brand;
 
     connection = await db.getConnection();
 
-    // keep only columns that exist (youtube_url is optional)
-    const existing = await getPageColumns(connection);
-    const fields = UPDATE_FIELDS.filter((f) => existing.has(f));
-    const setSql = fields.map((f) => `${f}=?`).join(", ");
+    // Only write columns that actually exist on the chosen table.
+    const existing = await getColumns(connection, table);
+    const fields = CANDIDATE_UPDATE_FIELDS.filter((f) => existing.has(f));
+    const setSql = fields.map((f) => `\`${f}\`=?`).join(", ");
     const setVals = fields.map((f) => (body[f] === undefined ? null : body[f]));
 
+    const updatedClause = existing.has("updated_at") ? ", updated_at=NOW()" : "";
+
     await connection.query(
-      `UPDATE page_master_tb SET ${setSql}, updated_at=NOW() WHERE id=?`,
+      `UPDATE \`${table}\` SET ${setSql}${updatedClause} WHERE id=?`,
       [...setVals, id]
     );
 

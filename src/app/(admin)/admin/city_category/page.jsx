@@ -27,6 +27,11 @@ import {
 
 const fmtTs = (v) => (v ? new Date(v).toLocaleString("en-IN") : "—");
 
+// A row's id is only unique WITHIN its own table, so combine it with the
+// source table for React keys and edit routing.
+const rowUid = (pg) => `${pg._source || "brand"}-${pg.id}`;
+const isNoBrand = (row) => row?._source === "nobrand";
+
 function CityPicker({ valueLabel, onPick, onClear, placeholder = "Search city..." }) {
   const [q, setQ] = useState(valueLabel || "");
   const [open, setOpen] = useState(false);
@@ -116,6 +121,7 @@ export default function PageEditPage() {
   const [filterCity, setFilterCity] = useState(null); // { id, city_name }
   const [categoryId, setCategoryId] = useState("");
   const [brandId, setBrandId] = useState("");
+  const [source, setSource] = useState(""); // "" | "brand" | "nobrand"
 
   // lookups
   const [categories, setCategories] = useState([]);
@@ -128,6 +134,7 @@ export default function PageEditPage() {
 
   // edit + confirm
   const [editing, setEditing] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
   const [editTab, setEditTab] = useState("basic");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -173,6 +180,7 @@ export default function PageEditPage() {
         city_id: filterCity?.id ? String(filterCity.id) : "",
         category_id: categoryId,
         brand_id: brandId,
+        source,
         sortBy,
         sortDir,
       });
@@ -190,7 +198,7 @@ export default function PageEditPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, limit, search, status, filterCity, categoryId, brandId, sortBy, sortDir]);
+  }, [page, limit, search, status, filterCity, categoryId, brandId, source, sortBy, sortDir]);
 
   useEffect(() => {
     fetchPages();
@@ -212,15 +220,37 @@ export default function PageEditPage() {
     setFilterCity(null);
     setCategoryId("");
     setBrandId("");
+    setSource("");
     setSortBy("id");
     setSortDir("DESC");
     setPage(1);
   };
 
-  const openEdit = (pg) => {
+  // Open the modal, then pull the FULL row (page_content, SEO, FAQs …) from
+  // the server. The list row is trimmed, so editing it directly would show
+  // blank fields and could wipe real content on save.
+  const openEdit = async (pg) => {
     setEditTab("basic");
-    setEditing({ ...pg });
+    setEditing({ ...pg }); // instant: shows title/status while details load
+    setEditLoading(true);
+    try {
+      const src = pg._source || "brand";
+      const res = await fetch(
+        `/api/admin/edit_page?type=detail&id=${encodeURIComponent(pg.id)}&source=${src}`
+      );
+      const d = await res.json();
+      if (d.success && d.page) {
+        setEditing({ ...d.page, _source: src });
+      } else {
+        showToast(d.message || "Failed to load page details", "error");
+      }
+    } catch (e) {
+      showToast(e.message, "error");
+    } finally {
+      setEditLoading(false);
+    }
   };
+
   const setField = (field, value) => setEditing((p) => ({ ...p, [field]: value }));
 
   const doUpdate = async () => {
@@ -250,6 +280,9 @@ export default function PageEditPage() {
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
   const sortProps = { sortBy, sortDir, onSort: toggleSort };
+
+  const editingNoBrand = isNoBrand(editing);
+  const showingNoBrand = source === "nobrand";
 
   return (
     <div>
@@ -350,6 +383,19 @@ export default function PageEditPage() {
           </Select>
         </Field>
 
+        {/* Toggle: show only the without-brand city/category pages */}
+        <button
+          type="button"
+          className={`adm-btn ${showingNoBrand ? "adm-btn-primary" : ""}`}
+          onClick={() => {
+            setSource((s) => (s === "nobrand" ? "" : "nobrand"));
+            setPage(1);
+          }}
+          title="Show only pages that have no brand"
+        >
+          {showingNoBrand ? "Showing without-brand" : "Without-brand pages"}
+        </button>
+
         <Button onClick={clearFilters}>Clear</Button>
         <Link href="/admin/create_page" className="adm-btn adm-btn-primary">
           <Plus size={17} /> New page
@@ -381,7 +427,7 @@ export default function PageEditPage() {
                 />
               ) : (
                 pages.map((pg) => (
-                  <tr key={pg.id}>
+                  <tr key={rowUid(pg)}>
                     <td className="col-id">{pg.id}</td>
                     <td className="col-strong">
                       <span className="adm-truncate" style={{ display: "block" }}>
@@ -390,7 +436,26 @@ export default function PageEditPage() {
                     </td>
                     <td className="col-muted">{pg.city_name || <Dash />}</td>
                     <td className="col-muted">{pg.category_name || <Dash />}</td>
-                    <td className="col-muted">{pg.brand_name || <Dash />}</td>
+                    <td className="col-muted">
+                      {pg.brand_name ? (
+                        pg.brand_name
+                      ) : isNoBrand(pg) ? (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 600,
+                            padding: "2px 8px",
+                            borderRadius: 999,
+                            background: "#eef2ff",
+                            color: "#4f46e5",
+                          }}
+                        >
+                          No brand
+                        </span>
+                      ) : (
+                        <Dash />
+                      )}
+                    </td>
                     <td>
                       <StatusBadge status={pg.status} />
                     </td>
@@ -424,8 +489,12 @@ export default function PageEditPage() {
           footer={
             <>
               <Button onClick={() => setEditing(null)}>Cancel</Button>
-              <Button variant="primary" onClick={() => setConfirmOpen(true)}>
-                Save changes
+              <Button
+                variant="primary"
+                disabled={editLoading}
+                onClick={() => setConfirmOpen(true)}
+              >
+                {editLoading ? "Loading…" : "Save changes"}
               </Button>
             </>
           }
@@ -442,11 +511,20 @@ export default function PageEditPage() {
             onChange={setEditTab}
           />
 
+          {editLoading && (
+            <p className="adm-tabhint" style={{ marginTop: 8 }}>
+              Loading full page details…
+            </p>
+          )}
+
           {/* ── Basic Info ───────────────────────────────── */}
           {editTab === "basic" && (
             <div className="adm-formgrid adm-tabpanel">
               <Field label="ID (read-only)">
                 <ReadOnly value={editing.id} mono />
+              </Field>
+              <Field label="Source (read-only)">
+                <ReadOnly value={editingNoBrand ? "Without brand" : "With brand"} />
               </Field>
               <Field label="Status">
                 <Select value={String(editing.status)} onChange={(e) => setField("status", e.target.value)}>
@@ -460,15 +538,23 @@ export default function PageEditPage() {
               <Field label="Page URL" className="full">
                 <Input value={editing.page_url || ""} onChange={(e) => setField("page_url", e.target.value)} />
               </Field>
-              <Field label="YouTube URL" className="full">
-                <Input
-                  value={editing.youtube_url || ""}
-                  onChange={(e) => setField("youtube_url", e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=…"
-                />
-              </Field>
+              {!editingNoBrand && (
+                <Field label="YouTube URL" className="full">
+                  <Input
+                    value={editing.youtube_url || ""}
+                    onChange={(e) => setField("youtube_url", e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=…"
+                  />
+                </Field>
+              )}
               <Field label="Page content" className="full">
-                <TipTapEditorWithSEO content={editing.page_content || ""} onChange={(html) => setField("page_content", html)} />
+                {/* Re-mount when the loaded row changes so the editor picks up
+                    the fetched HTML instead of staying on the blank list row. */}
+                <TipTapEditorWithSEO
+                  key={`${editing._source || "brand"}-${editing.id}-${editLoading ? "load" : "ready"}`}
+                  content={editing.page_content || ""}
+                  onChange={(html) => setField("page_content", html)}
+                />
               </Field>
             </div>
           )}
@@ -485,6 +571,15 @@ export default function PageEditPage() {
               <Field label="Meta description" className="full">
                 <Textarea rows={3} value={editing.meta_description || ""} onChange={(e) => setField("meta_description", e.target.value)} />
               </Field>
+              {editingNoBrand && (
+                <Field label="Robots" className="full">
+                  <Input
+                    value={editing.robots || ""}
+                    onChange={(e) => setField("robots", e.target.value)}
+                    placeholder="index, follow"
+                  />
+                </Field>
+              )}
             </div>
           )}
 
@@ -507,16 +602,18 @@ export default function PageEditPage() {
                   ))}
                 </Select>
               </Field>
-              <Field label="Brand">
-                <Select value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
-                  <option value="">— none —</option>
-                  {brands.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.brand_name}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
+              {!editingNoBrand && (
+                <Field label="Brand">
+                  <Select value={String(editing.brand_id ?? "")} onChange={(e) => setField("brand_id", e.target.value)}>
+                    <option value="">— none —</option>
+                    {brands.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.brand_name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              )}
               <Field label="Service type">
                 {serviceTypes.length > 0 ? (
                   <Select
