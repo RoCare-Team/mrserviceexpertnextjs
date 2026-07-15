@@ -33,7 +33,7 @@ const json401 = () =>
     { status: 401, headers: { "content-type": "application/json" } }
   );
 
-export async function middleware(req) {
+export async function proxy(req) {
   const { pathname, search, origin } = req.nextUrl;
 
   /* ── 0. Protect the admin data APIs ────────────────────────── */
@@ -49,7 +49,6 @@ export async function middleware(req) {
     const session = await getSession(req);
 
     if (pathname === LOGIN_PATH) {
-      // already signed in? skip the login screen
       if (session) return NextResponse.redirect(new URL(ADMIN_PREFIX, req.url));
       return NextResponse.next();
     }
