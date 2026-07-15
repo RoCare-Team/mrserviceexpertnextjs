@@ -4,15 +4,21 @@ import db from "@/lib/db";
 const FAQ_FIELDS = [];
 for (let i = 1; i <= 5; i++) FAQ_FIELDS.push(`faqquestion${i}`, `faqanswer${i}`);
 
-const INSERT_FIELDS = [
+// The two page sources (same split as the edit_page route).
+//   brand   -> page_master_tb          (city + category + brand pages)
+//   nobrand -> master_tb_withoutbrand  (city + category pages, resolved
+//              live by city_id + category_id, NOT by page_url)
+const TABLES = {
+  brand: "page_master_tb",
+  nobrand: "master_tb_withoutbrand",
+};
+
+const COMMON_INSERT_FIELDS = [
   "page_title",
-  "page_url",
   "page_content",
-  "youtube_url",
   "status",
   "city_id",
   "category_id",
-  "brand_id",
   "service_type_id",
   "meta_title",
   "meta_keywords",
@@ -20,12 +26,19 @@ const INSERT_FIELDS = [
   ...FAQ_FIELDS,
 ];
 
-let _pageColumns = null;
-async function getPageColumns(connection) {
-  if (_pageColumns) return _pageColumns;
-  const [cols] = await connection.query(`SHOW COLUMNS FROM page_master_tb`);
-  _pageColumns = new Set(cols.map((c) => c.Field));
-  return _pageColumns;
+// Table-specific extras, intersected with each table's real columns:
+//   brand_id / youtube_url -> only page_master_tb
+//   robots                 -> only master_tb_withoutbrand
+const EXTRA_INSERT_FIELDS = ["brand_id", "youtube_url", "robots"];
+const CANDIDATE_INSERT_FIELDS = [...COMMON_INSERT_FIELDS, ...EXTRA_INSERT_FIELDS];
+
+const _colCache = new Map();
+async function getColumns(connection, table) {
+  if (_colCache.has(table)) return _colCache.get(table);
+  const [cols] = await connection.query(`SHOW COLUMNS FROM \`${table}\``);
+  const set = new Set(cols.map((c) => c.Field));
+  _colCache.set(table, set);
+  return set;
 }
 
 export async function GET(request) {
@@ -36,14 +49,36 @@ export async function GET(request) {
 
     connection = await db.getConnection();
 
-    // ---- real-time duplicate check on page_url ----
+    // ---- real-time duplicate check ----
+    // page_url is unused by the live routes (and empty in both tables), so
+    // duplicates are defined by the ID combination the live lookup uses:
+    //   brand   : city_id + category_id + brand_id in page_master_tb
+    //   nobrand : city_id + category_id            in master_tb_withoutbrand
     if (type === "check_duplicate") {
-      const value = (searchParams.get("value") || "").trim();
-      if (!value) return NextResponse.json({ success: true, exists: false });
+      const source = searchParams.get("source") === "nobrand" ? "nobrand" : "brand";
+      const cityId = (searchParams.get("city_id") || "").trim();
+      const categoryId = (searchParams.get("category_id") || "").trim();
+
+      if (source === "nobrand") {
+        if (!cityId || !categoryId)
+          return NextResponse.json({ success: true, exists: false });
+
+        const [rows] = await connection.query(
+          `SELECT id FROM master_tb_withoutbrand
+           WHERE city_id = ? AND category_id = ? LIMIT 1`,
+          [cityId, categoryId]
+        );
+        return NextResponse.json({ success: true, exists: rows.length > 0 });
+      }
+
+      const brandId = (searchParams.get("brand_id") || "").trim();
+      if (!cityId || !categoryId || !brandId)
+        return NextResponse.json({ success: true, exists: false });
 
       const [rows] = await connection.query(
-        `SELECT id FROM page_master_tb WHERE page_url = ? LIMIT 1`,
-        [value]
+        `SELECT id FROM page_master_tb
+         WHERE city_id = ? AND category_id = ? AND brand_id = ? LIMIT 1`,
+        [cityId, categoryId, brandId]
       );
       return NextResponse.json({ success: true, exists: rows.length > 0 });
     }
@@ -101,14 +136,22 @@ export async function POST(request) {
   let connection;
   try {
     const body = await request.json();
-    const { page_title, page_url } = body;
+    const { page_title } = body;
+
+    // "brand" (default) -> page_master_tb, "nobrand" -> master_tb_withoutbrand
+    const source = body._source === "nobrand" ? "nobrand" : "brand";
+    const table = TABLES[source];
 
     // --- Required field validation ---
+    // Live pages are resolved by IDs (page_url is unused), so the IDs are
+    // what's mandatory and the URL is always derived — never typed by hand.
     const errors = {};
     if (!page_title || !page_title.trim())
       errors.page_title = "Page title is required.";
-    if (!page_url || !page_url.trim())
-      errors.page_url = "Page URL is required.";
+    if (!body.city_id) errors.city_id = "City is required.";
+    if (!body.category_id) errors.category_id = "Category is required.";
+    if (source === "brand" && !body.brand_id)
+      errors.brand_id = "Brand is required for a branded page.";
 
     if (Object.keys(errors).length > 0) {
       return NextResponse.json(
@@ -117,41 +160,58 @@ export async function POST(request) {
       );
     }
 
-    const trimmedUrl = page_url.trim();
-
     connection = await db.getConnection();
 
-    // --- Duplicate check on page_url ---
-    const [dupRows] = await connection.query(
-      `SELECT id FROM page_master_tb WHERE page_url = ? LIMIT 1`,
-      [trimmedUrl]
-    );
-
-    if (dupRows.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Duplicate entry detected.",
-          errors: {
-            page_url: `This page URL already exists (ID: ${dupRows[0].id}).`,
-          },
-        },
-        { status: 409 }
+    // --- Duplicate check on the ID combination the live lookup uses ---
+    if (source === "brand") {
+      const [dupRows] = await connection.query(
+        `SELECT id FROM page_master_tb
+         WHERE city_id = ? AND category_id = ? AND brand_id = ? LIMIT 1`,
+        [body.city_id, body.category_id, body.brand_id]
       );
+      if (dupRows.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Duplicate entry detected.",
+            errors: {
+              brand_id: `A page for this city + category + brand already exists (ID: ${dupRows[0].id}).`,
+            },
+          },
+          { status: 409 }
+        );
+      }
+    } else {
+      const [dupRows] = await connection.query(
+        `SELECT id FROM master_tb_withoutbrand
+         WHERE city_id = ? AND category_id = ? LIMIT 1`,
+        [body.city_id, body.category_id]
+      );
+      if (dupRows.length > 0) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Duplicate entry detected.",
+            errors: {
+              city_id: `A without-brand page for this city + category already exists (ID: ${dupRows[0].id}).`,
+            },
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // --- Build insert from whitelisted fields that actually exist ---
-    const existing = await getPageColumns(connection);
-    const fields = INSERT_FIELDS.filter((f) => existing.has(f));
+    const existing = await getColumns(connection, table);
+    const fields = CANDIDATE_INSERT_FIELDS.filter((f) => existing.has(f));
     const values = fields.map((f) => {
-      if (f === "page_url") return trimmedUrl;
       if (f === "page_title") return page_title.trim();
       if (f === "status") return body[f] ?? "1";
       return body[f] !== undefined && body[f] !== "" ? body[f] : null;
     });
 
     const [result] = await connection.query(
-      `INSERT INTO page_master_tb (${fields.join(", ")}, created_at, updated_at)
+      `INSERT INTO \`${table}\` (${fields.join(", ")}, created_at, updated_at)
        VALUES (${fields.map(() => "?").join(", ")}, NOW(), NOW())`,
       values
     );
@@ -161,6 +221,7 @@ export async function POST(request) {
         success: true,
         message: "Page created successfully.",
         page_id: result.insertId,
+        _source: source,
       },
       { status: 201 }
     );
@@ -169,8 +230,7 @@ export async function POST(request) {
       return NextResponse.json(
         {
           success: false,
-          message: "A page with this URL already exists.",
-          errors: { page_url: "This page URL is already taken." },
+          message: "A page with this combination already exists.",
         },
         { status: 409 }
       );

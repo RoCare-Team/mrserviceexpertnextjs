@@ -19,7 +19,6 @@ import {
 
 const INITIAL = {
   page_title: "",
-  page_url: "",
   youtube_url: "",
   page_content: "",
   status: "1",
@@ -98,8 +97,9 @@ function CityPicker({ valueLabel, onPick, onClear }) {
 export default function CreatePage() {
   const router = useRouter();
   const [tab, setTab] = useState("basic");
+  // "brand" -> page_master_tb, "nobrand" -> master_tb_withoutbrand
+  const [pageType, setPageType] = useState("brand");
   const [form, setForm] = useState(INITIAL);
-  const [urlEdited, setUrlEdited] = useState(false);
   const [dupStatus, setDupStatus] = useState(null); // null | 'checking' | 'free' | 'taken'
 
   const [categories, setCategories] = useState([]);
@@ -122,34 +122,45 @@ export default function CreatePage() {
     fetch("/api/admin/create_page?type=service_types").then((r) => r.json()).then((d) => d.success && setServiceTypes(d.service_types || [])).catch(() => {});
   }, []);
 
-  const set = (field, value) =>
-    setForm((prev) => {
-      const next = { ...prev, [field]: value };
-      if (field === "page_title" && !urlEdited) {
-        next.page_url = value.toLowerCase().trim().replace(/[^a-z0-9\s/-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
-      }
-      return next;
-    });
+  const set = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
-  // live duplicate check on page_url
+  // live duplicate check on the ID combination the live lookup uses
   useEffect(() => {
     clearTimeout(dupTimer.current);
-    const url = form.page_url.trim();
-    if (!url) { setDupStatus(null); return; }
+
+    const ready =
+      form.city_id && form.category_id && (pageType === "nobrand" || form.brand_id);
+    if (!ready) { setDupStatus(null); return; }
+
+    const params = new URLSearchParams({
+      type: "check_duplicate",
+      source: pageType,
+      city_id: form.city_id,
+      category_id: form.category_id,
+    });
+    if (pageType === "brand") params.set("brand_id", form.brand_id);
+
     setDupStatus("checking");
     dupTimer.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/admin/create_page?type=check_duplicate&value=${encodeURIComponent(url)}`);
+        const res = await fetch(`/api/admin/create_page?${params.toString()}`);
         const d = await res.json();
         setDupStatus(d.exists ? "taken" : "free");
       } catch { setDupStatus(null); }
     }, 450);
-  }, [form.page_url]);
+  }, [pageType, form.city_id, form.category_id, form.brand_id]);
 
   const validate = () => {
     if (!form.page_title.trim()) { setTab("basic"); return "Page title is required."; }
-    if (!form.page_url.trim()) { setTab("basic"); return "Page URL is required."; }
-    if (dupStatus === "taken") { setTab("basic"); return "That page URL is already taken."; }
+    if (!form.city_id) { setTab("relations"); return "City is required."; }
+    if (!form.category_id) { setTab("relations"); return "Category is required."; }
+    if (pageType === "brand" && !form.brand_id) { setTab("relations"); return "Brand is required for a branded page."; }
+    if (dupStatus === "taken") {
+      setTab("relations");
+      return pageType === "nobrand"
+        ? "A without-brand page for this city + category already exists."
+        : "A page for this city + category + brand already exists.";
+    }
     return null;
   };
 
@@ -165,7 +176,11 @@ export default function CreatePage() {
       const res = await fetch("/api/admin/create_page", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          _source: pageType,
+          ...(pageType === "nobrand" ? { brand_id: "" } : {}),
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -173,7 +188,7 @@ export default function CreatePage() {
         setConfirmOpen(false);
         setTimeout(() => router.push("/admin/city_category"), 800);
       } else {
-        showToast(data.message || data.errors?.page_url || "Failed to create page.", "error");
+        showToast(Object.values(data.errors || {})[0] || data.message || "Failed to create page.", "error");
         setConfirmOpen(false);
       }
     } catch (e) {
@@ -196,7 +211,7 @@ export default function CreatePage() {
       <PageHead
         eyebrow="Catalogue"
         title="New City Page"
-        subtitle="Create a city & category landing page. Title and URL are required."
+        subtitle="Create a city & category landing page. Pick City + Category (+ Brand for branded pages)."
       />
 
       <section className="adm-card" style={{ padding: 22 }}>
@@ -204,21 +219,43 @@ export default function CreatePage() {
 
         {tab === "basic" && (
           <div className="adm-formgrid adm-tabpanel">
+            <Field label="Page type" className="full">
+              <Select
+                value={pageType}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setPageType(next);
+                  setDupStatus(null);
+                  if (next === "nobrand") setForm((p) => ({ ...p, brand_id: "" }));
+                }}
+              >
+                <option value="brand">With brand (page_master_tb)</option>
+                <option value="nobrand">Without brand (master_tb_withoutbrand)</option>
+              </Select>
+              <FieldNote>
+                {pageType === "nobrand"
+                  ? "Served at /{city}/{category} — resolved by City + Category."
+                  : "Served at /{city}/{brand}/{category} — resolved by City + Category + Brand."}
+              </FieldNote>
+            </Field>
             <Field label="Page title" className="full">
               <Input value={form.page_title} onChange={(e) => set("page_title", e.target.value)} placeholder="e.g. Washing Machine Service Hazaribagh" />
             </Field>
-            <Field label="Page URL" className="full">
-              <Input
-                value={form.page_url}
-                onChange={(e) => { setUrlEdited(true); set("page_url", e.target.value); }}
-                placeholder="e.g. hazaribagh/washing-machine-repair"
-              />
+            <Field label="Availability" className="full">
+              {dupStatus === null && (
+                <FieldNote>
+                  {pageType === "nobrand"
+                    ? "Pick a City and Category in the Relations tab to check availability."
+                    : "Pick a City, Category and Brand in the Relations tab to check availability."}
+                </FieldNote>
+              )}
               {dupStatus === "checking" && <FieldNote tone="checking">Checking availability…</FieldNote>}
-              {dupStatus === "free" && <FieldNote tone="ok">This URL is available.</FieldNote>}
-              {dupStatus === "taken" && <FieldNote tone="err">This URL is already taken.</FieldNote>}
+              {dupStatus === "free" && <FieldNote tone="ok">This combination is available.</FieldNote>}
+              {dupStatus === "taken" && <FieldNote tone="err">{pageType === "nobrand" ? "A without-brand page for this city + category already exists." : "A page for this city + category + brand already exists."}</FieldNote>}
             </Field>
             <Field label="YouTube URL" className="full">
-              <Input value={form.youtube_url} onChange={(e) => set("youtube_url", e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />
+              <Input value={form.youtube_url} disabled={pageType === "nobrand"} onChange={(e) => set("youtube_url", e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />
+              {pageType === "nobrand" && <FieldNote>Not available on without-brand pages.</FieldNote>}
             </Field>
             <Field label="Status">
               <Select value={form.status} onChange={(e) => set("status", e.target.value)}>
@@ -254,18 +291,23 @@ export default function CreatePage() {
                 onPick={(c) => setForm((p) => ({ ...p, city_id: c.id, city_name: c.city_name }))}
                 onClear={() => setForm((p) => ({ ...p, city_id: "", city_name: "" }))}
               />
+              {!form.city_id && <FieldNote tone="err">Required.</FieldNote>}
             </Field>
             <Field label="Category">
               <Select value={String(form.category_id)} onChange={(e) => set("category_id", e.target.value)}>
                 <option value="">— none —</option>
                 {categories.map((c) => (<option key={c.id} value={c.id}>{c.category_name}</option>))}
               </Select>
+              {!form.category_id && <FieldNote tone="err">Required.</FieldNote>}
             </Field>
             <Field label="Brand">
-              <Select value={String(form.brand_id)} onChange={(e) => set("brand_id", e.target.value)}>
+              <Select value={String(form.brand_id)} disabled={pageType === "nobrand"} onChange={(e) => set("brand_id", e.target.value)}>
                 <option value="">— none —</option>
                 {brands.map((b) => (<option key={b.id} value={b.id}>{b.brand_name}</option>))}
               </Select>
+              {pageType === "nobrand"
+                ? <FieldNote>Not applicable — this page goes to the without-brand table.</FieldNote>
+                : !form.brand_id && <FieldNote tone="err">Required for a branded page.</FieldNote>}
             </Field>
             <Field label="Service type">
               {serviceTypes.length > 0 ? (
@@ -306,7 +348,7 @@ export default function CreatePage() {
       {confirmOpen && (
         <ConfirmDialog
           title="Create this page?"
-          message={`"${form.page_title}" → /${form.page_url}`}
+          message={`"${form.page_title}" → ${form.city_name || "?"} + ${categories.find((c) => String(c.id) === String(form.category_id))?.category_name || "?"}${pageType === "brand" ? ` + ${brands.find((b) => String(b.id) === String(form.brand_id))?.brand_name || "?"}` : " (without brand)"}`}
           saving={saving}
           confirmLabel="Yes, create"
           onCancel={() => setConfirmOpen(false)}
