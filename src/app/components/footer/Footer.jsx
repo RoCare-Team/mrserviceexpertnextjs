@@ -77,7 +77,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">Contact Us</h3>
             <p className="text-sm leading-relaxed">
             Unit No. 831, 8th Floor, JMD Megapolis,
-            Sohna Road, Sector-48, Gurugram, Haryana 122018
+            Sohna Road, Sector-48, Gurugram, Haryana 122018.
             </p>
 
           </div>
