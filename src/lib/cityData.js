@@ -1,5 +1,6 @@
 // lib/cityData.js
 import db from "@/lib/db";
+import { getStoresByCityId } from "@/lib/storeLocatorData";
 
 const CITY_COLUMNS = `
   id, city_name, city_url, city_content, state, status,
@@ -81,9 +82,13 @@ export async function getCityByUrl(rawCityUrl) {
       [cityDetail.state, cityUrl]
     );
 
+    // Physical store branches to surface on this city page (may be empty).
+    const stores = await getStoresByCityId(cityDetail.id);
+
     return {
       // Top-level fields: <City> reads cityData.city_name, cityData.status, etc.
       ...cityDetail,
+      stores,
       // Force "1" so City renders the CITY layout (its `if status === "1"` branch).
       status: "1",
       type: "city",

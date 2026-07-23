@@ -9,6 +9,7 @@ import ServicesList from "@/app/components/service/ServicesList";
 import HomeCareService from "../../servicesSection/homeCareService";
 import Cart from "../../cart/Cart";
 import Popup from "@/app/components/popup"
+import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
 
 
 const City = ({ city, cityData }) => {
@@ -137,6 +138,9 @@ const City = ({ city, cityData }) => {
                         {/* <ServiceSection/> */}
                         <HomeCareService />
                     </div>
+
+                    <StoreLocator stores={cityData?.stores} city={cityData?.city_name} />
+
                     <div className="common-spacing">
                         <div className=" bg-white aboutStyle">
                             <h3 className="catgoreyTitle">ABOUT MR. SERVICE EXPERT {cityData.city_name}</h3>
