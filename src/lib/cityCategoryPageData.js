@@ -1,5 +1,6 @@
 
 import db from "@/lib/db";
+import { getStoresByCityId } from "@/lib/storeLocatorData";
 
 const normalize = (v = "") => v.toString().toLowerCase().trim();
 
@@ -57,6 +58,9 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
       [cityRow.state, city]
     );
 
+    // Physical store branches to surface on this city+category page (may be empty).
+    const stores = await getStoresByCityId(cityRow.id);
+
     return {
       // page_master_tb row → data.content.* (meta_*, page_content, faq*).
       // Falls back to the category's own content if no specific page row exists.
@@ -75,6 +79,7 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
       banner: catRow.banner,
       // The page filters this array by slugified category_name.
       category: [catRow],
+      stores,
       brands,
       related_cities: related.map((c) => ({
         id: c.id,

@@ -1,18 +1,20 @@
 import React from "react";
 
 /**
- * Store locator section for a city page.
+ * Store locator section for a city (or city + category) page.
  * Renders the physical Mr Service Expert branches linked to this city
- * (cityData.stores, populated by getStoresByCityId in lib/cityData.js).
+ * (stores, populated by getStoresByCityId in lib/storeLocatorData.js).
+ * Pass `category` on a city/category page to make the heading category-aware.
  */
-const StoreLocator = ({ stores = [], city = "" }) => {
+const StoreLocator = ({ stores = [], city = "", category = "" }) => {
   if (!stores || stores.length === 0) return null;
 
   return (
     <div className="common-spacing">
       <div className="bg-white aboutStyle">
         <h3 className="catgoreyTitle">
-          Mr. Service Expert Store{stores.length > 1 ? "s" : ""} in {city}
+          Mr. Service Expert {category ? `${category} ` : ""}Store
+          {stores.length > 1 ? "s" : ""} in {city}
         </h3>
 
         <div className="flex flex-wrap gap-4 mt-4">

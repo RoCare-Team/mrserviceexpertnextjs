@@ -4,6 +4,7 @@ import { faLocation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound, redirect } from "next/navigation";
 import { getCityCategoryPageData } from "@/lib/cityCategoryPageData";
+import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -104,6 +105,12 @@ export default async function Page({ params }) {
   return (
     <>
       <ServicePage pagedata={data} city={city} cat={cat} />
+
+      <StoreLocator
+        stores={data?.stores}
+        city={data?.city_name}
+        category={data?.category_name}
+      />
 
       {city === "bangalore" && cat == "ro-water-purifier" && (
         <div className="common-spacing ">
