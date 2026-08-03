@@ -12,6 +12,7 @@ import {
   Mail,
   ArrowUp,
 } from 'lucide-react';
+import Image from 'next/image';
 
 const quickLinks = [
   { label: 'Home', href: '/' },
@@ -62,11 +63,10 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Link href="/" className="inline-block text-2xl font-bold text-white">
-              Mr.<span className="text-purple-400"> Service</span> Expert
+             <Image src="/assets/images/serviceLogo.webp" alt="Mr Service Expert Logo" width={150} height={50} />
             </Link>
             <p className="mt-4 text-sm leading-relaxed text-gray-400">
-              Reliable home service experts for AC, RO, appliances and more —
-              trusted by thousands of customers across India.
+              Reliable home service experts for AC, RO, appliance repair, plumbing, plumbing work, and more-providing fast, affordable, and professional solutions trusted by thousands of happy customers across India.
             </p>
             <div className="mt-6 flex gap-3">
               {socialLinks.map(({ label, href, icon: Icon }) => (
