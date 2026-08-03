@@ -71,12 +71,10 @@ export const generateMetadata = async ({ params }) => {
       },
     };
   } catch (error) {
+    // DB/network failure — RETHROW so the build retries this page instead of
+    // shipping a prerendered noindex page for a real city (SEO poison).
     console.error("generateMetadata error:", error);
-    return {
-      title: `no Services in ${city}`,
-      description: `no Find services in ${city}`,
-      robots: "noindex, nofollow",
-    };
+    throw error;
   }
 };
 
@@ -90,16 +88,13 @@ export default async function Page({ params }) {
     redirect(`/${lowercaseCity}`);
   }
 
-  let data = null;
-  try {
-    data = await getPageByUrl(lowercaseCity);
-  } catch (error) {
-    // Only real DB/connection failures land here now.
-    console.error("Error fetching page:", error);
-  }
+  // No try/catch: a DB/connection failure must THROW, not fall through to
+  // notFound() — during `next build` a swallowed error here prerenders the
+  // city as a permanent 404. Throwing makes Next retry the page (3 attempts)
+  // and fail the build loudly if the DB is really down.
+  const data = await getPageByUrl(lowercaseCity);
 
-  // notFound() works by THROWING, so it must stay outside the try/catch above —
-  // otherwise the catch swallows it and logs a misleading error.
+  // Genuinely unknown slug → real 404.
   if (!data) {
     return notFound();
   }
