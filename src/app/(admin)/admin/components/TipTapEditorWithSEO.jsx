@@ -14,9 +14,11 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import { uploadImageToS3 } from '@/app/(admin)/admin/lib/imageUpload';
 import {
     Bold,
     Upload,
+    Loader2,
     Italic,
     Underline as UnderlineIcon,
     Strikethrough,
@@ -88,11 +90,15 @@ const CustomId = Extension.create({
 /* =========================================================
    IMAGE MODAL
    ========================================================= */
-const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
+const ImageModal = ({ isOpen, onClose, onSave, existingImage, storagePath = 'blogs' }) => {
     const [src, setSrc] = useState('');
     const [alt, setAlt] = useState('');
     const [title, setTitle] = useState('');
     const [uploadPreview, setUploadPreview] = useState(null);
+    const [isConverting, setIsConverting] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [uploadError, setUploadError] = useState('');
     const fileInputRef = useRef(null);
 
     React.useEffect(() => {
@@ -100,52 +106,88 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
             setSrc(existingImage?.src || '');
             setAlt(existingImage?.alt || '');
             setTitle(existingImage?.title || '');
-            setUploadPreview(null);
+            setUploadPreview(existingImage?.src || null);
+            setIsConverting(false);
+            setIsUploading(false);
+            setProgress(0);
+            setUploadError('');
         }
     }, [isOpen, existingImage]);
 
     if (!isOpen) return null;
 
-    const handleFileChange = (e) => {
-        const file = e.target.files?.[0];
+    const isBusy = isConverting || isUploading;
+
+    /**
+     * Upload straight to S3 and keep only the public URL in the document.
+     * Base64 data URLs must never end up in the content: they blow past the
+     * MySQL column size and TipTap drops them again when the saved HTML is
+     * re-parsed on page load.
+     */
+    const handleFile = async (file) => {
         if (!file) return;
 
         if (!file.type.startsWith('image/')) {
-            alert('Please select a valid image file');
+            setUploadError('Please select a valid image file');
             return;
         }
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image must be less than 5MB');
+        if (file.size > 10 * 1024 * 1024) {
+            setUploadError('Image must be less than 10MB');
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            setSrc(ev.target.result);
-            setUploadPreview(ev.target.result);
-        };
-        reader.readAsDataURL(file);
+        setUploadError('');
+        setProgress(0);
+
+        // Instant local preview while the real upload runs
+        const localPreview = URL.createObjectURL(file);
+        setUploadPreview(localPreview);
+
+        try {
+            setIsUploading(true);
+            const publicUrl = await uploadImageToS3(file, {
+                prefix: storagePath,
+                onConvert: setIsConverting,
+                onProgress: setProgress,
+            });
+            setSrc(publicUrl);
+            setUploadPreview(publicUrl);
+        } catch (err) {
+            console.error('Editor image upload failed:', err);
+            setUploadError(err.message || 'Upload failed. Please try again.');
+            setSrc('');
+            setUploadPreview(null);
+        } finally {
+            URL.revokeObjectURL(localPreview);
+            setIsUploading(false);
+            setIsConverting(false);
+        }
+    };
+
+    const handleFileChange = (e) => {
+        handleFile(e.target.files?.[0]);
+        // allow re-selecting the same file
+        e.target.value = '';
     };
 
     const handleDrop = (e) => {
         e.preventDefault();
-        const file = e.dataTransfer?.files?.[0];
-        if (file?.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setSrc(ev.target.result);
-                setUploadPreview(ev.target.result);
-            };
-            reader.readAsDataURL(file);
-        }
+        handleFile(e.dataTransfer?.files?.[0]);
     };
 
     const handleSave = () => {
+        if (isBusy) return;
         if (!src.trim()) {
-            alert('Please provide an image (upload or URL)');
+            setUploadError('Please provide an image (upload or URL)');
             return;
         }
-        onSave({ src, alt, title });
+        if (src.trim().startsWith('data:')) {
+            setUploadError(
+                'Base64 images cannot be saved. Please upload the file instead of pasting a data URL.'
+            );
+            return;
+        }
+        onSave({ src: src.trim(), alt, title });
         onClose();
     };
 
@@ -180,10 +222,29 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                         <div
                             onDrop={handleDrop}
                             onDragOver={(e) => e.preventDefault()}
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
+                            onClick={() => !isBusy && fileInputRef.current?.click()}
+                            className={`border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-colors ${isBusy
+                                ? 'pointer-events-none opacity-70'
+                                : 'cursor-pointer hover:border-blue-400 hover:bg-blue-50'
+                                }`}
                         >
-                            {uploadPreview ? (
+                            {isConverting ? (
+                                <div className="space-y-2">
+                                    <Loader2 className="w-8 h-8 text-purple-500 mx-auto animate-spin" />
+                                    <p className="text-sm text-gray-600 font-medium">Converting to WebP…</p>
+                                </div>
+                            ) : isUploading ? (
+                                <div className="space-y-2">
+                                    <Loader2 className="w-8 h-8 text-blue-500 mx-auto animate-spin" />
+                                    <div className="w-full max-w-xs mx-auto bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div
+                                            className="bg-blue-500 h-full transition-all duration-300"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-sm text-gray-600">Uploading to S3… {progress}%</p>
+                                </div>
+                            ) : uploadPreview ? (
                                 <div className="space-y-2">
                                     <img
                                         src={uploadPreview}
@@ -191,7 +252,7 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                                         className="max-h-32 mx-auto rounded object-contain"
                                     />
                                     <p className="text-xs text-green-600 font-medium">
-                                        ✓ Image loaded — you can still change it
+                                        ✓ Uploaded — you can still change it
                                     </p>
                                 </div>
                             ) : (
@@ -201,7 +262,10 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                                         Click to upload or drag & drop
                                     </p>
                                     <p className="text-xs text-gray-400">
-                                        PNG, JPG, WebP up to 5MB
+                                        PNG, JPG, WebP up to 10MB
+                                    </p>
+                                    <p className="text-xs text-green-600">
+                                        ✓ Auto-converts to WebP &amp; uploads to S3 /{storagePath}/
                                     </p>
                                 </div>
                             )}
@@ -213,6 +277,9 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                             className="hidden"
                             onChange={handleFileChange}
                         />
+                        {uploadError && (
+                            <p className="text-xs text-red-600 mt-2">{uploadError}</p>
+                        )}
                     </div>
 
                     {/* Divider */}
@@ -229,11 +296,13 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                         </label>
                         <input
                             type="url"
-                            value={uploadPreview ? '' : src}
+                            value={src}
                             onChange={(e) => {
                                 setSrc(e.target.value);
-                                setUploadPreview(null);
+                                setUploadPreview(e.target.value || null);
+                                setUploadError('');
                             }}
+                            disabled={isBusy}
                             placeholder="https://example.com/image.jpg"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                         />
@@ -310,9 +379,10 @@ const ImageModal = ({ isOpen, onClose, onSave, existingImage }) => {
                         <button
                             type="button"
                             onClick={handleSave}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm"
+                            disabled={isBusy}
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Insert Image
+                            {isBusy ? 'Uploading…' : 'Insert Image'}
                         </button>
                         <button
                             type="button"
@@ -619,7 +689,7 @@ const IdModal = ({ isOpen, onClose, onSave, onRemove, currentId, nodeType }) => 
 /* =========================================================
    MENU BAR
    ========================================================= */
-const MenuBar = ({ editor, onChange }) => {
+const MenuBar = ({ editor, onChange, storagePath = 'blogs' }) => {
     const [linkModalOpen, setLinkModalOpen] = useState(false);
     const [currentLink, setCurrentLink] = useState(null);
     const [imageModalOpen, setImageModalOpen] = useState(false);
@@ -1107,6 +1177,7 @@ const MenuBar = ({ editor, onChange }) => {
                 onClose={() => setImageModalOpen(false)}
                 onSave={handleSaveImage}
                 existingImage={existingImage}
+                storagePath={storagePath}
             />
             <IdModal
                 isOpen={idModalOpen}
@@ -1171,12 +1242,14 @@ const MenuBar = ({ editor, onChange }) => {
 /* =========================================================
    MAIN EDITOR
    ========================================================= */
-const TipTapEditorWithSEO = ({ content, onChange }) => {
+const TipTapEditorWithSEO = ({ content, onChange, storagePath = 'blogs' }) => {
     const editor = useEditor({
         extensions: [
             StarterKit,
             Underline,
-            Image,
+            // allowBase64 keeps legacy base64 images (saved before uploads went to S3)
+            // visible — without it TipTap silently drops them while parsing saved HTML.
+            Image.configure({ allowBase64: true }),
             Link.configure({
                 openOnClick: false,
                 autolink: false,
@@ -1227,7 +1300,7 @@ const TipTapEditorWithSEO = ({ content, onChange }) => {
 
     return (
         <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
-            <MenuBar editor={editor} onChange={onChange} />
+            <MenuBar editor={editor} onChange={onChange} storagePath={storagePath} />
             <EditorContent editor={editor} className="min-h-[300px] max-h-[500px] overflow-y-auto" />
 
             {/* Table Styling */}
