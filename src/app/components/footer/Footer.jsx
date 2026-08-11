@@ -125,7 +125,7 @@ export default function Footer() {
               <li className="flex gap-3">
                 <MapPin size={18} className="mt-0.5 shrink-0 text-purple-400" />
                 <span>
-                  Unit No. 831, 8th Floor, JMD Megapolis, Sohna Road,
+                  Unit No. 831, 8th Floor, JMD Megapolis, Sohna Rd,
                   Sector-48, Gurugram, Haryana 122018
                 </span>
               </li>
