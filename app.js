@@ -12,11 +12,7 @@ const handle = app.getRequestHandler();
 app.prepare().then(() => {
   createServer((req, res) => {
     handle(req, res);
-  }).listen(port, (err) => {
-    if (err) {
-      throw err;
-    }
-
+  }).listen(port, () => {
     console.log(`> Ready on port ${port}`);
   });
 });
