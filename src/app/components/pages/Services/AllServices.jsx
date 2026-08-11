@@ -2,6 +2,7 @@
 "use client"
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from "react";
+import { filterHiddenServices } from "@/lib/hiddenServices";
 
 
 const serviceL = [
@@ -95,7 +96,7 @@ const AllServices = (cater) => {
 
         if (data.error == 'false') {
           const grouped = {};
-          data.service_details.forEach(item => {
+          filterHiddenServices(data.service_details).forEach(item => {
             let baseName = item.service_name;
             if (/^AMC Plan/i.test(baseName)) {
               baseName = "AMC";

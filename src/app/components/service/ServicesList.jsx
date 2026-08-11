@@ -9,6 +9,7 @@ import { toast, ToastContainer } from "react-toastify";
 // import {  useParams } from "react-router-dom";
 import { useParams } from "next/navigation";
 import ServicesSkeleton from "./ServicesSkeleton";
+import { filterHiddenServices } from "@/lib/hiddenServices";
 
 const ServicesList = ({ cate, addedServices = [], state, handleCartLoading, cartLoaded }) => {
   //   const location = useLocation();
@@ -137,7 +138,7 @@ const ServicesList = ({ cate, addedServices = [], state, handleCartLoading, cart
         // console.log("Service Response:", data);
         // console.log(data.Title);
 
-        setServiceData(data.service_details);
+        setServiceData(filterHiddenServices(data.service_details));
         setCatergoryTitle(data.Title);
         setBrandName(cat);
 
