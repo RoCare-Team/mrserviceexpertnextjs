@@ -1,0 +1,9 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/hj3f8m4zmdju/repositories/mrserviceexpertnextjs/
+    - /bin/cp -R . $DEPLOYPATH
+    - cd $DEPLOYPATH && npm install
+    - cd $DEPLOYPATH && npm run build
+    - mkdir -p $DEPLOYPATH/tmp
+    - touch $DEPLOYPATH/tmp/restart.txt

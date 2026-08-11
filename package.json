@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1075.0",
@@ -33,23 +33,24 @@
     "@tiptap/extension-underline": "^3.27.1",
     "@tiptap/react": "^3.27.1",
     "@tiptap/starter-kit": "^3.27.1",
+    "@tailwindcss/postcss": "^4",
     "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "he": "^1.2.0",
     "lucide-react": "^0.563.0",
     "mysql2": "^3.22.5",
     "next": "^16.0.10",
+    "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.6.0",
     "react-router-dom": "^7.5.2",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "tailwindcss": "^4"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "15.3.1",
-    "tailwindcss": "^4"
+    "eslint-config-next": "^16.0.10"
   }
 }
