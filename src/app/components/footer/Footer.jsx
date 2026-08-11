@@ -126,7 +126,7 @@ export default function Footer() {
                 <MapPin size={18} className="mt-0.5 shrink-0 text-purple-400" />
                 <span>
                   Unit No. 831, 8th Floor, JMD Megapolis, Sohna Rd,
-                  Sector-48, Gurugram, Haryana 122018
+                  Sector-48, Gurugram, Haryana 122018.
                 </span>
               </li>
               <li className="flex items-center gap-3">
@@ -153,7 +153,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-gray-500">
-            <span>© {new Date().getFullYear()} Mr Service Expert</span>
+            <span>© {new Date().getFullYear()} Mr. Service Expert</span>
             {bottomLinks.map((link) => (
               <span key={link.label} className="flex items-center gap-x-2">
                 <span className="text-gray-700">|</span>
