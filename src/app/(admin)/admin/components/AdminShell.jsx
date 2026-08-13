@@ -12,6 +12,8 @@ import {
   Newspaper,
   Route,
   Store,
+  Sparkles,
+  Library,
   ShieldCheck,
   Search,
   Menu,
@@ -43,6 +45,14 @@ const NAV = [
     ],
   },
   {
+    label: "AI",
+    items: [
+      // exact: the library lives under this path and gets its own entry.
+      { href: "/admin/ai_content", icon: Sparkles, name: "AI Generator", exact: true },
+      { href: "/admin/ai_content/library", icon: Library, name: "AI Library" },
+    ],
+  },
+  {
     label: "System",
     items: [
       { href: "/admin/redirects", icon: Route, name: "Redirects" },
@@ -61,6 +71,8 @@ const TITLES = {
   "/admin/city_category": "Pages",
   "/admin/blogs": "Blogs",
   "/admin/blog-categories": "Blog Categories",
+  "/admin/ai_content": "AI Content Generator",
+  "/admin/ai_content/library": "AI Content Library",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",
 };
