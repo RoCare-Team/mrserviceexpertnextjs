@@ -31,10 +31,11 @@ function RepairView() {
   return (
     <Box
       sx={{
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        background: 'radial-gradient(760px 300px at 90% -10%, rgba(246,162,30,0.10), transparent 55%), linear-gradient(160deg, #FBFAFE 0%, #EFEAFB 100%)',
         borderRadius: '16px',
         padding: { xs: '20px 15px', md: '30px 30px' },
-        boxShadow: '0 10px 30px rgba(0,0,0,0.08)',
+        border: '1px solid var(--line, #E8E3F5)',
+        boxShadow: 'var(--shadow-md, 0 14px 30px -14px rgba(84,45,194,0.18))',
         overflow: 'hidden',
         position: 'relative',
         my: 5
@@ -48,7 +49,7 @@ function RepairView() {
         width: '200px',
         height: '200px',
         borderRadius: '50%',
-        background: 'rgba(71, 66, 124, 0.1)',
+        background: 'rgba(109, 42, 216, 0.08)',
         zIndex: 0
       }} />
 
@@ -59,7 +60,7 @@ function RepairView() {
         width: '250px',
         height: '250px',
         borderRadius: '50%',
-        background: 'rgba(71, 66, 124, 0.05)',
+        background: 'rgba(109, 42, 216, 0.05)',
         zIndex: 0
       }} />
 
@@ -71,7 +72,9 @@ function RepairView() {
             sx={{
               fontWeight: 700,
               fontSize: { xs: '26px', sm: '40px', md: '48px' },
-              color: '#47427C',
+              color: 'var(--ink, #1A1240)',
+              fontFamily: 'var(--font-display)',
+              letterSpacing: '-0.02em',
               marginBottom: '16px',
               position: 'relative',
               display: 'inline-block',
@@ -82,9 +85,9 @@ function RepairView() {
                 left: 0,
                 right: { xs: 0, md: 'auto' },
                 mx: { xs: 'auto', md: 0 },
-                width: '80px',
+                width: '46px',
                 height: '4px',
-                backgroundColor: '#47427C',
+                backgroundColor: 'var(--amber, #F6A21E)',
                 borderRadius: '2px'
               }
             }}
@@ -94,7 +97,7 @@ function RepairView() {
           <Typography
             variant="h6"
             sx={{
-              color: '#555',
+              color: 'var(--body-text, #48435F)',
               maxWidth: '800px',
               mx: { xs: 'auto', md: 0 },
               fontSize: { xs: '16px', md: '18px' }
@@ -127,12 +130,13 @@ function RepairView() {
                   justifyContent: { xs: 'flex-start', md: 'center', lg: 'center' },
                   flexDirection: 'column',
                   padding: '5px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                  border: '1px solid var(--line, #E8E3F5)',
+                  boxShadow: 'var(--shadow-sm, 0 1px 2px rgba(26,18,64,0.06))',
                   transition: 'all 0.3s ease',
                   '&:hover': {
                     transform: 'translateY(-8px)',
-                    boxShadow: '0 12px 24px rgba(71, 66, 124, 0.15)',
-                    border: '2px solid #47427C'
+                    boxShadow: 'var(--shadow-md, 0 14px 30px -14px rgba(84,45,194,0.2))',
+                    borderColor: 'var(--brand-400, #A180EB)'
                   }
                 }}
               >
@@ -164,15 +168,15 @@ function RepairView() {
           <Button
             onClick={handleToggleBrands}
             sx={{
-              backgroundColor: '#59168b',
+              background: 'var(--grad-brand, linear-gradient(180deg,#7B3FE4,#6323CC))',
               color: 'white',
               padding: '8px 16px',
               fontWeight: 500,
-              borderRadius: '12px',
-              border: '1px solid #3d3969',
+              borderRadius: '999px',
+              border: 'none',
+              boxShadow: 'var(--shadow-cta, 0 10px 22px -10px rgba(98,41,205,0.55))',
               '&:hover': {
-                backgroundColor: 'bluevoilet',
-                border:'white'
+                filter: 'brightness(1.07)'
               }
             }}
           >

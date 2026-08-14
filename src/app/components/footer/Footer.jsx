@@ -57,7 +57,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative bg-black text-gray-300">
+    <footer className="relative bg-[#140C33] text-[#B7B0D6] [background-image:radial-gradient(700px_280px_at_85%_-10%,rgba(109,42,216,0.22),transparent_60%)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
@@ -65,7 +65,7 @@ export default function Footer() {
             <Link href="/" className="inline-block text-2xl font-bold text-white">
              <Image src="/assets/images/serviceLogo.webp" alt="Mr Service Expert Logo" width={150} height={50} />
             </Link>
-            <p className="mt-4 text-sm leading-relaxed text-gray-400">
+            <p className="mt-4 text-sm leading-relaxed text-[#A79FCB]">
               Reliable home service experts for AC, RO, appliance repair, plumbing, plumbing work, and more-providing fast, affordable, and professional solutions trusted by thousands of happy customers across India.
             </p>
             <div className="mt-6 flex gap-3">
@@ -76,7 +76,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors hover:bg-purple-500"
+                  className="flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors hover:bg-purple-600"
                 >
                   <Icon size={16} />
                 </a>
@@ -92,7 +92,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-400 transition-colors hover:text-purple-400"
+                    className="text-sm text-[#A79FCB] transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -109,7 +109,7 @@ export default function Footer() {
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-gray-400 transition-colors hover:text-purple-400"
+                    className="text-sm text-[#A79FCB] transition-colors hover:text-white"
                   >
                     {link.label}
                   </Link>
@@ -121,25 +121,25 @@ export default function Footer() {
           {/* Contact */}
           <div>
             <h3 className="text-base font-semibold text-white">Contact Us</h3>
-            <ul className="mt-4 space-y-4 text-sm text-gray-400">
+            <ul className="mt-4 space-y-4 text-sm text-[#A79FCB]">
               <li className="flex gap-3">
-                <MapPin size={18} className="mt-0.5 shrink-0 text-purple-400" />
+                <MapPin size={18} className="mt-0.5 shrink-0 text-[#F6A21E]" />
                 <span>
                   Unit No. 831, 8th Floor, JMD Megapolis, Sohna Road,
                   Sector-48, Gurugram, Haryana 122018.
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone size={18} className="shrink-0 text-purple-400" />
-                <a href="tel:+919311587715" className="transition-colors hover:text-purple-400">
+                <Phone size={18} className="shrink-0 text-[#F6A21E]" />
+                <a href="tel:+919311587715" className="transition-colors hover:text-white">
                   +91-9311587715
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail size={18} className="shrink-0 text-purple-400" />
+                <Mail size={18} className="shrink-0 text-[#F6A21E]" />
                 <a
                   href="mailto:info@mrserviceexpert.com"
-                  className="transition-colors hover:text-purple-400"
+                  className="transition-colors hover:text-white"
                 >
                   info@mrserviceexpert.com
                 </a>
@@ -152,12 +152,12 @@ export default function Footer() {
       {/* Bottom bar */}
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-6">
-          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-gray-500">
+          <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-[#8078A8]">
             <span>© {new Date().getFullYear()} Mr. Service Expert</span>
             {bottomLinks.map((link) => (
               <span key={link.label} className="flex items-center gap-x-2">
-                <span className="text-gray-700">|</span>
-                <Link href={link.href} className="transition-colors hover:text-purple-400">
+                <span className="text-[#3A2F6B]">|</span>
+                <Link href={link.href} className="transition-colors hover:text-white">
                   {link.label}
                 </Link>
               </span>
@@ -171,7 +171,7 @@ export default function Footer() {
         type="button"
         onClick={scrollToTop}
         aria-label="Scroll to top"
-        className={`fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-gray-700 text-white shadow-lg transition-all duration-300 hover:bg-purple-500 ${
+        className={`fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-white shadow-lg transition-all duration-300 hover:bg-purple-500 hover:-translate-y-0.5 ${
           showScrollTop ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >

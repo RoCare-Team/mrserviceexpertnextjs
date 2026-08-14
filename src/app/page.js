@@ -385,14 +385,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             </p>
             <p>
               <strong>Call Us:</strong>{' '}
-              <a href="tel:+919311587715" style={{ color: '#007bff', textDecoration: 'underline' }}>+91-9311587715</a>
+              <a href="tel:+919311587715">+91-9311587715</a>
               <br />
               <strong>Book Online:</strong>{' '}
               <a
                 href="https://www.mrserviceexpert.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: '#007bff', textDecoration: 'underline' }}
               >
                 www.mrserviceexpert.com
               </a>

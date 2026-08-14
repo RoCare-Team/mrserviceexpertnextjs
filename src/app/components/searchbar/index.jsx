@@ -10,14 +10,14 @@ const SearchBarWrapper = styled('div')({
   alignItems: 'center',
   padding: '10px',
   borderRadius: '50px',
-  border: '1px solid #7A7A7A',
+  border: '1px solid var(--line-strong, #D8CFF0)',
   backgroundColor: '#fff',
   width: 'fit-content',
   '&:hover': {
-    borderColor: '#220A33',
+    borderColor: 'var(--brand-500, #8455E1)',
   },
   '& .Mui-focused': {
-    borderColor: '#220A33',
+    borderColor: 'var(--brand-500, #8455E1)',
   },
 });
 
@@ -55,7 +55,7 @@ const SuggestionsContainer = styled(Box)({
 const CategoryHeading = styled(Typography)({
   padding: '8px 16px',
   fontWeight: 600,
-  color: '#7A7A7A',
+  color: 'var(--muted, #6F6A8E)',
   fontSize: '14px',
 });
 

@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import "@fontsource-variable/bricolage-grotesque";
 import "./globals.css";
 import SiteChrome from "./components/SiteChrome";
 const geistSans = Geist({

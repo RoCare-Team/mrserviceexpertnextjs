@@ -180,8 +180,12 @@ export default function Header() {
         position="sticky"
         sx={{
           top: '0px',
-          backgroundColor: "rgb(197, 180, 245)",
-          color: "#000",
+          backgroundColor: "rgba(255, 255, 255, 0.86)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          color: "var(--ink, #1A1240)",
+          borderBottom: "1px solid var(--line, #E8E3F5)",
+          boxShadow: "0 1px 2px rgba(26, 18, 64, 0.05)",
           padding: { xs: "0 10px", md: "0 50px" },
           zIndex: 10,
         }}
@@ -226,8 +230,15 @@ export default function Header() {
             <Link href='/ro-water-purifier' title="ro water purifier services">
               <Button
                 title="Services"
-                style={{ color: 'white' }}
-                sx={{ textTransform: "none", fontSize: "16px" }}
+                style={{ color: 'var(--ink, #1A1240)' }}
+                sx={{
+                  textTransform: "none",
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  borderRadius: "999px",
+                  px: 1.8,
+                  "&:hover": { backgroundColor: "var(--brand-50, #F6F3FE)", color: "var(--brand-700, #591FB4)" },
+                }}
               >
                 Service
               </Button>
@@ -255,14 +266,15 @@ export default function Header() {
                   ref={popupRef}
                   style={{
                     position: 'absolute',
-                    top: '40px',
+                    top: '42px',
                     right: '0',
                     backgroundColor: 'white',
-                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
-                    borderRadius: '4px',
+                    border: '1px solid var(--line, #E8E3F5)',
+                    boxShadow: 'var(--shadow-lg, 0 12px 32px rgba(26,18,64,0.14))',
+                    borderRadius: '14px',
                     padding: '10px',
                     zIndex: 10,
-                    minWidth: '130px'
+                    minWidth: '150px'
                   }}
                 >
                   <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
@@ -428,7 +440,7 @@ export default function Header() {
               borderRadius: '16px',
               transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: '#f8f9ff',
+                backgroundColor: 'var(--brand-50, #F6F3FE)',
                 transform: 'scale(1.05)',
               },
             }}
@@ -438,7 +450,7 @@ export default function Header() {
                 width: '28px',
                 height: '28px',
                 borderRadius: '50%',
-                backgroundColor: '#4f46e5',
+                backgroundColor: 'var(--brand-600, #6D2AD8)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -454,7 +466,7 @@ export default function Header() {
               sx={{
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#374151',
+                color: 'var(--ink-soft, #3B3462)',
                 textAlign: 'center',
               }}
             >
@@ -474,7 +486,7 @@ export default function Header() {
               transition: 'all 0.3s ease',
               position: 'relative',
               '&:hover': {
-                backgroundColor: '#f0fdf4',
+                backgroundColor: 'var(--brand-50, #F6F3FE)',
                 transform: 'scale(1.05)',
               },
             }}
@@ -484,7 +496,7 @@ export default function Header() {
                 width: '28px',
                 height: '28px',
                 borderRadius: '50%',
-                backgroundColor: '#10b981',
+                backgroundColor: 'var(--brand-600, #6D2AD8)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -500,7 +512,7 @@ export default function Header() {
               sx={{
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#374151',
+                color: 'var(--ink-soft, #3B3462)',
                 textAlign: 'center',
 
               }}
@@ -529,7 +541,7 @@ export default function Header() {
                   borderRadius: '16px',
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    backgroundColor: '#fff7ed',
+                    backgroundColor: 'var(--brand-50, #F6F3FE)',
                     transform: 'scale(1.05)',
                   },
                 }}
@@ -539,7 +551,7 @@ export default function Header() {
                     width: '28px',
                     height: '28px',
                     borderRadius: '50%',
-                    backgroundColor: '#f59e0b',
+                    backgroundColor: 'var(--brand-600, #6D2AD8)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -556,7 +568,7 @@ export default function Header() {
                   sx={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#374151',
+                    color: 'var(--ink-soft, #3B3462)',
                     textAlign: 'center',
                   }}
 
@@ -576,7 +588,7 @@ export default function Header() {
                   borderRadius: '16px',
                   transition: 'all 0.3s ease',
                   '&:hover': {
-                    backgroundColor: '#fdf2f8',
+                    backgroundColor: 'var(--brand-50, #F6F3FE)',
                     transform: 'scale(1.05)',
                   },
                 }}
@@ -586,7 +598,7 @@ export default function Header() {
                     width: '28px',
                     height: '28px',
                     borderRadius: '50%',
-                    backgroundColor: '#ec4899',
+                    backgroundColor: 'var(--brand-600, #6D2AD8)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -602,7 +614,7 @@ export default function Header() {
                   sx={{
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#374151',
+                    color: 'var(--ink-soft, #3B3462)',
                     textAlign: 'center',
                   }}
                 >
@@ -622,7 +634,7 @@ export default function Header() {
                 borderRadius: '16px',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  backgroundColor: '#f0f9ff',
+                  backgroundColor: 'var(--brand-50, #F6F3FE)',
                   transform: 'scale(1.05)',
                 },
               }}
@@ -632,7 +644,7 @@ export default function Header() {
                   width: '28px',
                   height: '28px',
                   borderRadius: '50%',
-                  backgroundColor: '#0ea5e9',
+                  backgroundColor: 'var(--brand-600, #6D2AD8)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -648,7 +660,7 @@ export default function Header() {
                 sx={{
                   fontSize: '12px',
                   fontWeight: 600,
-                  color: '#374151',
+                  color: 'var(--ink-soft, #3B3462)',
                   textAlign: 'center',
                 }}
               >
