@@ -7,10 +7,21 @@ import Cart from "@/app/components/cart/Cart";
 import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Popup from "@/app/components/popup";
+import AiContent from "@/app/components/aiContent/AiContent";
 
 
-export default function ServicePage({ city, brand, cat, pagedata }) {
+export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
   const [openItem, setOpenItem] = useState(0)
+
+  // Heading for the AI copy card, e.g. "Kent RO Water Purifier Service in Delhi".
+  const aiContentHeading = [
+    pagedata?.brandname,
+    (pagedata?.categoryname || cat?.replace(/-/g, " ") || "").replace(/\s*services?\s*$/i, "").trim(),
+    "Service in",
+    pagedata?.cityname || city,
+  ]
+    .filter(Boolean)
+    .join(" ");
   // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
@@ -208,6 +219,11 @@ export default function ServicePage({ city, brand, cat, pagedata }) {
                 addedServices={addedServices}
                 cate={cat}
                 state={cartChanged}
+              />
+
+              <AiContent
+                html={aiContent?.html}
+                title={aiContentHeading}
               />
             </div>
             <div className="lg:w-5/12 cartContainer">

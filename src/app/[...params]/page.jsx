@@ -3,6 +3,7 @@
 import ServicePage from "@/app/components/pages/Services/brands";
 import { notFound } from "next/navigation";
 import { getBrandPageData } from "@/lib/brandPageData";
+import { getPublicAiContent } from "@/lib/aiContent";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -78,5 +79,17 @@ export default async function Page({ params }) {
     return notFound();
   }
 
-  return <ServicePage city={city} brand={brand} pagedata={data} cat={cat} />;
+  // AI-generated copy for this exact URL. null when none has been generated,
+  // so the page renders no AI block at all.
+  const aiContent = await getPublicAiContent(`${city}/${brand}/${cat}`);
+
+  return (
+    <ServicePage
+      city={city}
+      brand={brand}
+      pagedata={data}
+      cat={cat}
+      aiContent={aiContent}
+    />
+  );
 }

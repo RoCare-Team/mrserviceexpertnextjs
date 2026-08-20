@@ -8,9 +8,10 @@ import Assurance from "../../Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Image from "next/image";
 import Popup from "@/app/components/popup"
+import AiContent from "@/app/components/aiContent/AiContent";
 
 
-export default function ServicePage({ pagedata, city, cat }) {
+export default function ServicePage({ pagedata, city, cat, aiContent }) {
   const [openItem, setOpenItem] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   // const [pagedata, setData] = useState("");
@@ -23,6 +24,11 @@ export default function ServicePage({ pagedata, city, cat }) {
     const [showPopup, setShowPopup] = useState(false);
   const ifAcSchema = cat === 'ac';
   const ifRoSChema = cat === 'ro-water-purifier';
+
+  // Heading for the AI copy card, e.g. "RO Water Purifier Service in Delhi".
+  const aiContentHeading = `${(pagedata?.category_name || cat?.replace(/-/g, " ") || "")
+    .replace(/\s*services?\s*$/i, "")
+    .trim()} Service in ${pagedata?.city_name || city}`;
 
 
 
@@ -172,7 +178,7 @@ export default function ServicePage({ pagedata, city, cat }) {
     }
   }, [selectedServices]);
 
-  
+  // console.log("ServicePage :", pagedata);
 
 
   // Debug logging
@@ -435,7 +441,8 @@ export default function ServicePage({ pagedata, city, cat }) {
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
-              <h1 className="cityHeadings font-bold">{`Get best ${pagedata.category_name?.replace("Service", "")} Service in ${pagedata.city_name}`}</h1>
+              <h1 className="cityHeadings font-bold">{`${pagedata.category_name?.replace("Service", "")} Repair Service in ${pagedata.city_name} from Expert Technician`}</h1>
+              {/* <h1 className="cityHeadings font-bold">{pagedata.content.meta_title}</h1> */}
 
               <Tabs />
             </div>
@@ -486,6 +493,11 @@ export default function ServicePage({ pagedata, city, cat }) {
                   addedServices={addedServices}
                   state={cartChanged}
 
+                />
+
+                <AiContent
+                  html={aiContent?.html}
+                  title={aiContentHeading}
                 />
               </div>
               <div className="lg:w-5/12 cartContainer">

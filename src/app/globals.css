@@ -2803,3 +2803,69 @@ hr {
     font-size: 1.3rem;
   }
 }
+
+/* ---------------- AI generated page copy (ai_content) ---------------- */
+.aiContentCard {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+  margin: 14px 0;
+}
+
+.aiContentTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.aiContentBody {
+  color: var(--body-text);
+  line-height: 1.7;
+  position: relative;
+  max-height: 150px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+}
+
+.aiContentBody.is-open {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.aiContentBody h2,
+.aiContentBody h3 {
+  text-align: left;
+  font-size: 17px;
+  margin-top: 6px;
+}
+
+.aiContentBody ul,
+.aiContentBody ol {
+  list-style: disc;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.aiContentToggle {
+  margin-top: 14px;
+  padding: 7px 18px;
+  border: 1px solid var(--brand-300);
+  border-radius: 999px;
+  color: var(--brand-700);
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--surface);
+  transition: background-color var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+
+.aiContentToggle:hover {
+  background: var(--brand-50);
+}
