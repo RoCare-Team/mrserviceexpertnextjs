@@ -9,6 +9,7 @@ import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Image from "next/image";
 import Popup from "@/app/components/popup"
 import AiContent from "@/app/components/aiContent/AiContent";
+import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 
 
 export default function ServicePage({ pagedata, city, cat, aiContent }) {
@@ -809,7 +810,11 @@ export default function ServicePage({ pagedata, city, cat, aiContent }) {
           <div className=" bg-white aboutStyle">
             <h3 className="catgoreyTitle">About Mr. Service Expert {pagedata.city_name}</h3>
     
-  <div dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }} className="serviceContentStyle" /></div>
+            <CollapsibleHtml
+              html={pagedata?.content?.page_content}
+              className="serviceContentStyle"
+            />
+          </div>
         </div>
         )}
 

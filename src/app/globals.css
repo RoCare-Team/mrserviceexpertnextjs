@@ -2804,6 +2804,41 @@ hr {
   }
 }
 
+/* ---------------- Collapsible long-form copy ----------------
+   The full HTML always stays in the DOM — only its height is clamped — so
+   crawlers still read every word while readers see 3-4 lines until they
+   click "Show more". */
+.collapsibleHtml {
+  position: relative;
+  max-height: 6.4em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+}
+
+.collapsibleHtml.is-open {
+  max-height: none;
+  overflow: visible;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.collapsibleToggle {
+  margin-top: 14px;
+  padding: 7px 18px;
+  border: 1px solid var(--brand-300);
+  border-radius: 999px;
+  color: var(--brand-700);
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--surface);
+  transition: background-color var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+
+.collapsibleToggle:hover {
+  background: var(--brand-50);
+}
+
 /* ---------------- AI generated page copy (ai_content) ---------------- */
 .aiContentCard {
   background: var(--surface);
@@ -2824,18 +2859,6 @@ hr {
 .aiContentBody {
   color: var(--body-text);
   line-height: 1.7;
-  position: relative;
-  max-height: 150px;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-}
-
-.aiContentBody.is-open {
-  max-height: none;
-  overflow: visible;
-  -webkit-mask-image: none;
-  mask-image: none;
 }
 
 .aiContentBody h2,
@@ -2852,20 +2875,4 @@ hr {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.aiContentToggle {
-  margin-top: 14px;
-  padding: 7px 18px;
-  border: 1px solid var(--brand-300);
-  border-radius: 999px;
-  color: var(--brand-700);
-  font-weight: 600;
-  font-size: 14px;
-  background: var(--surface);
-  transition: background-color var(--fast) var(--ease), color var(--fast) var(--ease);
-}
-
-.aiContentToggle:hover {
-  background: var(--brand-50);
 }

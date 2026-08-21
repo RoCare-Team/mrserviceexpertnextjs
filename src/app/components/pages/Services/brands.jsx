@@ -8,6 +8,7 @@ import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Popup from "@/app/components/popup";
 import AiContent from "@/app/components/aiContent/AiContent";
+import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 
 
 export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
@@ -389,10 +390,10 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
       <div className="common-spacing">
         <div className=" bg-white aboutStyle">
           <h3 className="catgoreyTitle">ABOUT {pagedata?.categoryname} ({pagedata.brandname})</h3>
-          <div
+          <CollapsibleHtml
+            html={pagedata?.content?.page_content}
             className="serviceContentStyle"
-            dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }}
-          ></div>
+          />
 
           {/* <p className="catgoreyContent">{cityData?.categorydetail?.category_content}</p> */}
         </div>
