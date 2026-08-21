@@ -491,6 +491,47 @@ export async function getAiRowBySlug(slug) {
   return rows[0] || null;
 }
 
+/**
+ * PUBLIC read used by the live pages.
+ *
+ * Returns the newest kept version of the generated copy for a slug/URL, or
+ * null when that URL has no ai_content row (or the row has every version
+ * deleted) — callers render nothing in that case, so /delhi/ro-water-purifier
+ * can show AI copy while /mumbai/ro-water-purifier shows none.
+ *
+ * Deliberately does NOT go through getAiColumns(): a page render must not run
+ * CREATE TABLE / SHOW COLUMNS. The contentN columns are read off the row that
+ * came back, and any DB error (missing table on a fresh install, connection
+ * blip) resolves to null instead of breaking the page.
+ */
+export async function getPublicAiContent(slugOrUrl) {
+  const parsed = normalizeUrl(slugOrUrl);
+  if (!parsed) return null;
+
+  try {
+    const [rows] = await db.query(
+      `SELECT * FROM ai_content WHERE slug = ? LIMIT 1`,
+      [parsed.slug]
+    );
+    const row = rows[0];
+    if (!row) return null;
+
+    const latest = Object.keys(row)
+      .filter((k) => /^content\d+$/.test(k) && isFilled(row[k]))
+      .sort((a, b) => Number(b.slice(7)) - Number(a.slice(7)))[0];
+    if (!latest) return null;
+
+    return {
+      version: Number(latest.slice(7)),
+      html: row[latest],
+      updatedAt: row.updated_at || row.date || null,
+    };
+  } catch (e) {
+    console.error("getPublicAiContent failed:", e?.message || e);
+    return null;
+  }
+}
+
 /** Highest used version number on a row (0 when the row has no content yet). */
 export function highestVersion(row, cols) {
   if (!row) return 0;

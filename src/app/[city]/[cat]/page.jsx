@@ -4,6 +4,7 @@ import { faLocation } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound, redirect } from "next/navigation";
 import { getCityCategoryPageData } from "@/lib/cityCategoryPageData";
+import { getPublicAiContent } from "@/lib/aiContent";
 import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
@@ -73,6 +74,10 @@ export default async function Page({ params }) {
     return notFound();
   }
 
+  // AI-generated copy for this exact URL. null when none has been generated,
+  // so the page renders no AI block at all.
+  const aiContent = await getPublicAiContent(`${city}/${cat}`);
+
   // Filter only matching category
   const matchedCategory = data?.category?.filter(
     (catItem) =>
@@ -104,7 +109,7 @@ export default async function Page({ params }) {
 
   return (
     <>
-      <ServicePage pagedata={data} city={city} cat={cat} />
+      <ServicePage pagedata={data} city={city} cat={cat} aiContent={aiContent} />
 
       <StoreLocator
         stores={data?.stores}

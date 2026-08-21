@@ -7,10 +7,22 @@ import Cart from "@/app/components/cart/Cart";
 import Assurance from "@/app/components/Assurance/Assurance";
 import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Popup from "@/app/components/popup";
+import AiContent from "@/app/components/aiContent/AiContent";
+import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 
 
-export default function ServicePage({ city, brand, cat, pagedata }) {
+export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
   const [openItem, setOpenItem] = useState(0)
+
+  // Heading for the AI copy card, e.g. "Kent RO Water Purifier Service in Delhi".
+  const aiContentHeading = [
+    pagedata?.brandname,
+    (pagedata?.categoryname || cat?.replace(/-/g, " ") || "").replace(/\s*services?\s*$/i, "").trim(),
+    "Service in",
+    pagedata?.cityname || city,
+  ]
+    .filter(Boolean)
+    .join(" ");
   // const [pagedata, setData] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [addedServices, setAddedServices] = useState([]);
@@ -209,6 +221,11 @@ export default function ServicePage({ city, brand, cat, pagedata }) {
                 cate={cat}
                 state={cartChanged}
               />
+
+              <AiContent
+                html={aiContent?.html}
+                title={aiContentHeading}
+              />
             </div>
             <div className="lg:w-5/12 cartContainer">
               <div className="cart-body-section">
@@ -373,10 +390,10 @@ export default function ServicePage({ city, brand, cat, pagedata }) {
       <div className="common-spacing">
         <div className=" bg-white aboutStyle">
           <h3 className="catgoreyTitle">ABOUT {pagedata?.categoryname} ({pagedata.brandname})</h3>
-          <div
+          <CollapsibleHtml
+            html={pagedata?.content?.page_content}
             className="serviceContentStyle"
-            dangerouslySetInnerHTML={{ __html: pagedata?.content?.page_content }}
-          ></div>
+          />
 
           {/* <p className="catgoreyContent">{cityData?.categorydetail?.category_content}</p> */}
         </div>
