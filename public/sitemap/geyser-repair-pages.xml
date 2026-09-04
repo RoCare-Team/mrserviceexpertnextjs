@@ -270,7 +270,7 @@
 <priority>0.8</priority>
 </url>
 <url>
-<loc>https://www.mrserviceexpert.com/dakshinpuri /geyser-repair</loc>
+<loc>https://www.mrserviceexpert.com/dakshinpuri/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.8</priority>
 </url>
@@ -780,11 +780,6 @@
 <priority>0.7</priority>
 </url>
 <url>
-<loc>https://www.mrserviceexpert.com/guwahati/geyser-repair</loc>
-<changefreq>weekly</changefreq>
-<priority>0.7</priority>
-</url>
-<url>
 <loc>https://www.mrserviceexpert.com/hailakandi/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
@@ -1071,11 +1066,6 @@
 </url>
 <url>
 <loc>https://www.mrserviceexpert.com/nawada/geyser-repair</loc>
-<changefreq>weekly</changefreq>
-<priority>0.7</priority>
-</url>
-<url>
-<loc>https://www.mrserviceexpert.com/patna/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -2930,7 +2920,6 @@
 <priority>0.7</priority>
 </url>
 <url>
-<url>
 <loc>https://www.mrserviceexpert.com/khandwa/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
@@ -3917,11 +3906,6 @@
 </url>
 <url>
 <loc>https://www.mrserviceexpert.com/burla/geyser-repair</loc>
-<changefreq>weekly</changefreq>
-<priority>0.7</priority>
-</url>
-<url>
-<loc>https://www.mrserviceexpert.com/byasanagar/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
@@ -6692,11 +6676,6 @@
 </url>
 <url>
 <loc>https://www.mrserviceexpert.com/khatamba/geyser-repair</loc>
-<changefreq>weekly</changefreq>
-<priority>0.7</priority>
-</url>
-<url>
-<loc>https://www.mrserviceexpert.com/jamugurihat/geyser-repair</loc>
 <changefreq>weekly</changefreq>
 <priority>0.7</priority>
 </url>
