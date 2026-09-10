@@ -53,6 +53,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
-    "eslint-config-next": "^16.0.10"
+    "eslint-config-next": "^16.0.10",
+    "exceljs": "^4.4.0"
   }
 }

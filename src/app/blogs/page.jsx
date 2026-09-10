@@ -3,7 +3,8 @@ import { Search, User, Calendar, ArrowRight, FileText, Layers } from "lucide-rea
 import { listPublishedBlogs, listBlogCategories } from "@/lib/blogs";
 
 export const metadata = {
-  title: "Blog — Home Appliance Care, Repair Tips & Guides",
+  // Branding is spelled out here because the root layout no longer appends it.
+  title: "Blog — Home Appliance Care, Repair Tips & Guides | Mr. Service Expert",
   description:
     "Practical guides, maintenance tips and service know-how for ACs, water purifiers, refrigerators and home appliances from the Mr. Service Expert team.",
   alternates: { canonical: "https://www.mrserviceexpert.com/blogs" },

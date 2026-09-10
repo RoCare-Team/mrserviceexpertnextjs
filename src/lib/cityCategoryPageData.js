@@ -40,10 +40,13 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
       [cityRow.id, catRow.id]
     ),
     // Brands available in this category → "Popular Brand" section.
+    // status='0' switches a brand off site-wide without deleting it, the same
+    // way the admin page/brand pickers already read the column.
     db.query(
       `SELECT id, brand_name, brand_url, category_id
          FROM brand_tb
         WHERE category_id = ?
+          AND status = '1'
           AND brand_url IS NOT NULL AND brand_url <> ''
         ORDER BY brand_name ASC`,
       [catRow.id]

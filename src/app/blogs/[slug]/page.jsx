@@ -25,14 +25,29 @@ function readingTime(html = "") {
   return Math.max(1, Math.round(words / 200));
 }
 
+const BRAND = "Mr. Service Expert";
+
+/**
+ * Blog titles come from the editor as bare headlines ("How to Clean Your AC
+ * Filter"), so they are the one place on the site that still wants the brand
+ * appended — the root layout stopped doing it for everyone. Titles that already
+ * name the brand are left alone rather than saying it twice.
+ */
+const withBrand = (title) => {
+  const t = (title || "").trim();
+  if (!t) return BRAND;
+  return /mr\.?\s*service\s*expert/i.test(t) ? t : `${t} | ${BRAND}`;
+};
+
 export async function generateMetadata({ params }) {
   const { slug } = await params;
   const blog = await getPublishedBlogBySlug(slug);
   if (!blog) {
-    return { title: "Blog not found | Mr. Service Expert", robots: "noindex, nofollow" };
+    return { title: `Blog not found | ${BRAND}`, robots: "noindex, nofollow" };
   }
+  const title = withBrand(blog.meta_title || blog.title);
   return {
-    title: blog.meta_title || blog.title,
+    title,
     description: blog.meta_description || "",
     keywords: blog.meta_keywords || "",
     robots: blog.robots || "index, follow",
@@ -40,7 +55,7 @@ export async function generateMetadata({ params }) {
       canonical: blog.canonical || `https://www.mrserviceexpert.com/blogs/${blog.blog_url}`,
     },
     openGraph: {
-      title: blog.meta_title || blog.title,
+      title,
       description: blog.meta_description || "",
       images: blog.image ? [imgSrc(blog.image)] : [],
       type: "article",

@@ -13,10 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: {
-    default:"Home Appliance Repair & Services | Mr. Service Expert",
-    template:"%s | Mr. Service Expert "
-  },
+  // No `template` here on purpose. Every page on this site sets its own full
+  // title from the database, already ending in whatever branding it wants, so
+  // appending "| Mr. Service Expert" to all of them repeated the brand name on
+  // 4,060 pages and pushed practically every title past the ~60 characters
+  // Google shows. A page that sets no title of its own still falls back to this
+  // one. Pages added later must carry their own branding.
+  title: "Home Appliance Repair & Services | Mr. Service Expert",
   description: "Expert repair and maintenance services for ACs, water purifiers, and home appliances. Book reliable technicians across India with Mr. Service Expert.",
   keywords: "ac repair service,water purifier repair,home appliance repair,refrigerator repair service,washing machine repair,air conditioner maintenance,ro service near me,microwave oven repair,geyser installation service,appliance service center",
   alternates: {
