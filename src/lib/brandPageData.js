@@ -45,6 +45,7 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
       `SELECT id, brand_name, brand_url, category_id
          FROM brand_tb
         WHERE LOWER(brand_url) = ?
+          AND status = '1'
         ORDER BY (category_id = ?) DESC, id ASC
         LIMIT 1`,
       [brand, catRow.id]
@@ -67,11 +68,12 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
 
     if (!pageRow) return null;
 
-    // "Popular Brands" — every brand in this category.
+    // "Popular Brands" — every brand still switched on in this category.
     const [brands] = await connection.query(
       `SELECT id, brand_name, brand_url, category_id
          FROM brand_tb
         WHERE category_id = ?
+          AND status = '1'
           AND brand_url IS NOT NULL AND brand_url <> ''
         ORDER BY brand_name ASC`,
       [catRow.id]

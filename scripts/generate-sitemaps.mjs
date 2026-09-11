@@ -160,6 +160,7 @@ for (const cat of categories) {
        JOIN city_tb ci ON ci.id = p.city_id
        JOIN brand_tb b ON b.id = p.brand_id
       WHERE p.category_id = ?
+        AND b.status = '1'
         AND ci.city_url IS NOT NULL AND ci.city_url <> ''
         AND b.brand_url IS NOT NULL AND b.brand_url <> ''`,
     [cat.id]
