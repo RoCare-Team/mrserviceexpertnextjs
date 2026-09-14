@@ -5,10 +5,14 @@
 //
 //   node scripts/make-content-templates.mjs
 //
-// "Missing" means: the city already has a /{city}/{cat} page (so the city page
-// renders a "Popular Brand" link to /{city}/{brand}/{cat}) but page_master_tb
-// has no row for that city+brand+category, so the link 404s. See
-// scripts/import-brand-pages.mjs for the other half of the round trip.
+// "Missing" means: page_master_tb has no row for a city+brand+category that the
+// site links to, so the link 404s. Every city slug counts, not just the ones
+// with a master_tb_withoutbrand row — /{city}/{cat} falls back to the category's
+// own content when that row is absent (see lib/cityCategoryPageData.js), so it
+// renders for every city and lists a "Popular Brand" link for every active
+// brand. Gating on master_tb_withoutbrand is what left 936 cities x 14 AC brands
+// out of the first run. See scripts/import-brand-pages.mjs for the other half of
+// the round trip.
 //
 // One workbook per category+brand, because content gets written brand by brand
 // and a finished brand can be imported while the next one is still being
@@ -161,11 +165,6 @@ const [cities] = await db.query(
      FROM city_tb
     WHERE city_url IS NOT NULL AND city_url <> ''`
 );
-// Cities that already have a /{city}/{cat} page — those are the only pages that
-// render brand links, so they define which brand pages are actually reachable.
-const [cityPages] = await db.query(
-  `SELECT DISTINCT city_id, category_id FROM master_tb_withoutbrand`
-);
 const [existing] = await db.query(
   `SELECT city_id, category_id, brand_id FROM page_master_tb`
 );
@@ -183,29 +182,22 @@ for (const row of existing) {
   if (brand && city) have.add(`${row.category_id}|${city.city_url}|${brand.brand_url}`);
 }
 
-// category_id -> [city rows that have a city page for it]
-const citiesForCategory = new Map();
-for (const row of cityPages) {
-  const city = cityById.get(row.city_id);
-  if (!city) continue;
-  if (!citiesForCategory.has(row.category_id)) citiesForCategory.set(row.category_id, []);
-  citiesForCategory.get(row.category_id).push(city);
-}
-for (const list of citiesForCategory.values()) {
-  list.sort((a, b) => rankOf(a.city_url) - rankOf(b.city_url) || a.city_url.localeCompare(b.city_url));
-}
+// Every live city, most valuable first. The same list serves every category
+// because /{city}/{cat} renders for all of them.
+const rankedCities = [...cities].sort(
+  (a, b) => rankOf(a.city_url) - rankOf(b.city_url) || a.city_url.localeCompare(b.city_url)
+);
 
 const groups = [];
 for (const cat of categories) {
   const catSlug = clean(cat.category_url);
-  const catCities = citiesForCategory.get(cat.id) || [];
   for (const brand of brands.filter((b) => b.category_id === cat.id)) {
     const rows = [];
     // city_tb carries a few slugs twice (madhepura, mira-bhayandar,
     // vasai-virar). One slug is one URL, so only the first row may be written —
     // the importer creates a page row for every id behind the slug.
     const seen = new Set();
-    for (const city of catCities) {
+    for (const city of rankedCities) {
       if (have.has(`${cat.id}|${city.city_url}|${brand.brand_url}`)) continue;
       if (seen.has(city.city_url)) continue;
       seen.add(city.city_url);
