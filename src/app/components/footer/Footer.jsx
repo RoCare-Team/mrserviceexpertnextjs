@@ -7,6 +7,8 @@ import {
   Facebook,
   Twitter,
   Linkedin,
+  Instagram,
+  Youtube,
   MapPin,
   Phone,
   Mail,
@@ -38,9 +40,31 @@ const bottomLinks = [
 ];
 
 const socialLinks = [
-  { label: 'Facebook', href: 'https://www.facebook.com/MrServiceExpert/', icon: Facebook },
-  { label: 'Twitter', href: 'https://twitter.com/mrserviceexper4/', icon: Twitter },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/mr-service-expert/', icon: Linkedin },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/MrServiceExpert/',
+    icon: Facebook,
+  },
+  {
+    label: 'Twitter',
+    href: 'https://twitter.com/mrserviceexper4/',
+    icon: Twitter,
+  },
+  {
+    label: 'LinkedIn',
+    href: 'https://www.linkedin.com/company/mr-service-expert/',
+    icon: Linkedin,
+  },
+  {
+    label: 'Instagram',
+    href: 'https://www.instagram.com/mrserviceexperts/',
+    icon: Instagram,
+  },
+  {
+    label: 'YouTube',
+    href: 'https://www.youtube.com/channel/UC6hBO_8BAnHaSSf97p9XQVQ',
+    icon: Youtube,
+  },
 ];
 
 export default function Footer() {
@@ -48,6 +72,7 @@ export default function Footer() {
 
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 400);
+
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -60,14 +85,25 @@ export default function Footer() {
     <footer className="relative bg-[#140C33] text-[#B7B0D6] [background-image:radial-gradient(700px_280px_at_85%_-10%,rgba(109,42,216,0.22),transparent_60%)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+
           {/* Brand */}
           <div>
             <Link href="/" className="inline-block text-2xl font-bold text-white">
-             <Image src="/assets/images/serviceLogo.webp" alt="Mr Service Expert Logo" width={150} height={50} />
+              <Image
+                src="/assets/images/serviceLogo.webp"
+                alt="Mr Service Expert Logo"
+                width={150}
+                height={50}
+              />
             </Link>
+
             <p className="mt-4 text-sm leading-relaxed text-[#A79FCB]">
-              Reliable home service experts for AC, RO, appliance repair, plumbing, plumbing work, and more-providing fast, affordable, and professional solutions trusted by thousands of happy customers across India.
+              Reliable home service experts for AC, RO, appliance repair,
+              plumbing, plumbing work, and more-providing fast, affordable,
+              and professional solutions trusted by thousands of happy
+              customers across India.
             </p>
+
             <div className="mt-6 flex gap-3">
               {socialLinks.map(({ label, href, icon: Icon }) => (
                 <a
@@ -86,7 +122,10 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-base font-semibold text-white">Quick Links</h3>
+            <h3 className="text-base font-semibold text-white">
+              Quick Links
+            </h3>
+
             <ul className="mt-4 space-y-3">
               {quickLinks.map((link) => (
                 <li key={link.label}>
@@ -103,7 +142,10 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h3 className="text-base font-semibold text-white">Our Services</h3>
+            <h3 className="text-base font-semibold text-white">
+              Our Services
+            </h3>
+
             <ul className="mt-4 space-y-3">
               {serviceLinks.map((link) => (
                 <li key={link.label}>
@@ -120,23 +162,43 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-base font-semibold text-white">Contact Us</h3>
+            <h3 className="text-base font-semibold text-white">
+              Contact Us
+            </h3>
+
             <ul className="mt-4 space-y-4 text-sm text-[#A79FCB]">
               <li className="flex gap-3">
-                <MapPin size={18} className="mt-0.5 shrink-0 text-[#F6A21E]" />
+                <MapPin
+                  size={18}
+                  className="mt-0.5 shrink-0 text-[#F6A21E]"
+                />
+
                 <span>
                   Unit No. 831, 8th Floor, JMD Megapolis, Sohna Road,
                   Sector-48, Gurugram, Haryana 122018.
                 </span>
               </li>
+
               <li className="flex items-center gap-3">
-                <Phone size={18} className="shrink-0 text-[#F6A21E]" />
-                <a href="tel:+919311587715" className="transition-colors hover:text-white">
+                <Phone
+                  size={18}
+                  className="shrink-0 text-[#F6A21E]"
+                />
+
+                <a
+                  href="tel:+919311587715"
+                  className="transition-colors hover:text-white"
+                >
                   +91-9311587715
                 </a>
               </li>
+
               <li className="flex items-center gap-3">
-                <Mail size={18} className="shrink-0 text-[#F6A21E]" />
+                <Mail
+                  size={18}
+                  className="shrink-0 text-[#F6A21E]"
+                />
+
                 <a
                   href="mailto:info@mrserviceexpert.com"
                   className="transition-colors hover:text-white"
@@ -154,10 +216,18 @@ export default function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-6">
           <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-[#8078A8]">
             <span>© {new Date().getFullYear()} Mr. Service Expert</span>
+
             {bottomLinks.map((link) => (
-              <span key={link.label} className="flex items-center gap-x-2">
+              <span
+                key={link.label}
+                className="flex items-center gap-x-2"
+              >
                 <span className="text-[#3A2F6B]">|</span>
-                <Link href={link.href} className="transition-colors hover:text-white">
+
+                <Link
+                  href={link.href}
+                  className="transition-colors hover:text-white"
+                >
                   {link.label}
                 </Link>
               </span>
@@ -171,8 +241,10 @@ export default function Footer() {
         type="button"
         onClick={scrollToTop}
         aria-label="Scroll to top"
-        className={`fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-white shadow-lg transition-all duration-300 hover:bg-purple-500 hover:-translate-y-0.5 ${
-          showScrollTop ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
+        className={`fixed bottom-6 right-6 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-purple-600 text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-purple-500 ${
+          showScrollTop
+            ? 'translate-y-0 opacity-100'
+            : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >
         <ArrowUp size={20} />
