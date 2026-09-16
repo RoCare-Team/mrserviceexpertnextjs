@@ -178,7 +178,13 @@ for (const cat of categories) {
 
 await db.end();
 
-fs.writeFileSync(INDEX_FILE, indexXml(written.map((w) => w.file)), "utf8");
+// blogs.xml is a live route (src/app/sitemap/blogs.xml/route.js), not a file
+// this script writes, but it still belongs in the index.
+fs.writeFileSync(
+  INDEX_FILE,
+  indexXml([...written.map((w) => w.file), "blogs.xml"]),
+  "utf8"
+);
 
 for (const { file, count } of written) {
   console.log(`${String(count).padStart(6)}  ${file}`);

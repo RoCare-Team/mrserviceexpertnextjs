@@ -223,3 +223,46 @@ export async function recentPublishedBlogs(excludeId = 0, limit = 4) {
     if (connection) connection.release();
   }
 }
+
+/**
+ * Every published, indexable blog for /sitemap/blogs.xml. Blogs marked
+ * noindex, or canonicalised to another URL, are left out — listing them would
+ * just hand Google a URL it's been told not to index.
+ */
+export async function listBlogsForSitemap() {
+  let connection;
+  try {
+    connection = await db.getConnection();
+    const cols = await getBlogColumns(connection);
+    const where = ["b.blog_url IS NOT NULL", "b.blog_url <> ''"];
+    if (cols.has("status"))
+      where.push("(b.status = '1' OR LOWER(b.status) = 'active')");
+    const dateCols = ["updated_at", "update_time", "publishdate", "blog_date", "created_at"]
+      .filter((c) => cols.has(c));
+    const extra = [
+      ...dateCols,
+      ...["Canonical", "Robots"].filter((c) => cols.has(c)),
+    ].map((c) => `b.${c}`);
+    const [rows] = await connection.query(
+      `SELECT b.blog_url${extra.length ? ", " + extra.join(", ") : ""}
+       FROM blog b
+       WHERE ${where.join(" AND ")}
+       ${orderByClause(cols)}`
+    );
+    return rows
+      .filter((r) => !/noindex/i.test(r.Robots || ""))
+      .filter((r) => {
+        const canonical = (r.Canonical || "").trim().replace(/\/$/, "");
+        return !canonical || canonical.endsWith(`/blogs/${r.blog_url}`);
+      })
+      .map((r) => {
+        // Zero-dates ('0000-00-00') come back from mysql2 as Invalid Date.
+        const lastmod = dateCols
+          .map((c) => r[c] && new Date(r[c]))
+          .find((d) => d && !isNaN(d));
+        return { blog_url: r.blog_url, lastmod: lastmod || null };
+      });
+  } finally {
+    if (connection) connection.release();
+  }
+}

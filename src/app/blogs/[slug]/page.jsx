@@ -76,6 +76,8 @@ export default async function BlogDetailPage({ params }) {
     .filter(Boolean)
     .slice(0, 6);
 
+    console.log("BlogDetailPage: blog", blog);
+
   return (
     <div className="bg-[#f7f5fb] min-h-screen">
       {/* ── Hero band ──────────────────────────────────────── */}

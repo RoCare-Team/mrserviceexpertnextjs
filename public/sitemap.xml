@@ -90,4 +90,7 @@
   <sitemap>
     <loc>https://www.mrserviceexpert.com/sitemap/mason-service-pages.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://www.mrserviceexpert.com/sitemap/blogs.xml</loc>
+  </sitemap>
 </sitemapindex>
