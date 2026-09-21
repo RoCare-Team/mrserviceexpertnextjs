@@ -8,6 +8,37 @@ import {
   getPageByUrl,
 } from "@/lib/cityData";
 
+// State capitals linked from every category page as /{city}/{category}
+const CAPITAL_CITIES = [
+  { city_name: "Amaravati", city_url: "amaravati" },
+  { city_name: "Itanagar", city_url: "itanagar" },
+  { city_name: "Dispur", city_url: "dispur" },
+  { city_name: "Patna", city_url: "patna" },
+  { city_name: "Raipur", city_url: "raipur" },
+  { city_name: "Panaji", city_url: "panaji" },
+  { city_name: "Gandhinagar", city_url: "gandhinagar" },
+  { city_name: "Chandigarh", city_url: "chandigarh" },
+  { city_name: "Shimla", city_url: "shimla" },
+  { city_name: "Ranchi", city_url: "ranchi" },
+  { city_name: "Bengaluru", city_url: "bengaluru" },
+  { city_name: "Thiruvananthapuram", city_url: "thiruvananthapuram" },
+  { city_name: "Bhopal", city_url: "bhopal" },
+  { city_name: "Mumbai", city_url: "mumbai" },
+  { city_name: "Imphal", city_url: "imphal" },
+  { city_name: "Shillong", city_url: "shillong" },
+  { city_name: "Aizawl", city_url: "aizawl" },
+  { city_name: "Kohima", city_url: "kohima" },
+  { city_name: "Bhubaneswar", city_url: "bhubaneswar" },
+  { city_name: "Jaipur", city_url: "jaipur" },
+  { city_name: "Gangtok", city_url: "gangtok" },
+  { city_name: "Chennai", city_url: "chennai" },
+  { city_name: "Hyderabad", city_url: "hyderabad" },
+  { city_name: "Agartala", city_url: "agartala" },
+  { city_name: "Lucknow", city_url: "lucknow" },
+  { city_name: "Dehradun", city_url: "dehradun" },
+  { city_name: "Kolkata", city_url: "kolkata" },
+];
+
 export async function generateStaticParams() {
   try {
     const [cities, categories] = await Promise.all([
@@ -131,6 +162,35 @@ export default async function Page({ params }) {
               {data.recent_cities.map((city) => (
                 <div className="brandsServices" key={city.id}>
                   <a href={`/${city.city_url}`} title={`${city.city_name}  services`}>
+                    <li className=" text-gray-500 list-none">
+                      <FontAwesomeIcon icon={faLocation} /> {city.city_name},
+                      <span></span>
+                    </li>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      )}
+
+      {data.type === "category" && (
+        <div className="bg-white px-8 py-6">
+          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+              <span>Popular Cities</span>
+              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">
+                ▼
+              </span>
+            </summary>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {CAPITAL_CITIES.map((city) => (
+                <div className="brandsServices" key={city.city_url}>
+                  <a
+                    href={`/${city.city_url}/${data.category_url}`}
+                    title={`${data.category_name} services in ${city.city_name}`}
+                  >
                     <li className=" text-gray-500 list-none">
                       <FontAwesomeIcon icon={faLocation} /> {city.city_name},
                       <span></span>
