@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
+import { faLocation } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Tabs from "@/app/components/pages/Services/AllServices";
 import ServicesList from "@/app/components/service/ServicesList";
 import Cart from "@/app/components/cart/Cart";
@@ -13,6 +15,12 @@ import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 
 export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
   const [openItem, setOpenItem] = useState(0)
+
+  // The /{city}/{brand}/{cat} route hands these through unnormalized, so build
+  // links off lowercase copies — an uppercase URL still resolves, and we don't
+  // want it copied into every link on the page.
+  const citySlug = (city || "").toLowerCase();
+  const catSlug = (cat || "").toLowerCase();
 
   // Heading for the AI copy card, e.g. "Kent RO Water Purifier Service in Delhi".
   const aiContentHeading = [
@@ -400,27 +408,96 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
 
 
       </div>
-      <div className="bg-white common-spacing">
-        <h3>Popular Brand in {pagedata.city_name}</h3>
-        <div className="brandsServices flex items-center flex-wrap gap-2.5 ">
-          {pagedata.brands?.map((brand) => (
-            <div className='brandsServices '>
-              <a href={`../${brand.brand_url}/${cat}`}>
-                <li className='brand-btn-style'>
-                  {brand.brand_name}
-                  <span></span>
-                </li>
-              </a>
-            </div>
-          ))}
-
-          {/* {!visibleBrands && (
-                                      <div>
-                                          <button onClick={handleLoadMore} className='readMore'>Read More</button>
-                                      </div>
-                                  )} */}
-        </div>
+      <div className="bg-white px-8 py-1">
+        <h3 className="text-2xl font-bold">Quick Links</h3>
       </div>
+
+      {/* Same brand + category, the other cities in this state that have a page. */}
+      {pagedata.related_cities?.length > 0 && (
+        <div className="bg-white px-8 py-6">
+          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+              <span>
+                {pagedata.brandname} {pagedata.categoryname} in Other Cities
+              </span>
+              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+            </summary>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {pagedata.related_cities.map((c) => (
+                <div className="brandsServices" key={c.id}>
+                  <a
+                    href={c.url}
+                    title={`${pagedata.brandname} ${pagedata.categoryname} in ${c.city_name}`}
+                  >
+                    <li className="text-gray-500 list-none">
+                      <FontAwesomeIcon icon={faLocation} /> {c.city_name},
+                      <span></span>
+                    </li>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      )}
+
+      {/* Same brand + city, the brand's other categories that have a page. */}
+      {pagedata.related_categories?.length > 0 && (
+        <div className="bg-white px-8 py-2">
+          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+              <span>
+                Other {pagedata.brandname} Services in {pagedata.city_name}
+              </span>
+              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+            </summary>
+
+            <div className="brandsServices bg-gray-50 rounded-lg shadow p-4 flex items-center flex-wrap gap-2.5">
+              {pagedata.related_categories.map((c) => (
+                <div className="brandsServices" key={c.id}>
+                  <a
+                    href={c.url}
+                    title={`${pagedata.brandname} ${c.category_name} in ${pagedata.city_name}`}
+                  >
+                    <li className="brand-btn-style">
+                      {c.category_name}
+                      <span></span>
+                    </li>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      )}
+
+      {pagedata.brands?.length > 0 && (
+        <div className="bg-white px-8 py-2">
+          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+              <span>Popular Brand in {pagedata.city_name}</span>
+              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+            </summary>
+
+            <div className="brandsServices bg-gray-50 rounded-lg shadow p-4 flex items-center flex-wrap gap-2.5">
+              {pagedata.brands.map((b) => (
+                <div className="brandsServices" key={b.id}>
+                  <a
+                    href={`/${citySlug}/${b.brand_url}/${catSlug}`}
+                    title={`${b.brand_name} ${pagedata.categoryname} in ${pagedata.city_name}`}
+                  >
+                    <li className="brand-btn-style">
+                      {b.brand_name}
+                      <span></span>
+                    </li>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </details>
+        </div>
+      )}
       {showPopup && (
         <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9999]">
           <div className="bg-white max-h-[90vh] overflow-y-auto rounded-xl shadow-xl w-full max-w-2xl relative hide-scrollbar">

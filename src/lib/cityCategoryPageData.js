@@ -39,17 +39,27 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
         LIMIT 1`,
       [cityRow.id, catRow.id]
     ),
-    // Brands available in this category → "Popular Brand" section.
-    // status='0' switches a brand off site-wide without deleting it, the same
-    // way the admin page/brand pickers already read the column.
+    // Brands available in this category → "Popular Brand" section. Only brands
+    // that actually HAVE a page for this city + category: status='0' switches a
+    // brand off site-wide, but a brand with no page row here would render as a
+    // link into a 404, so it is filtered out too. Matched on brand_url so this
+    // agrees with how getBrandPageData resolves /{city}/{brand}/{cat}.
     db.query(
       `SELECT id, brand_name, brand_url, category_id
-         FROM brand_tb
-        WHERE category_id = ?
-          AND status = '1'
-          AND brand_url IS NOT NULL AND brand_url <> ''
-        ORDER BY brand_name ASC`,
-      [catRow.id]
+         FROM brand_tb b
+        WHERE b.category_id = ?
+          AND b.status = '1'
+          AND b.brand_url IS NOT NULL AND b.brand_url <> ''
+          AND EXISTS (
+            SELECT 1
+              FROM page_master_tb pm
+              JOIN brand_tb b2 ON b2.id = pm.brand_id
+             WHERE pm.city_id = ?
+               AND pm.category_id = ?
+               AND LOWER(b2.brand_url) = LOWER(b.brand_url)
+          )
+        ORDER BY b.brand_name ASC`,
+      [catRow.id, cityRow.id, catRow.id]
     ),
     // Related cities (same state) → "Popular Cities Near Me" (all, no limit).
     db.query(
