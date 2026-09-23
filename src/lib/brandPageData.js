@@ -68,15 +68,60 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
 
     if (!pageRow) return null;
 
-    // "Popular Brands" — every brand still switched on in this category.
+    // "Popular Brands" — only brands that actually HAVE a page for this city +
+    // category. Matched on brand_url (not brand_id) so this list agrees exactly
+    // with how getBrandPageData resolves /{city}/{brand}/{cat}; a brand without
+    // a page row would otherwise be rendered as a link straight into a 404.
     const [brands] = await connection.query(
       `SELECT id, brand_name, brand_url, category_id
-         FROM brand_tb
-        WHERE category_id = ?
-          AND status = '1'
-          AND brand_url IS NOT NULL AND brand_url <> ''
-        ORDER BY brand_name ASC`,
-      [catRow.id]
+         FROM brand_tb b
+        WHERE b.category_id = ?
+          AND b.status = '1'
+          AND b.brand_url IS NOT NULL AND b.brand_url <> ''
+          AND EXISTS (
+            SELECT 1
+              FROM page_master_tb pm
+              JOIN brand_tb b2 ON b2.id = pm.brand_id
+             WHERE pm.city_id = ?
+               AND pm.category_id = ?
+               AND LOWER(b2.brand_url) = LOWER(b.brand_url)
+          )
+        ORDER BY b.brand_name ASC`,
+      [catRow.id, cityRow.id, catRow.id]
+    );
+
+    // "Popular Cities" — same state, but only cities that actually HAVE a page
+    // for this brand + category. /{city}/{brand}/{cat} 404s without a
+    // page_master_tb row (no content fallback like the city+category route),
+    // so listing every city in the state would just publish broken links.
+    const [relatedCities] = await connection.query(
+      `SELECT DISTINCT ci.id, ci.city_name, ci.city_url
+         FROM page_master_tb pm
+         JOIN city_tb ci ON ci.id = pm.city_id
+         JOIN brand_tb b ON b.id = pm.brand_id
+        WHERE pm.category_id = ?
+          AND LOWER(b.brand_url) = ?
+          AND ci.state = ?
+          AND LOWER(ci.city_url) <> ?
+          AND ci.city_url IS NOT NULL AND ci.city_url <> ''
+        ORDER BY ci.city_name ASC`,
+      [catRow.id, brand, cityRow.state, city]
+    );
+
+    // "Other Services" — the same brand in this same city, other categories.
+    // Existence-gated for the same reason as the cities list above.
+    const [relatedCategories] = await connection.query(
+      `SELECT DISTINCT ca.id, ca.category_name, ca.category_url
+         FROM page_master_tb pm
+         JOIN category_tb ca ON ca.id = pm.category_id
+         JOIN brand_tb b ON b.id = pm.brand_id
+        WHERE pm.city_id = ?
+          AND LOWER(b.brand_url) = ?
+          AND ca.id <> ?
+          AND ca.status = '1'
+          AND ca.category_url IS NOT NULL AND ca.category_url <> ''
+        ORDER BY ca.category_name ASC`,
+      [cityRow.id, brand, catRow.id]
     );
 
     return {
@@ -88,6 +133,22 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
       categoryname: catRow.category_name,
       banner: catRow.banner,
       brands,
+      // Same shape the city+category route hands its "Popular Cities Near Me"
+      // block, so the two pages can render identical markup.
+      related_cities: relatedCities.map((c) => ({
+        id: c.id,
+        city_id: c.id,
+        parent_city: cityRow.state,
+        url: `/${c.city_url}/${brand}/${cat}`,
+        city_name: c.city_name,
+        city_url: c.city_url,
+      })),
+      related_categories: relatedCategories.map((c) => ({
+        id: c.id,
+        url: `/${city}/${brand}/${c.category_url}`,
+        category_name: c.category_name,
+        category_url: c.category_url,
+      })),
     };
   } finally {
     if (connection) connection.release();
