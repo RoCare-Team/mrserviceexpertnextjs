@@ -11,6 +11,7 @@ import ServiceProcedure from "@/app/components/serviceProcedure/index"
 import Popup from "@/app/components/popup";
 import AiContent from "@/app/components/aiContent/AiContent";
 import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
+import PopularCities from "@/app/components/popularCities/PopularCities";
 
 
 export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
@@ -411,6 +412,12 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
       <div className="bg-white px-8 py-1">
         <h3 className="text-2xl font-bold">Quick Links</h3>
       </div>
+
+      {/* near-me has no sibling cities in its state, so related_cities is empty
+          there; fall back to the shared Popular Cities list. */}
+      {!pagedata.related_cities?.length && (
+        <PopularCities categoryUrl={catSlug} excludeCity={citySlug} />
+      )}
 
       {/* Same brand + category, the other cities in this state that have a page. */}
       {pagedata.related_cities?.length > 0 && (

@@ -6,6 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Tags,
+  PlusCircle,
+  Globe2,
   MapPin,
   FolderTree,
   FileText,
@@ -31,6 +33,7 @@ const NAV = [
     label: "Catalogue",
     items: [
       { href: "/admin/brand_edits", icon: Tags, name: "Brands" },
+      { href: "/admin/brand_rollout", icon: PlusCircle, name: "Add Brand" },
       { href: "/admin/category_edits", icon: FolderTree, name: "Categories" },
       { href: "/admin/city_edits", icon: MapPin, name: "Cities" },
       { href: "/admin/store_locator", icon: Store, name: "Store Locator" },
@@ -42,6 +45,7 @@ const NAV = [
     items: [
       { href: "/admin/blogs", icon: Newspaper, name: "Blogs" },
       { href: "/admin/blog-categories", icon: Newspaper, name: "Blog Categories" },
+      { href: "/admin/other_cities", icon: Globe2, name: "Other Cities" },
     ],
   },
   {
@@ -65,12 +69,14 @@ const NAV = [
 const TITLES = {
   "/admin": "Dashboard",
   "/admin/brand_edits": "Brands",
+  "/admin/brand_rollout": "Add Brand",
   "/admin/category_edits": "Categories",
   "/admin/city_edits": "Cities",
   "/admin/store_locator": "Store Locator",
   "/admin/city_category": "Pages",
   "/admin/blogs": "Blogs",
   "/admin/blog-categories": "Blog Categories",
+  "/admin/other_cities": "Other Cities",
   "/admin/ai_content": "AI Content Generator",
   "/admin/ai_content/library": "AI Content Library",
   "/admin/redirects": "Redirects",

@@ -104,7 +104,7 @@ const Services = () => {
             category: "washing-machine",
             reviews: 52,
             rating: 4.77,
-            image: "/assets/serviceTabIcons/washing machine repair & service.webp",
+            image: "/assets/serviceTabIcons/washing machine repair and service.webp",
             link: 'washing-machine-repair',
             briefInfo: [
                 "Automatic top load machine check-up",
