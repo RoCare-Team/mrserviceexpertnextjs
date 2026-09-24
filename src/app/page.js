@@ -3,6 +3,14 @@ import React from 'react';
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
 import HomeCareService from './components/servicesSection/homeCareService';
+import PopularCities from './components/popularCities/PopularCities';
+import OtherCities from './components/popularCities/OtherCities';
+
+// The Other Cities block is admin-managed, so the page is revalidated
+// instead of being frozen at build time. Five minutes keeps the homepage
+// served from cache for almost every visitor while admin edits still
+// appear without a redeploy.
+export const revalidate = 300;
 
 const home = () => {
 
@@ -420,6 +428,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
 
+
+        <PopularCities />
+        <OtherCities />
 
       </div></>
   )

@@ -6,6 +6,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCityCategoryPageData } from "@/lib/cityCategoryPageData";
 import { getPublicAiContent } from "@/lib/aiContent";
 import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
+import PopularCities from "@/app/components/popularCities/PopularCities";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -507,6 +508,16 @@ export default async function Page({ params }) {
       {( <div className="bg-white px-8 py-1">
           <h3 className="text-2xl font-bold">Quick Links</h3>
         </div>)}
+      {/* near-me is alone in state "India", so related_cities is empty there;
+          fall back to the shared Popular Cities list so the page still links out. */}
+      {!data.related_cities?.length && (
+        <PopularCities
+          categoryUrl={cat}
+          categoryName={data.category_name}
+          excludeCity={city}
+        />
+      )}
+
       {data.related_cities?.length > 0 && (
         <div className="bg-white px-8 py-6">
           <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
