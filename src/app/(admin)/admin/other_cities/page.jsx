@@ -18,8 +18,30 @@ import {
   Modal,
   Toast,
 } from "@/app/(admin)/admin/components/AdminUI";
+import CityPicker from "@/app/(admin)/admin/components/CityPicker";
 
-const EMPTY = { title: "", url: "", sort_order: 0, status: "1" };
+// mode "pick" builds the URL from City + Category (+ Brand); "custom" is typed.
+const EMPTY = {
+  mode: "pick",
+  title: "",
+  url: "",
+  sort_order: 0,
+  status: "1",
+  city: null,
+  category_id: "",
+  brand_id: "",
+};
+
+/** URL + default title for a City + Category (+ Brand) selection, or null. */
+function buildLink(city, category, brand) {
+  if (!city || !category) return null;
+  const url = brand
+    ? `/${city.city_url}/${brand.brand_url}/${category.category_url}`
+    : `/${city.city_url}/${category.category_url}`;
+  const what = [brand?.brand_name, category.category_name].filter(Boolean).join(" ");
+  const suffix = /service|repair/i.test(category.category_name) ? "" : " Service";
+  return { url, title: `${what}${suffix} in ${city.city_name}` };
+}
 
 export default function OtherCitiesPage() {
   const [links, setLinks] = useState([]);
@@ -29,6 +51,8 @@ export default function OtherCitiesPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(null);
   const [toast, setToast] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -45,7 +69,28 @@ export default function OtherCitiesPage() {
 
   useEffect(() => {
     load();
+    fetch("/api/admin/other_cities?type=lookup")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.success) return;
+        setCategories(d.categories || []);
+        setBrands(d.brands || []);
+      })
+      .catch(() => {});
   }, [load]);
+
+  // Apply a change to the picker and rebuild url + title from it.
+  const pick = (patch) => {
+    const next = { ...editing, ...patch };
+    const category = categories.find((c) => String(c.id) === String(next.category_id));
+    const brand = brands.find((b) => String(b.id) === String(next.brand_id));
+    const built = buildLink(next.city, category, brand);
+    setEditing(built ? { ...next, ...built } : { ...next, url: "" });
+  };
+
+  const categoryBrands = brands.filter(
+    (b) => String(b.category_id) === String(editing?.category_id)
+  );
 
   const save = async () => {
     setSaving(true);
@@ -55,7 +100,13 @@ export default function OtherCitiesPage() {
       const res = await fetch("/api/admin/other_cities", {
         method: isNew ? "POST" : "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing),
+        body: JSON.stringify({
+          id: editing.id,
+          title: editing.title,
+          url: editing.url,
+          sort_order: editing.sort_order,
+          status: editing.status,
+        }),
       });
       const d = await res.json();
       if (!d.success) {
@@ -96,8 +147,8 @@ export default function OtherCitiesPage() {
     <>
       <PageHead
         eyebrow="Content"
-        title="Other Cities"
-        subtitle="Links shown in the Other Cities dropdown on the homepage."
+        title="Homepage Cities"
+        subtitle="Links shown in the Homepage Cities dropdown on the homepage."
         count={links.length}
         countLabel="links"
       />
@@ -106,8 +157,10 @@ export default function OtherCitiesPage() {
         <div className="adm-note-box">
           <Info size={16} />
           <div>
-            These appear on the homepage, directly under <strong>Popular Cities</strong>. Use an
-            internal path like <code>/gurgaon/ac</code>, or a full <code>https://</code> URL.
+            These appear on the homepage, directly under <strong>Popular Cities</strong>. Pick a
+            City + Category (+ Brand) and the URL is built for you, or switch to{" "}
+            <strong>Custom URL</strong> for an internal path like <code>/gurgaon/ac</code> or a
+            full <code>https://</code> URL.
             Lower <strong>Order</strong> values come first. The homepage caches for a few minutes,
             so give it a moment before checking.
           </div>
@@ -148,7 +201,7 @@ export default function OtherCitiesPage() {
                   </td>
                   <td>
                     <div className="adm-rowactions">
-                      <EditButton onClick={() => { setErrors({}); setEditing({ ...l }); }} />
+                      <EditButton onClick={() => { setErrors({}); setEditing({ ...EMPTY, ...l, mode: "custom" }); }} />
                       <Button size="sm" variant="danger" onClick={() => setDeleting(l)}>
                         Delete
                       </Button>
@@ -176,6 +229,55 @@ export default function OtherCitiesPage() {
         >
           <SectionTitle>Link</SectionTitle>
 
+          <Field label="Link type">
+            <Select
+              value={editing.mode}
+              onChange={(e) => setEditing({ ...editing, mode: e.target.value })}
+            >
+              <option value="pick">Pick page (City + Category + Brand)</option>
+              <option value="custom">Custom URL</option>
+            </Select>
+          </Field>
+
+          {editing.mode === "pick" && (
+            <>
+              <Field label="City">
+                <CityPicker
+                  valueLabel={editing.city?.city_name}
+                  onPick={(c) => pick({ city: c })}
+                  onClear={() => pick({ city: null })}
+                />
+              </Field>
+
+              <div className="adm-formgrid">
+                <Field label="Category">
+                  <Select
+                    value={String(editing.category_id)}
+                    onChange={(e) => pick({ category_id: e.target.value, brand_id: "" })}
+                  >
+                    <option value="">— select —</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>{c.category_name}</option>
+                    ))}
+                  </Select>
+                </Field>
+
+                <Field label="Brand (optional)">
+                  <Select
+                    value={String(editing.brand_id)}
+                    disabled={!editing.category_id}
+                    onChange={(e) => pick({ brand_id: e.target.value })}
+                  >
+                    <option value="">— no brand —</option>
+                    {categoryBrands.map((b) => (
+                      <option key={b.id} value={b.id}>{b.brand_name}</option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            </>
+          )}
+
           <Field label="Title">
             <Input
               value={editing.title}
@@ -189,10 +291,15 @@ export default function OtherCitiesPage() {
             <Input
               value={editing.url}
               placeholder="/gurgaon/ac"
+              readOnly={editing.mode === "pick"}
               onChange={(e) => setEditing({ ...editing, url: e.target.value })}
             />
             {errors.url ? (
               <FieldNote tone="err">{errors.url}</FieldNote>
+            ) : editing.mode === "pick" ? (
+              <FieldNote tone="hint">
+                Built from the selection above. Switch to Custom URL to type your own.
+              </FieldNote>
             ) : (
               <FieldNote tone="hint">
                 Internal path (a leading slash is added for you) or a full https:// URL.

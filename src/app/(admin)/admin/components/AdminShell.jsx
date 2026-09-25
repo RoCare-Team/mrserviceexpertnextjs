@@ -45,7 +45,7 @@ const NAV = [
     items: [
       { href: "/admin/blogs", icon: Newspaper, name: "Blogs" },
       { href: "/admin/blog-categories", icon: Newspaper, name: "Blog Categories" },
-      { href: "/admin/other_cities", icon: Globe2, name: "Other Cities" },
+      { href: "/admin/other_cities", icon: Globe2, name: "Homepage Cities" },
     ],
   },
   {
@@ -76,7 +76,7 @@ const TITLES = {
   "/admin/city_category": "Pages",
   "/admin/blogs": "Blogs",
   "/admin/blog-categories": "Blog Categories",
-  "/admin/other_cities": "Other Cities",
+  "/admin/other_cities": "Homepage Cities",
   "/admin/ai_content": "AI Content Generator",
   "/admin/ai_content/library": "AI Content Library",
   "/admin/redirects": "Redirects",

@@ -152,7 +152,7 @@ export default async function BlogsPage({ searchParams }) {
                     href={`/blogs/${blog.blog_url}`}
                     className="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-purple-100 hover:-translate-y-1 transition-all duration-300 flex flex-col"
                   >
-                    <div className="relative h-44 w-full overflow-hidden bg-purple-50">
+                    <div className="relative h-52 w-full overflow-hidden bg-purple-50">
                       <img
                         src={imgSrc(blog.image)}
                         alt={blog.title}

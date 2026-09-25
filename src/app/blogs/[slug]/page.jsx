@@ -142,7 +142,7 @@ export default async function BlogDetailPage({ params }) {
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Article */}
           <article className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="relative h-56 md:h-[22rem] w-full bg-purple-100">
+            <div className="relative h-48 md:h-108 w-full bg-purple-100">
               <img
                 src={imgSrc(blog.image)}
                 alt={blog.title}

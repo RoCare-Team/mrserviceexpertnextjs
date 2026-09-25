@@ -1,8 +1,9 @@
 // api/admin/other_cities
 //
-// CRUD for the "Other Cities" links rendered on the homepage.
+// CRUD for the "Homepage Cities" links rendered on the homepage.
 //
 //   GET                 -> all links, admin order
+//   GET ?type=lookup    -> categories + brands (with slugs) for the page picker
 //   POST                -> create
 //   PUT    { id, ... }  -> update
 //   DELETE ?id=         -> remove
@@ -48,6 +49,20 @@ export async function GET(request) {
   const denied = await guard(request);
   if (denied) return denied;
   try {
+    // Options for the "Pick page" mode of the admin form, which builds the URL
+    // from slugs instead of making the admin type it.
+    if (new URL(request.url).searchParams.get("type") === "lookup") {
+      const [categories] = await db.query(
+        `SELECT id, category_name, category_url FROM category_tb
+          WHERE status = '1' ORDER BY category_name ASC`
+      );
+      const [brands] = await db.query(
+        `SELECT id, brand_name, brand_url, category_id FROM brand_tb
+          WHERE status = '1' ORDER BY brand_name ASC`
+      );
+      return NextResponse.json({ success: true, categories, brands });
+    }
+
     const [rows] = await db.query(
       `SELECT id, title, url, sort_order, status, created_at, updated_at
          FROM other_city_links_tb

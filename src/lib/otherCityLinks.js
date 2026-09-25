@@ -1,6 +1,6 @@
 // lib/otherCityLinks.js
 //
-// The "Other Cities" links shown on the homepage, managed from
+// The "Homepage Cities" links shown on the homepage, managed from
 // /admin/other_cities. Kept separate from src/lib/popularCities.js: that list
 // is hard-coded and deploys with the code, this one is editable at runtime.
 

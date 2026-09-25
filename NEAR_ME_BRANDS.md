@@ -181,6 +181,46 @@ npm run sitemaps
 
 ---
 
+## 5b. Brand pages par internal linking (aur NULL state wala trap)
+
+Rule: `/{city}/{brand}/{cat}` page par cities ka dropdown hamesha **brand ke saath**
+link kare — `/{doosri-city}/{brand}/{cat}` — kabhi bare city ya city+category nahi.
+
+Ye `getBrandPageData` ki `related_cities` query karti hai, aur wo **do tier** me
+chalti hai:
+
+1. **Same state** — us city ke state ki doosri cities jinke paas is brand +
+   category ka page hai. Ye asli "nearby cities" hain.
+2. **Fallback** — agar tier 1 khaali aaye, to koi bhi cities jinke paas is brand +
+   category ka page hai, **40 tak capped**.
+
+Tier 2 kyun chahiye tha: `city_tb` ki **2,294 me se 348 rows ka `state` NULL hai**.
+SQL me `state = ?` NULL ke saath kabhi match nahi karta, to un cities par tier 1
+हमेशा khaali aata tha aur dropdown poora gayab ho jaata tha — **87,270 me se 13,224
+brand pages (15.2%)** par.
+
+```
+/itanagar/kent/ro-water-purifier   state="Arunachal Pradesh"   15 cities  (tier 1)
+/patna/kent/ro-water-purifier      state="BIHAR"              193 cities  (tier 1)
+/tekari/kent/ro-water-purifier     state=NULL                  40 cities  (tier 2)
+/near-me/kent/ro-water-purifier    state="India"               40 cities  (tier 2)
+```
+
+**Ek exception:** jis brand ka page sirf ek hi city me hai (jaise near-me-only
+brands), uske liye link karne ko koi doosri city hai hi nahi — tier 2 bhi khaali
+aayega. Aise page par brand wala dropdown nahi dikhta, uski jagah generic
+Popular Cities block aa jaata hai (jiske links `/{city}/{category}` hote hain).
+Ye theek hai: `/{city}/{brand}/{cat}` link banate to wo 404 karta.
+
+```
+/near-me/ao-smith/ro-water-purifier   0 cities -> generic Popular Cities block
+```
+
+**Kisi city ka state theek karne se** wo apne aap tier 1 par chala jaayega —
+`city_tb.state` bhar do, koi code change nahi chahiye.
+
+---
+
 ## 6. Popular Cities block
 
 near-me ka state deliberately **"India"** rakha gaya hai, aur us state me wahi
