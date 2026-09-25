@@ -11,32 +11,27 @@ export async function GET() {
        ORDER BY state_name ASC, city_name ASC`
     );
 
-    // Group by state_name -> array of city_name
-    const data = {};
-    let totalCities = 0;
-
-    for (const row of rows) {
-      const state = row.state_name;
-      const city = row.city_name;
-
-      if (!data[state]) {
-        data[state] = [];
+    // Group by state_name -> { state, city_count, cities }
+    const byState = new Map();
+    for (const { state_name, city_name } of rows) {
+      if (!byState.has(state_name)) {
+        byState.set(state_name, { state: state_name, city_count: 0, cities: [] });
       }
-      data[state].push(city);
-      totalCities++;
+      const entry = byState.get(state_name);
+      entry.cities.push(city_name);
+      entry.city_count++;
     }
 
+    const states = [...byState.values()];
+
     return NextResponse.json(
-      {
-        totalCities,
-        data,
-      },
+      { success: true, count: states.length, states },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error fetching cities:", error);
     return NextResponse.json(
-      { message: "Something went wrong", error: error.message },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }

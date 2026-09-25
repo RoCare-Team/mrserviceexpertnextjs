@@ -17,6 +17,8 @@ const serviceCategories = [
     { id: "refrigerator", name: 'Refrigerator', showImage: true },
     { id: "led-tv-repair", name: "LED TV", showImage: true },
     { id: "vaccum-cleaner", name: "Vacuum Cleaner", showImage: true },
+    { id: "kitchen-chimney", name: "Kitchen Chimney", showImage: true },
+    { id: "air-purifier", name: "Air Purifier", showImage: true },
 ];
 
 const Services = () => {
@@ -140,7 +142,13 @@ const Services = () => {
             rating: 4.77,
             image: "/assets/serviceTabIcons/kitchen chimney installaiton.webp",
             link: 'kitchen-chimney-repair',
-            briefInfo: "Routine maintenance to ensure optimal performance of your RO system. This includes cleaning filters, checking for leaks, and assessing water quality."
+            briefInfo: [
+                "Kitchen chimney check-up",
+                "Filter & duct cleaning",
+                "Motor & suction repair",
+                "Installation & uninstallation",
+                "Service Within 24 Hour"
+            ]
         }
         ,
         {
@@ -173,6 +181,21 @@ const Services = () => {
                 "Smart TV Maintenance",
                 "TV installation",
                 "TV uninstallation",
+                "Service Within 24 Hour"
+            ]
+        },
+        {
+            id: 10,
+            name: "Air Purifier",
+            category: "air-purifier",
+            reviews: 52,
+            rating: 4.77,
+            image: "/assets/serviceTabIcons/air purifier repair service.webp",
+            link: 'air-purifier-repair',
+            briefInfo: [
+                "Air purifier check-up",
+                "Filter cleaning & replacement",
+                "Fan & motor repair",
                 "Service Within 24 Hour"
             ]
         }
