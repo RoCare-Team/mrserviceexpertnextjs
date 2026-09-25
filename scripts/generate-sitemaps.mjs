@@ -128,6 +128,7 @@ const db = await mysql.createConnection({
 const [categories] = await db.query(
   `SELECT id, category_url FROM category_tb
     WHERE category_url IS NOT NULL AND category_url <> ''
+      AND status = '1'
     ORDER BY id`
 );
 
