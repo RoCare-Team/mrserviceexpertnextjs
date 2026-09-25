@@ -6,7 +6,7 @@ import HomeCareService from './components/servicesSection/homeCareService';
 import PopularCities from './components/popularCities/PopularCities';
 import OtherCities from './components/popularCities/OtherCities';
 
-// The Other Cities block is admin-managed, so the page is revalidated
+// The Homepage Cities block is admin-managed, so the page is revalidated
 // instead of being frozen at build time. Five minutes keeps the homepage
 // served from cache for almost every visitor while admin edits still
 // appear without a redeploy.

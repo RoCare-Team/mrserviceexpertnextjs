@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getOtherCityLinks } from "@/lib/otherCityLinks";
 
 /**
- * "Other Cities" dropdown on the homepage, sitting under Popular Cities.
+ * "Homepage Cities" dropdown on the homepage, sitting under Popular Cities.
  *
  * Unlike PopularCities (a fixed list in the code) these links are managed from
  * /admin/other_cities, so this is an async server component that reads them at
@@ -18,7 +18,7 @@ export default async function OtherCities() {
     <div className="bg-white px-8 py-6">
       <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
         <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-          <span>Other Cities</span>
+          <span>Homepage Cities</span>
           <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">
             ▼
           </span>

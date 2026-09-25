@@ -90,23 +90,40 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
       [catRow.id, cityRow.id, catRow.id]
     );
 
-    // "Popular Cities" — same state, but only cities that actually HAVE a page
-    // for this brand + category. /{city}/{brand}/{cat} 404s without a
-    // page_master_tb row (no content fallback like the city+category route),
-    // so listing every city in the state would just publish broken links.
-    const [relatedCities] = await connection.query(
-      `SELECT DISTINCT ci.id, ci.city_name, ci.city_url
-         FROM page_master_tb pm
-         JOIN city_tb ci ON ci.id = pm.city_id
-         JOIN brand_tb b ON b.id = pm.brand_id
-        WHERE pm.category_id = ?
-          AND LOWER(b.brand_url) = ?
-          AND ci.state = ?
-          AND LOWER(ci.city_url) <> ?
-          AND ci.city_url IS NOT NULL AND ci.city_url <> ''
-        ORDER BY ci.city_name ASC`,
-      [catRow.id, brand, cityRow.state, city]
-    );
+    // "Popular Cities" — other cities that have a page for THIS brand and
+    // category, so every link stays /{city}/{brand}/{cat} and none can 404.
+    //
+    // Same state first, because those are the genuinely nearby cities. 348 of
+    // the 2,294 city rows have a NULL state though, and `state = ?` never
+    // matches NULL in SQL, so that tier silently returned nothing for ~15% of
+    // brand pages and the block vanished. When it comes back empty we fall
+    // back to any city carrying this brand + category, capped so the page does
+    // not sprout hundreds of links.
+    const CITY_LINK_CAP = 40;
+    const relatedCitiesSql = (scoped) => `
+      SELECT DISTINCT ci.id, ci.city_name, ci.city_url
+        FROM page_master_tb pm
+        JOIN city_tb ci ON ci.id = pm.city_id
+        JOIN brand_tb b ON b.id = pm.brand_id
+       WHERE pm.category_id = ?
+         AND LOWER(b.brand_url) = ?
+         AND LOWER(ci.city_url) <> ?
+         AND ci.city_url IS NOT NULL AND ci.city_url <> ''
+         ${scoped ? "AND ci.state = ?" : ""}
+       ORDER BY ci.city_name ASC
+       ${scoped ? "" : `LIMIT ${CITY_LINK_CAP}`}`;
+
+    let relatedCities = [];
+    if (cityRow.state) {
+      [relatedCities] = await connection.query(relatedCitiesSql(true), [
+        catRow.id, brand, city, cityRow.state,
+      ]);
+    }
+    if (!relatedCities.length) {
+      [relatedCities] = await connection.query(relatedCitiesSql(false), [
+        catRow.id, brand, city,
+      ]);
+    }
 
     // "Other Services" — the same brand in this same city, other categories.
     // Existence-gated for the same reason as the cities list above.
