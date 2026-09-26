@@ -127,6 +127,14 @@ export async function proxy(req) {
     return gone(req);
   }
 
+  // Air cooler is not a service we offer: /air-cooler, /{city}/air-cooler and
+  // /{city}/{brand}/air-cooler are all gone.
+  const airCoolerPathRegex = /(^|\/)air-cooler(\/|$)/;
+
+  if (airCoolerPathRegex.test(source)) {
+    return gone(req);
+  }
+
   /* ── 4. Existing redirect engine ───────────────────────────── */
 
   try {
