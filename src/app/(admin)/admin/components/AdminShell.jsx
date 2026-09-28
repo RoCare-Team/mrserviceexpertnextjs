@@ -22,12 +22,17 @@ import {
   ChevronLeft,
   PanelLeftClose,
   LogOut,
+  Inbox,
 } from "lucide-react";
 
 const NAV = [
   {
     label: "Overview",
     items: [{ href: "/admin", icon: LayoutDashboard, name: "Dashboard", exact: true }],
+  },
+  {
+    label: "Leads",
+    items: [{ href: "/admin/contact_us", icon: Inbox, name: "Contact Us" }],
   },
   {
     label: "Catalogue",
@@ -79,6 +84,7 @@ const TITLES = {
   "/admin/other_cities": "Homepage Cities",
   "/admin/ai_content": "AI Content Generator",
   "/admin/ai_content/library": "AI Content Library",
+  "/admin/contact_us": "Contact Us Enquiries",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",
 };

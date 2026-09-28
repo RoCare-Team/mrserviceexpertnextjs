@@ -1,281 +1,263 @@
 "use client";
 
 import { useState } from 'react';
-import { AccountCircle, Phone, Email, Message, LocationOn, Business, Language } from '@mui/icons-material';
-import { TextField } from '@mui/material';
-import { Typography, InputAdornment } from '@mui/material'
-import { faContactCard, faEnvelope, faSms } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-// import Contact from '../../../assets/images/Customer-Services.jpg';
+import { Phone, Mail, MapPin, Clock, MessageCircle, Send, User, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast, ToastContainer } from 'react-toastify';
 
+const PHONE = '+91-9311587715';
+const EMAIL = 'info@mrserviceexpert.com';
+const ADDRESS = 'Unit No. 831, 8th Floor, JMD Megapolis, Sohna Road, Sector-48, Gurugram, Haryana 122018';
+const MAP_SRC = `https://maps.google.com/maps?q=${encodeURIComponent('JMD Megapolis, Sohna Road, Sector 48, Gurugram')}&z=15&output=embed`;
+
+const INITIAL = { name: '', phone: '', email: '', subject: '', message: '', website: '' };
+
+const CONTACT_CARDS = [
+  { icon: Phone, title: 'Call us', value: PHONE, href: `tel:${PHONE}`, hint: 'Fastest way to book a service' },
+  { icon: MessageCircle, title: 'WhatsApp', value: 'Chat with us', href: 'https://wa.me/919311587715', hint: 'Quick replies on WhatsApp', external: true },
+  { icon: Mail, title: 'Email', value: EMAIL, href: `mailto:${EMAIL}`, hint: 'We reply within 24 hours' },
+  { icon: Clock, title: 'Working hours', value: 'Open 24 × 7', hint: 'All days, including holidays' },
+];
+
+const inputCls =
+  'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-[15px] text-gray-900 placeholder:text-gray-400 outline-none transition focus:border-purple-500 focus:bg-white focus:ring-4 focus:ring-purple-100';
+
+function FieldIcon({ icon: Icon, children }) {
+  return (
+    <div className="relative">
+      <Icon className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-400" />
+      {children}
+    </div>
+  );
+}
+
 export default function ContactPage() {
-  const [activeTab, setActiveTab] = useState('contact');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
-    phone: '',
-  });
+  const [formData, setFormData] = useState(INITIAL);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const handleChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success('Your message has been sent. Our team will contact you soon.');
+    if (!/^(\+?91|0)?[6-9]\d{9}$/.test(formData.phone.replace(/[\s-]/g, ''))) {
+      toast.error('Please enter a valid 10-digit mobile number.');
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, page_url: window.location.href }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message);
+      toast.success(data.message || 'Your message has been sent. Our team will contact you soon.');
+      setFormData(INITIAL);
+      setSent(true);
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
-    <div className="bg-purple-100 min-h-screen common-spacing ">
+    <div className="min-h-screen bg-gradient-to-b from-purple-50 via-white to-white">
       <ToastContainer />
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-        <div className="p-8">
-          <h1 className="text-4xl font-bold text-purple-600 mb-6">Contact Us</h1>
 
-          <div className="flex flex-col md:flex-row gap-8">
-            {/* Left column - Contact Form */}
-            <div className="md:w-1/2">
-              <div className="bg-gray-100 inline-flex rounded-lg p-1 mb-6">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-purple-700 via-purple-600 to-fuchsia-600 text-white">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl" />
+        <div className="absolute -bottom-32 -left-16 h-72 w-72 rounded-full bg-fuchsia-300/20 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-28 pt-14 sm:px-6 md:pt-20">
+          <span className="inline-block rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
+            We&apos;re here to help
+          </span>
+          <h1 className="mt-4 text-4xl font-bold leading-tight md:text-5xl">Contact Us</h1>
+          <p className="mt-3 max-w-2xl text-base text-purple-100 md:text-lg">
+            Have a question about a repair, a booking or a complaint? Send us a message and our
+            support team will get back to you shortly.
+          </p>
+        </div>
+      </section>
+
+      <div className="relative mx-auto -mt-20 max-w-6xl px-4 pb-16 sm:px-6">
+        {/* Quick contact cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {CONTACT_CARDS.map(({ icon: Icon, title, value, href, hint, external }) => {
+            const body = (
+              <>
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-100 text-purple-700 transition group-hover:bg-purple-600 group-hover:text-white">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">{title}</p>
+                  <p className="mt-0.5 truncate font-semibold text-gray-900">{value}</p>
+                  <p className="mt-0.5 text-xs text-gray-500">{hint}</p>
+                </div>
+              </>
+            );
+            const cls = 'group flex items-start gap-3 rounded-2xl border border-purple-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg';
+            return href ? (
+              <a key={title} href={href} title={value} className={cls} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                {body}
+              </a>
+            ) : (
+              <div key={title} className={cls}>{body}</div>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
+          {/* Form */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl shadow-purple-100/50 sm:p-8 lg:col-span-3">
+            {sent ? (
+              <div className="flex h-full flex-col items-center justify-center py-12 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                  <CheckCircle2 className="h-8 w-8" />
+                </span>
+                <h2 className="mt-5 text-2xl font-bold text-gray-900">Thank you!</h2>
+                <p className="mt-2 max-w-sm text-gray-600">
+                  Your message has been received. Our team will call or email you soon.
+                  For urgent help, call <a href={`tel:${PHONE}`} className="font-semibold text-purple-700">{PHONE}</a>.
+                </p>
                 <button
-                  className={`px-4 py-2  contact-btn-style ${activeTab === 'contact' ? 'bg-purple-500 text-white' : 'text-gray-700'}`}
-                  onClick={() => setActiveTab('contact')}
+                  type="button"
+                  onClick={() => setSent(false)}
+                  className="mt-6 rounded-xl border border-purple-200 px-5 py-2.5 font-semibold text-purple-700 transition hover:bg-purple-50"
                 >
-                  Send Message
-                </button>
-                <button
-                  className={`px-4 py-2 contact-btn-style ${activeTab === 'info' ? 'bg-purple-500 text-white' : 'text-gray-700'}`}
-                  onClick={() => setActiveTab('info')}
-                >
-                  Contact Info
+                  Send another message
                 </button>
               </div>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-gray-900">Send us a message</h2>
+                <p className="mt-1 text-sm text-gray-500">Fields marked * are required.</p>
 
-              {activeTab === 'contact' ? (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="relative">
-                    {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <AccountCircle className="text-gray-400" />
-                    </div> */}
-                    {/* <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Your Name *"
-                      required
-                      className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                    /> */}
-                    <TextField
-                      className='w-full'
-                      required
-                      label="Name"
-                      variant="outlined"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <AccountCircle />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
-                    />
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate={false}>
+                  {/* Honeypot — hidden from humans */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    className="hidden"
+                    aria-hidden="true"
+                  />
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <FieldIcon icon={User}>
+                      <input
+                        name="name"
+                        required
+                        minLength={2}
+                        maxLength={120}
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Your name *"
+                        autoComplete="name"
+                        className={`${inputCls} pl-11`}
+                      />
+                    </FieldIcon>
+                    <FieldIcon icon={Phone}>
+                      <input
+                        name="phone"
+                        type="tel"
+                        required
+                        inputMode="numeric"
+                        maxLength={14}
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="Mobile number *"
+                        autoComplete="tel"
+                        className={`${inputCls} pl-11`}
+                      />
+                    </FieldIcon>
                   </div>
 
-                  <div className="relative">
-                    {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="text-gray-400" />
-                    </div>
+                  <FieldIcon icon={Mail}>
                     <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="Phone Number *"
-                      required
-                      className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                    /> */}
-                    <TextField
-                      className='w-full'
-                      variant="outlined"
-                      label="Phone Number"
-
-                      name="phone"
-                      required
-                      value={formData.phone}
-                      onChange={handleChange}
-                    />
-                  </div>
-
-                  <div className="relative">
-                    {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Email className="text-gray-400" />
-                    </div>
-                    <input
+                      name="email"
                       type="email"
-                      name="email"
+                      required
+                      maxLength={160}
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="Email Address *"
-                      required
-                      className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                    /> */}
-                    <TextField
-                      className='w-full'
-                      required
-                      variant="outlined"
-                      label="Email"
-                      type='email'
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <FontAwesomeIcon icon={faEnvelope} />
-                            </InputAdornment>
-                          )
-                        }
-                      }}
+                      placeholder="Email address *"
+                      autoComplete="email"
+                      className={`${inputCls} pl-11`}
                     />
-                  </div>
+                  </FieldIcon>
 
-                  <div className="relative ">
-                    {/* <div className="absolute top-3 left-0 pl-3 pointer-events-none">
-                      <Message className="text-gray-400" />
-                    </div>
+                  <input
+                    name="subject"
+                    maxLength={160}
+                    value={formData.subject}
+                    onChange={handleChange}
+                    placeholder="Subject (e.g. RO service, AC repair, complaint)"
+                    className={inputCls}
+                  />
+
+                  <div>
                     <textarea
                       name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Your Message *"
                       required
-                      rows="5"
-                      className="pl-10 w-full p-3 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500"
-                    ></textarea> */}
-                    <TextField
-                      variant="outlined"
-                      label="Message"
-                      multiline
+                      minLength={5}
+                      maxLength={3000}
                       rows={5}
-                      name="message"
-                      required
                       value={formData.message}
                       onChange={handleChange}
-                      className='w-full'
+                      placeholder="How can we help you? *"
+                      className={`${inputCls} resize-y`}
                     />
+                    <p className="mt-1 text-right text-xs text-gray-400">{formData.message.length}/3000</p>
                   </div>
-
-
 
                   <button
                     type="submit"
-                    className="bg-purple-500 hover:bg-purple-700 contact-btn-style text-white py-3 px-6 rounded-md transition-colors"
+                    disabled={sending}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-purple-200 transition hover:from-purple-700 hover:to-fuchsia-700 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                   >
-                    Send Message
+                    {sending ? (
+                      <><Loader2 className="h-5 w-5 animate-spin" /> Sending…</>
+                    ) : (
+                      <><Send className="h-5 w-5" /> Send Message</>
+                    )}
                   </button>
                 </form>
-              ) : (
-                <div className="bg-purple-50 p-6 rounded-lg contactStyle">
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-purple-700 flex items-center">
-                      <LocationOn className="mr-2" />Head Office
-                    </h4>
-                    <p className="text-gray-700 ml-6">
-                      Unit No. 831, 8th Floor, JMD Megapolis, Sohna Road, Sector-48, Gurugram, Haryana 122018
-                    </p>
-                  </div>
+              </>
+            )}
+          </div>
 
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-purple-700 flex items-center">
-                      <Phone className="mr-2" /> Business Phone Numbers
-                    </h4>
-                    <p className="text-gray-700 ml-6" ><a href="tel:+91-9311587715" title='+91-9311587715'>+91-9311587715</a></p>
-                    {/* <p className="text-gray-700 ml-6">+91-92 6666 8507</p> */}
-                  </div>
-
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-purple-700 flex items-center">
-                      <Email className="mr-2" />Email
-                    </h4>
-                    <p className="text-gray-700 ml-6"><a href="mailto:info@mrserviceexpert.com" title='mail to info@mrserviceexpert.com'>info@mrserviceexpert.com</a></p>
-                  </div>
-
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-purple-700 flex items-center">
-                      <Language className="mr-2" /> Website
-                    </h4>
-                    <p className="text-gray-700 ml-6"><a href="https://www.mrserviceexpert.com/" target="_blank" rel="noopener noreferrer" title='www.mrserviceexpert.com'>www.mrserviceexpert.com</a> </p>
-                  </div>
-
-                </div>
-              )}
+          {/* Office + map */}
+          <div className="flex flex-col gap-6 lg:col-span-2">
+            <div className="rounded-3xl border border-purple-100 bg-purple-50/60 p-6">
+              <h3 className="flex items-center gap-2 text-lg font-semibold text-purple-800">
+                <MapPin className="h-5 w-5" /> Head Office
+              </h3>
+              <p className="mt-2 leading-relaxed text-gray-700">{ADDRESS}</p>
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-sm font-semibold text-purple-700 hover:underline"
+              >
+                Get directions →
+              </a>
             </div>
-
-            {/* Right column - Image and Contact Details */}
-            <div className="md:w-1/2">
-              <div className="mb-6">
-                <img
-                  src="/assets/images/Customer-Services.jpg"
-                  alt="Customer Support"
-                  className="w-full rounded-lg"
-                />
-              </div>
-
-              <div className="bg-purple-50 p-6 rounded-lg">
-                <h3 className="text-xl font-semibold text-purple-700 mb-4">Department Contacts</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 contactStyle">
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Service Query</span>
-                    <span className="text-gray-700"><a href="tel:+91-9311587715" title='+91-9311587715'>+91-9311587715</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Complaints</span>
-                    <span className="text-gray-700"><a href="tel:+91-965 498 9003" title='+91-965 498 9003'>+91-965 498 9003</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Sales & Marketing</span>
-                    <span className="text-gray-700"><a href="tel:+91-954 038 4046" title='+91-954 038 4046'>+91-954 038 4046</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Admin Manager</span>
-                    <span className="text-gray-700"><a href="tel:+91-991 129 5362" title='+91-991 129 5362'>+91-991 129 5362</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">VME Department</span>
-                    <span className="text-gray-700"><a href="tel:+91-850 600 0169" title='+91-850 600 0169'>+91-850 600 0169</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">HR Department</span>
-                    <span className="text-gray-700"><a href="tel:+91-7065050074" title='+91-7065050074'>+91-7065050074</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Managing Director</span>
-                    <span className="text-gray-700"><a href="tel:+91-706 502 1273" title='+91-706 502 1273'>+91-706 502 1273</a></span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="font-medium text-purple-600">Purchase</span>
-                    <span className="text-gray-700"><a href="tel:+91-730 388 8097" title='+91-730 388 8097'>+91-730 388 8097</a></span>
-                  </div>
-                </div>
-              </div>
+            <div className="min-h-[280px] flex-1 overflow-hidden rounded-3xl border border-gray-100 shadow-sm">
+              <iframe
+                title="Mr. Service Expert head office location"
+                src={MAP_SRC}
+                className="h-full min-h-[280px] w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
             </div>
           </div>
         </div>

@@ -15,6 +15,14 @@ const createPool = () =>
     connectionLimit: 5,
     maxIdle: 2,
     idleTimeout: 30_000,
+
+    // The DB server runs on MST (UTC-7), so NOW()/CURDATE() there are 12.5h
+    // behind IST — a blog posted before 12:30 PM IST got yesterday's date.
+    // Each connection is switched to IST (see 'connection' hook below), and
+    // mysql2 parses DATETIME/TIMESTAMP values as IST to match. DATE columns
+    // come back as plain 'YYYY-MM-DD' strings so no timezone can shift the day.
+    timezone: "+05:30",
+    dateStrings: ["DATE"],
   });
 
 // Next.js bundles this module into each route's server chunk, so a plain
@@ -39,6 +47,11 @@ const TRANSIENT_ERRORS = new Set([
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 if (!globalThis._mysqlPool) {
+  // Runs once per new physical connection, queued ahead of its first query.
+  db.pool.on("connection", (conn) => {
+    conn.query("SET time_zone = '+05:30'", () => {});
+  });
+
   const rawQuery = db.query.bind(db);
   db.query = async (...args) => {
     for (let attempt = 1; ; attempt++) {
