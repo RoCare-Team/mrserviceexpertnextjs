@@ -5,6 +5,11 @@ export const dynamic = "force-dynamic";
 
 const BASE = "https://www.mrserviceexpert.com";
 
+// Only the homepage appliance categories, in homepage order: RO, Washing
+// Machine, Refrigerator, AC, Geyser, Microwave, LED TV, Kitchen Chimney,
+// Air Purifier, Vacuum Cleaner. Brand pages (page_master_tb) are not included.
+const CATEGORY_IDS = [1, 3, 5, 2, 4, 7, 11, 6, 9, 8];
+
 // /{city}/{category} pages (master_tb_withoutbrand) for one city or a whole
 // state, grouped by category:  ?city=gurgaon  or  ?state=haryana
 export async function GET(request) {
@@ -36,10 +41,11 @@ export async function GET(request) {
         WHERE ${where}
           AND m.robots <> 'noindex'
           AND c.status = '1'
+          AND c.id IN (?)
           AND ci.city_url IS NOT NULL AND ci.city_url <> ''
           AND c.category_url IS NOT NULL AND c.category_url <> ''
-        ORDER BY c.id ASC, ci.city_url ASC`,
-      params
+        ORDER BY FIELD(c.id, ?), ci.city_url ASC`,
+      [...params, CATEGORY_IDS, CATEGORY_IDS]
     );
 
     const byCategory = new Map();
