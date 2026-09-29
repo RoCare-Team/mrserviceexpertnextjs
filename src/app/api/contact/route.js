@@ -23,6 +23,33 @@ function tooMany(ip) {
   return list.length > MAX_PER_WINDOW;
 }
 
+// Every enquiry is also pushed to the CRM so the call-centre sees it. The
+// DB row is the source of truth; a CRM failure is logged, never shown to the
+// visitor.
+const CRM_URL = "https://inet.waterpurifierservicecenter.in/website_contact_form.php";
+const CRM_SOURCE = "mrserviceexpert.com";
+
+async function pushToCrm({ name, phone, email, subject, message }) {
+  try {
+    const res = await fetch(CRM_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        mobile: phone,
+        email,
+        subject: subject || "Website enquiry",
+        message,
+        source: CRM_SOURCE,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) console.error("contact CRM push failed:", res.status, await res.text());
+  } catch (error) {
+    console.error("contact CRM push failed:", error.message);
+  }
+}
+
 const bad = (message, status = 400) =>
   NextResponse.json({ success: false, message }, { status });
 
@@ -75,6 +102,7 @@ export async function POST(request) {
         String(body.page_url || "").slice(0, 500) || null,
       ]
     );
+    await pushToCrm({ name, phone, email, subject, message });
     return NextResponse.json({
       success: true,
       message: "Your message has been sent. Our team will contact you soon.",
