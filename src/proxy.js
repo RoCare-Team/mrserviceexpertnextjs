@@ -34,6 +34,30 @@ function normalisePath(pathname) {
   return u;
 }
 
+// Public URLs are lowercase, hyphen-separated slugs. Returns the pathname
+// unchanged when it is already canonical.
+function canonicalPath(pathname) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return pathname;
+  }
+
+  if (!/[A-Z\s]/.test(decoded)) return pathname;
+
+  return decoded
+    .split("/")
+    .map((seg) =>
+      seg
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/-{2,}/g, "-")
+    )
+    .join("/");
+}
+
 const json401 = () =>
   new NextResponse(
     JSON.stringify({
@@ -108,6 +132,14 @@ export async function proxy(req) {
   /* ── 2. Redirect rules for public paths ────────────────────── */
 
   if (req.method !== "GET") return NextResponse.next();
+
+  /* ── 2a. Canonical slugs: /Nanded Waghala → /nanded-waghala ── */
+
+  const canonical = canonicalPath(pathname);
+
+  if (canonical !== pathname) {
+    return NextResponse.redirect(new URL(canonical + search, origin), 301);
+  }
 
   const source = normalisePath(pathname);
 
