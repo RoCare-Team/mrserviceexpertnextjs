@@ -16,7 +16,7 @@ function formatDate(d) {
   if (!d) return "";
   const dt = new Date(d);
   if (isNaN(dt)) return String(d);
-  return dt.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  return dt.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Kolkata" });
 }
 
 // Rough reading time from the HTML content.
