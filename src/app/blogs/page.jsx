@@ -24,7 +24,7 @@ function formatDate(d) {
   if (!d) return "";
   const dt = new Date(d);
   if (isNaN(dt)) return String(d);
-  return dt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  return dt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
 }
 
 // Build a URL that keeps the current filters but overrides given keys.
