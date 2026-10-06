@@ -57,8 +57,8 @@ const NAV = [
     label: "AI",
     items: [
       // exact: the library lives under this path and gets its own entry.
-      { href: "/admin/ai_content", icon: Sparkles, name: "AI Generator", exact: true },
-      { href: "/admin/ai_content/library", icon: Library, name: "AI Library" },
+      { href: "/admin/ai_content", icon: Sparkles, name: "AI Content", exact: true },
+      { href: "/admin/ai_content/library", icon: Library, name: "Content Manager" },
     ],
   },
   {
@@ -82,8 +82,8 @@ const TITLES = {
   "/admin/blogs": "Blogs",
   "/admin/blog-categories": "Blog Categories",
   "/admin/other_cities": "Homepage Cities",
-  "/admin/ai_content": "AI Content Generator",
-  "/admin/ai_content/library": "AI Content Library",
+  "/admin/ai_content": "AI Content",
+  "/admin/ai_content/library": "Content Manager",
   "/admin/contact_us": "Contact Us Enquiries",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",

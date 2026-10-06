@@ -289,7 +289,7 @@ const SYSTEM_PROMPT = `You are a senior SEO content writer for "Mr. Service Expe
 You write original, factual, human-sounding landing-page copy in clear Indian English.
 You output RAW HTML ONLY — no markdown, no code fences, no commentary before or after.`;
 
-function buildUserPrompt(ctx, { url, version, avoidHeadings }) {
+function buildUserPrompt(ctx, { url, version, avoidHeadings, words, instructions }) {
   const lines = [];
   lines.push(`Write the body content for this landing page.`);
   lines.push("");
@@ -333,8 +333,13 @@ function buildUserPrompt(ctx, { url, version, avoidHeadings }) {
 
   lines.push("");
   lines.push(`Requirements:`);
-  // Asking for 500-700 lands the actual output in the 400-600 range.
-  lines.push(`- 500 to 700 words of NEW copy.`);
+  // Asking for 500-700 lands the actual output in the 400-600 range, so the
+  // admin's target is padded the same way.
+  lines.push(
+    words
+      ? `- About ${words} to ${words + 150} words of NEW copy.`
+      : `- 500 to 700 words of NEW copy.`
+  );
   lines.push(
     `- Raw HTML only, using just these tags: <p>, <h2>, <h3>, <ul>, <ol>, <li>, <strong>, <em>. No <h1>, no <html>/<head>/<body>, no attributes, no inline styles, no classes, no images, no links.`
   );
@@ -352,11 +357,17 @@ function buildUserPrompt(ctx, { url, version, avoidHeadings }) {
   );
   lines.push(`- Close with a short <p> call to action to book the service (no phone number).`);
 
+  if (instructions) {
+    lines.push("");
+    lines.push(`Admin instructions — these override the requirements above where they conflict:`);
+    lines.push(instructions);
+  }
+
   return lines.join("\n");
 }
 
 /** One chat completion. Retries once on 429 / 5xx. */
-async function callOpenAI(messages) {
+async function callOpenAI(messages, maxTokens = 1800) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set in the environment");
 
@@ -375,7 +386,7 @@ async function callOpenAI(messages) {
           model: OPENAI_MODEL,
           messages,
           temperature: 0.8,
-          max_tokens: 1800,
+          max_tokens: maxTokens,
         }),
         signal: controller.signal,
       });
@@ -410,11 +421,22 @@ async function callOpenAI(messages) {
 }
 
 /** context + url + version → cleaned HTML string. */
-export async function generateContentHtml(ctx, { url, version = 1, avoidHeadings = [] }) {
-  const raw = await callOpenAI([
-    { role: "system", content: SYSTEM_PROMPT },
-    { role: "user", content: buildUserPrompt(ctx, { url, version, avoidHeadings }) },
-  ]);
+export async function generateContentHtml(
+  ctx,
+  { url, version = 1, avoidHeadings = [], words = 0, instructions = "" }
+) {
+  // ~1.4 tokens per word plus HTML tags; never below the old fixed budget.
+  const maxTokens = Math.max(1800, Math.ceil((words + 150) * 2.5));
+  const raw = await callOpenAI(
+    [
+      { role: "system", content: SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: buildUserPrompt(ctx, { url, version, avoidHeadings, words, instructions }),
+      },
+    ],
+    maxTokens
+  );
   const html = cleanModelHtml(raw);
   if (!html || wordCount(html) < 80) {
     throw new Error("Model returned unusably short content");
@@ -585,7 +607,7 @@ export async function saveGeneratedContent({ url, slug, html }) {
  * Full pipeline for one URL: normalize → resolve → generate → save.
  * Always resolves (never throws) so one bad URL can't kill a bulk run.
  */
-export async function generateForUrl(rawUrl) {
+export async function generateForUrl(rawUrl, { words = 0, instructions = "" } = {}) {
   const parsed = normalizeUrl(rawUrl);
   if (!parsed) {
     return { input: rawUrl, ok: false, reason: "Invalid URL" };
@@ -608,6 +630,8 @@ export async function generateForUrl(rawUrl) {
       url: parsed.url,
       version: nextVersion,
       avoidHeadings,
+      words,
+      instructions,
     });
 
     const saved = await saveGeneratedContent({ ...parsed, html });
@@ -620,6 +644,7 @@ export async function generateForUrl(rawUrl) {
       version: saved.version,
       words: wordCount(html),
       pageType: ctx.type,
+      html,
     };
   } catch (e) {
     return { input: rawUrl, ...parsed, ok: false, reason: e.message };
