@@ -130,8 +130,15 @@ export async function POST(request) {
       );
     }
 
+    const words = body?.words
+      ? Math.min(2000, Math.max(200, parseInt(body.words, 10) || 0))
+      : 0;
+    const instructions = String(body?.instructions || "").trim().slice(0, 2000);
+
     await ensureAiContentTable();
-    const results = await mapLimit(urls, CONCURRENCY, (u) => generateForUrl(u));
+    const results = await mapLimit(urls, CONCURRENCY, (u) =>
+      generateForUrl(u, { words, instructions })
+    );
 
     return NextResponse.json({
       success: true,
