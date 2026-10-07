@@ -22,7 +22,7 @@ const s3 = new S3Client({
 const ALLOWED_CONTENT_TYPES = new Set(["image/webp"]);
 
 // Only these prefixes are allowed, so a malicious client can't write anywhere in the bucket.
-const ALLOWED_PREFIXES = new Set(["blogs"]);
+const ALLOWED_PREFIXES = new Set(["blogs", "services"]);
 
 function sanitizeFilename(name) {
   // Strip any path components and keep a safe charset.
