@@ -125,7 +125,7 @@ const ServicesList = ({ cate, addedServices = [], state, handleCartLoading, cart
 
     const cid = localStorage.getItem('customer_id');
 
-    fetch('https://waterpurifierservicecenter.in/customer/ro_customer/all_services.php', {
+    fetch('/api/services', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

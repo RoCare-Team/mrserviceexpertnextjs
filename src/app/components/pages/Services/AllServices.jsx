@@ -16,7 +16,9 @@ const serviceL = [
   { id: "gyeser", service_name: "Gyeser", image: "/assets/serviceTabIcons/geyser uninstallation.webp", link: "geyser-repair" },
   { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/serviceTabIcons/refrigerator installation.webp", link: "refrigerator-repair" },
   { id: "led-tv-repair", service_name: "Led", image: "/assets/serviceTabIcons/led tv reapair.webp", link: "led-tv-repair" },
-  { id: "vaccum-cleaner", service_name: "Vaccum Cleaner", image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp", link: "vacuum-cleaner-repair" }
+  { id: "vaccum-cleaner", service_name: "Vaccum Cleaner", image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp", link: "vacuum-cleaner-repair" },
+  { id: "kitchen-chimney", service_name: "Kitchen Chimney", image: "/assets/serviceTabIcons/kitchen chimney repair and service.webp", link: "kitchen-chimney-repair" },
+  { id: "air-purifier", service_name: "Air Purifier", image: "/assets/serviceTabIcons/air purifier repair service.webp", link: "air-purifier-repair" }
 
 ];
 
@@ -82,7 +84,7 @@ const AllServices = (cater) => {
 
     const cid = localStorage.getItem('customer_id');
 
-    fetch('https://waterpurifierservicecenter.in/customer/ro_customer/all_services.php', {
+    fetch('/api/services', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

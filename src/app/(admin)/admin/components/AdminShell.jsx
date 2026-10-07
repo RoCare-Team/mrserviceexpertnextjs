@@ -23,6 +23,7 @@ import {
   PanelLeftClose,
   LogOut,
   Inbox,
+  Wrench,
 } from "lucide-react";
 
 const NAV = [
@@ -40,6 +41,7 @@ const NAV = [
       { href: "/admin/brand_edits", icon: Tags, name: "Brands" },
       { href: "/admin/brand_rollout", icon: PlusCircle, name: "Add Brand" },
       { href: "/admin/category_edits", icon: FolderTree, name: "Categories" },
+      { href: "/admin/services", icon: Wrench, name: "Services" },
       { href: "/admin/city_edits", icon: MapPin, name: "Cities" },
       { href: "/admin/store_locator", icon: Store, name: "Store Locator" },
       { href: "/admin/city_category", icon: FileText, name: "Pages" },
@@ -77,6 +79,7 @@ const TITLES = {
   "/admin/brand_rollout": "Add Brand",
   "/admin/category_edits": "Categories",
   "/admin/city_edits": "Cities",
+  "/admin/services": "Services",
   "/admin/store_locator": "Store Locator",
   "/admin/city_category": "Pages",
   "/admin/blogs": "Blogs",
