@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Camera, Clock, MapPin, Phone, Mail, Home, CheckCircle2, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
+import useServiceOverrides from '@/lib/useServiceOverrides';
 
 export default function ServiceRequestForm() {
     const [currentStep, setCurrentStep] = useState('basic_details');
@@ -41,6 +42,8 @@ export default function ServiceRequestForm() {
     const [brands, setBrands] = useState([]);
     const [timeSlots, setTimeSlots] = useState([]);
     const [services, setServices] = useState([]);
+    // Admin title / description / image (prices stay from getAllServices).
+    const withOverride = useServiceOverrides(services.map((s) => s.id));
     const [selectedBrandName, setSelectedBrandName] = useState('');
     const [selectedService, setSelectedService] = useState(null);
     const [availableTimeShifts, setAvailableTimeShifts] = useState([]);
@@ -1149,7 +1152,7 @@ export default function ServiceRequestForm() {
                         <div className="p-4 space-y-4">
                             <h3 className="text-xl font-semibold text-gray-800 mb-4">Select Required Service</h3>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {services.map(service => (
+                                {services.map(s => withOverride(s, 'id')).map(service => (
                                     <div
                                         key={service.id}
                                         className={`border-2 rounded-lg overflow-hidden transition hover:shadow-xl ${formData.service === service.id ? 'border-blue-600 shadow-lg' : 'border-gray-200'
