@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import PhoneVerification from "../components/PhoneVerification/PhoneVerification";
 import BookingSlots from "../components/bookingData/BookingSlots";
 import Link from "next/link";
+import useServiceOverrides from "@/lib/useServiceOverrides";
 
 const CheckOut = () => {
 
@@ -27,6 +28,11 @@ const CheckOut = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [cartDataArray, setCartDataArray] = useState([]);
     const [finalTotal, setFinalTotal] = useState(0);
+
+    // Admin title / description / image (prices stay from the cart API).
+    const withOverride = useServiceOverrides(
+        cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id))
+    );
 
     const [bookingCompleted, setBookingCompleted] = useState(false);
     const [bookingData, setBookingData] = useState({
@@ -460,7 +466,7 @@ const CheckOut = () => {
                                         return (
                                             <div key={service.category_cart_id}>
                                                 <p className="text-xl"><b>{service.leadtype_name}</b></p>
-                                                {service.cart_dtls.map((serviceDetail) => (
+                                                {service.cart_dtls.map((d) => withOverride(d)).map((serviceDetail) => (
                                                     <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">
                                                         <div className="problemIcon">
                                                             <img src={serviceDetail.image} alt={serviceDetail.service_name} />

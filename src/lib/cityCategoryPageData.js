@@ -1,6 +1,7 @@
 
 import db from "@/lib/db";
 import { getStoresByCityId } from "@/lib/storeLocatorData";
+import { HOME_CARE_SERVICES, isHomeCare } from "@/lib/homeCare";
 
 const normalize = (v = "") => v.toString().toLowerCase().trim();
 
@@ -29,7 +30,9 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
 
   if (!cityRow || !catRow) return null;
 
-  const [[[pageRow]], [brands], [related], stores] = await Promise.all([
+  const homeCare = isHomeCare(catRow.category_url);
+
+  const [[[pageRow]], [brands], [related], stores, [otherHomeCare]] = await Promise.all([
     // Page content for this city + category (no brand) → master_tb_withoutbrand.
     db.query(
       `SELECT *
@@ -73,7 +76,29 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
     ),
     // Physical store branches to surface on this city+category page (may be empty).
     getStoresByCityId(cityRow.id),
+    // Home care has no brands, so its pages link the city's OTHER home care
+    // services instead — only the ones that have a page in this city (home
+    // care isn't live in every city).
+    homeCare
+      ? db.query(
+          `SELECT c.category_name, c.category_url
+             FROM category_tb c
+            WHERE LOWER(c.category_url) IN (?)
+              AND LOWER(c.category_url) <> ?
+              AND EXISTS (
+                SELECT 1 FROM master_tb_withoutbrand m
+                 WHERE m.city_id = ? AND m.category_id = c.id
+              )`,
+          [HOME_CARE_SERVICES.map((s) => s.url), cat, cityRow.id]
+        )
+      : [[]],
   ]);
+
+  // Keep the footer / homepage order.
+  const order = HOME_CARE_SERVICES.map((s) => s.url);
+  const other_services = otherHomeCare
+    .map((c) => ({ name: c.category_name, url: c.category_url.toLowerCase() }))
+    .sort((a, b) => order.indexOf(a.url) - order.indexOf(b.url));
 
   return {
     // page_master_tb row → data.content.* (meta_*, page_content, faq*).
@@ -94,7 +119,10 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
     // The page filters this array by slugified category_name.
     category: [catRow],
     stores,
-    brands,
+    is_home_care: homeCare,
+    // Home care: no brands; "Other Services in {city}" links instead.
+    brands: homeCare ? [] : brands,
+    other_services,
     related_cities: related.map((c) => ({
       id: c.id,
       city_id: c.id,

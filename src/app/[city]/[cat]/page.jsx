@@ -550,7 +550,30 @@ export default async function Page({ params }) {
       )}
 
 
-      {(<div className="bg-white px-8 py-2">
+      {/* Home care has no brands — link the city's other home care services. */}
+      {data.is_home_care && data.other_services?.length > 0 && (<div className="bg-white px-8 py-2">
+        <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
+          <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
+            <span>Other Services in {data.city_name}</span>
+            <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
+          </summary>
+
+          <div className="brandsServices bg-gray-50 rounded-lg shadow p-4  flex items-center flex-wrap gap-2.5 ">
+            {data.other_services.map((s) => (
+              <div className='brandsServices' key={s.url}>
+                <a href={`/${city}/${s.url}`} title={`${s.name} in ${data.city_name}`}>
+                  <li className='brand-btn-style'>
+                    {s.name}
+                    <span></span>
+                  </li>
+                </a>
+              </div>
+            ))}
+          </div>
+        </details>
+      </div>)}
+
+      {!data.is_home_care && (<div className="bg-white px-8 py-2">
         <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
           <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
             <span>Popular Brand in {data.city_name}</span>

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import useServiceOverrides from "@/lib/useServiceOverrides";
 
 
 
@@ -17,6 +18,11 @@ const Cart = ({ cartLoaded, cartLoadedToggle }) => {
   const [finalTotal, setFinalTotal] = useState(0);
   const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
+
+  // Admin title / description / image (prices stay from the cart API).
+  const withOverride = useServiceOverrides(
+    cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id))
+  );
 
 
 
@@ -282,7 +288,7 @@ if (loading) {
               <p className="ml-2.5">{service.leadtype_name}</p>
 
               {/* Assuming service.innerArray is the nested array */}
-              {service.cart_dtls?.map((item, index) => (
+              {service.cart_dtls?.map((d) => withOverride(d)).map((item, index) => (
                 <div className="cart-item-body" key={item.service_id}>
                   <div className="cart-item">
                     <div className="service-details flex items-start flex-col">
