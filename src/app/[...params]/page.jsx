@@ -4,6 +4,7 @@ import ServicePage from "@/app/components/pages/Services/brands";
 import { notFound } from "next/navigation";
 import { getBrandPageData } from "@/lib/brandPageData";
 import { getPublicAiContent } from "@/lib/aiContent";
+import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -33,9 +34,23 @@ export async function generateMetadata({ params }) {
       };
     }
 
+    // Home appliance brand pages use the fixed pattern with the brand before
+    // the category; anything else keeps the meta saved in the DB.
+    const appliance = isHomeAppliance(cat)
+      ? applianceMeta({
+          category: data.categoryname,
+          city: data.city_name,
+          brand: data.brandname,
+        })
+      : null;
+
     return {
-      title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
+      title:
+        appliance?.title ||
+        data?.content?.meta_title ||
+        `Service in ${city} | Your Brand`,
       description:
+        appliance?.description ||
         data?.content?.meta_description ||
         `Find the best services in ${city}. Book now!`,
       keywords:
