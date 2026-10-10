@@ -242,7 +242,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-[#8078A8]">
-            <span>© {new Date().getFullYear()} Mr. Service Expert</span>
+            <span>© {new Date().getFullYear()} Mr. Service Expert.</span>
 
             {bottomLinks.map((link) => (
               <span
