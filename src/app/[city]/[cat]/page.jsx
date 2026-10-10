@@ -7,6 +7,7 @@ import { getCityCategoryPageData } from "@/lib/cityCategoryPageData";
 import { getPublicAiContent } from "@/lib/aiContent";
 import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
 import PopularCities from "@/app/components/popularCities/PopularCities";
+import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -27,9 +28,19 @@ export async function generateMetadata({ params }) {
       };
     }
 
+    // Home appliance pages use one fixed title/description pattern; every
+    // other page (home care etc.) keeps the meta saved in the DB.
+    const appliance = isHomeAppliance(cat)
+      ? applianceMeta({ category: data.category_name, city: data.city_name })
+      : null;
+
     return {
-      title: data?.content?.meta_title || `Service in ${city} | Your Brand`,
+      title:
+        appliance?.title ||
+        data?.content?.meta_title ||
+        `Service in ${city} | Your Brand`,
       description:
+        appliance?.description ||
         data?.content?.meta_description ||
         `Find the best services in ${city}. Book now!`,
       keywords:
