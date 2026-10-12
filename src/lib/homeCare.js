@@ -1,22 +1,30 @@
-// Home care categories (no brands, no "repair") — shared by the footer, the
-// city+category page and <ServicePage>, so the three always agree.
-// `url` is category_tb.category_url.
+// Service groups that aren't appliance repair: Home Care and Handyman. They
+// have no brands and no "repair" wording, and their pages link to the other
+// services of the same group. Shared by the footer, the home/city page icon
+// sections, the city+category page and <ServicePage>, so they always agree.
+// `url` is category_tb.category_url. `image: null` = no icon yet (the section
+// shows a placeholder).
 
 export const HOME_CARE_SERVICES = [
-  { name: "Kitchen Cleaning", url: "kitchen-cleaning-service" },
-  { name: "Home Deep Cleaning", url: "home-deep-cleaning-service" },
-  { name: "House Painting", url: "house-painting" },
-  { name: "Bathroom Cleaning", url: "bathroom-cleaning-service" },
-  { name: "Sofa Cleaning", url: "sofa-cleaning-service" },
-  { name: "Tank Cleaning", url: "tank-cleaning" },
-  { name: "Mason Service", url: "mason-service" },
-  { name: "Pest Control", url: "pest-control" },
+  { name: "Kitchen Cleaning", url: "kitchen-cleaning-service", image: "/assets/HomeCare/KITCHEN-CLEANING.webp" },
+  { name: "Home Deep Cleaning", url: "home-deep-cleaning-service", image: "/assets/HomeCare/HOME-DEEP-CLEANING.webp" },
+  { name: "Bathroom Cleaning", url: "bathroom-cleaning-service", image: "/assets/HomeCare/BATHROOM-CLEANING.webp" },
+  { name: "Sofa Cleaning", url: "sofa-cleaning-service", image: "/assets/HomeCare/SOFA-CLEANING.webp" },
+  { name: "Tank Cleaning", url: "tank-cleaning", image: "/assets/HomeCare/TANK-CLEANING.webp" },
+  { name: "Pest Control", url: "pest-control", image: "/assets/HomeCare/PEST-CONTROL.webp" },
 ];
 
-const HOME_CARE_URLS = new Set(HOME_CARE_SERVICES.map((s) => s.url));
+export const HANDYMAN_SERVICES = [
+  { name: "Plumber", url: "plumber", image: "/assets/images/plumber1.webp" },
+  { name: "Electrician", url: "electrician", image: "/assets/images/electrician.webp" },
+  { name: "Carpenter", url: "carpenter", image: null },
+  { name: "House Painting", url: "house-painting", image: "/assets/HomeCare/PAINTER.webp" },
+  { name: "Mason Service", url: "mason-service", image: "/assets/HomeCare/masons.webp" },
+];
+
+const key = (categoryUrl) => String(categoryUrl || "").toLowerCase().trim();
 
 // Home appliance categories (category_tb.category_url) — repair pages.
-// Plumber / carpenter / electrician are neither, so they're in no list.
 const HOME_APPLIANCE_URLS = new Set([
   "ro-water-purifier",
   "ac",
@@ -30,11 +38,15 @@ const HOME_APPLIANCE_URLS = new Set([
   "led-tv-repair",
 ]);
 
-export const isHomeAppliance = (categoryUrl) =>
-  HOME_APPLIANCE_URLS.has(String(categoryUrl || "").toLowerCase().trim());
+export const isHomeAppliance = (categoryUrl) => HOME_APPLIANCE_URLS.has(key(categoryUrl));
 
-export const isHomeCare = (categoryUrl) =>
-  HOME_CARE_URLS.has(String(categoryUrl || "").toLowerCase().trim());
+/** The Home Care / Handyman list a category belongs to, or null (appliance etc.). */
+export function serviceGroupFor(categoryUrl) {
+  const k = key(categoryUrl);
+  if (HOME_CARE_SERVICES.some((s) => s.url === k)) return HOME_CARE_SERVICES;
+  if (HANDYMAN_SERVICES.some((s) => s.url === k)) return HANDYMAN_SERVICES;
+  return null;
+}
 
 /**
  * Fixed title / description for home appliance pages. `brand` is optional and

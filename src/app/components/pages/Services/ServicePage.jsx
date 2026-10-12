@@ -10,7 +10,7 @@ import Image from "next/image";
 import Popup from "@/app/components/popup"
 import AiContent from "@/app/components/aiContent/AiContent";
 import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
-import { isHomeCare } from "@/lib/homeCare";
+import { serviceGroupFor } from "@/lib/homeCare";
 
 
 export default function ServicePage({ pagedata, city, cat, aiContent }) {
@@ -443,9 +443,9 @@ export default function ServicePage({ pagedata, city, cat, aiContent }) {
         <div className="services-page common-spacing">
           <div className="left-side lg:w-1/4 flex-col mb-1.5">
             <div className="sticky top-20">
-              {/* "Repair" only fits home appliances; home care is a service, not a repair. */}
+              {/* "Repair" only fits home appliances; home care / handyman is a service, not a repair. */}
               <h1 className="cityHeadings font-bold">
-                {isHomeCare(cat)
+                {serviceGroupFor(cat)
                   ? `${pagedata.category_name?.replace(/\s*Service$/i, "")} Service in ${pagedata.city_name} from Expert Professionals`
                   : `${pagedata.category_name?.replace("Service", "")} Repair Service in ${pagedata.city_name} from Expert Technician`}
               </h1>

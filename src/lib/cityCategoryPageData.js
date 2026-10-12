@@ -1,7 +1,7 @@
 
 import db from "@/lib/db";
 import { getStoresByCityId } from "@/lib/storeLocatorData";
-import { HOME_CARE_SERVICES, isHomeCare } from "@/lib/homeCare";
+import { serviceGroupFor } from "@/lib/homeCare";
 
 const normalize = (v = "") => v.toString().toLowerCase().trim();
 
@@ -30,7 +30,9 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
 
   if (!cityRow || !catRow) return null;
 
-  const homeCare = isHomeCare(catRow.category_url);
+  // Home care / handyman: no brands, link the group's other services instead.
+  const group = serviceGroupFor(catRow.category_url);
+  const homeCare = Boolean(group);
 
   const [[[pageRow]], [brands], [related], stores, [otherHomeCare]] = await Promise.all([
     // Page content for this city + category (no brand) → master_tb_withoutbrand.
@@ -89,13 +91,13 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
                 SELECT 1 FROM master_tb_withoutbrand m
                  WHERE m.city_id = ? AND m.category_id = c.id
               )`,
-          [HOME_CARE_SERVICES.map((s) => s.url), cat, cityRow.id]
+          [group?.map((s) => s.url), cat, cityRow.id]
         )
       : [[]],
   ]);
 
   // Keep the footer / homepage order.
-  const order = HOME_CARE_SERVICES.map((s) => s.url);
+  const order = (group || []).map((s) => s.url);
   const other_services = otherHomeCare
     .map((c) => ({ name: c.category_name, url: c.category_url.toLowerCase() }))
     .sort((a, b) => order.indexOf(a.url) - order.indexOf(b.url));

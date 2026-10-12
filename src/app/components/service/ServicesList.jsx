@@ -115,6 +115,12 @@ const ServicesList = ({ cate, addedServices = [], state, handleCartLoading, cart
       lead_type = 39;
     } else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
       lead_type = 35;
+    } else if (cat === "plumber" || city === "plumber" || cate === "plumber") {
+      lead_type = 36;
+    } else if (cat === "carpenter" || city === "carpenter" || cate === "carpenter") {
+      lead_type = 37;
+    } else if (cat === "electrician" || city === "electrician" || cate === "electrician") {
+      lead_type = 38;
     } else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
       lead_type = 30;
     } else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {

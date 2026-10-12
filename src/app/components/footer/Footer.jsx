@@ -15,7 +15,7 @@ import {
   ArrowUp,
 } from 'lucide-react';
 import Image from 'next/image';
-import { HOME_CARE_SERVICES } from '@/lib/homeCare';
+import { HANDYMAN_SERVICES, HOME_CARE_SERVICES } from '@/lib/homeCare';
 
 const quickLinks = [
   { label: 'Home', href: '/' },
@@ -35,6 +35,11 @@ const serviceLinks = [
 ];
 
 const homeCareLinks = HOME_CARE_SERVICES.map((s) => ({
+  label: s.name,
+  href: `/${s.url}`,
+}));
+
+const handymanLinks = HANDYMAN_SERVICES.map((s) => ({
   label: s.name,
   href: `/${s.url}`,
 }));
@@ -91,7 +96,7 @@ export default function Footer() {
   return (
     <footer className="relative bg-[#140C33] text-[#B7B0D6] [background-image:radial-gradient(700px_280px_at_85%_-10%,rgba(109,42,216,0.22),transparent_60%)]">
       <div className="mx-auto max-w-7xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-6">
 
           {/* Brand */}
           <div>
@@ -175,6 +180,26 @@ export default function Footer() {
 
             <ul className="mt-4 space-y-3">
               {homeCareLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-[#A79FCB] transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Handyman services */}
+          <div>
+            <h3 className="text-base font-semibold text-white">
+              Handyman
+            </h3>
+
+            <ul className="mt-4 space-y-3">
+              {handymanLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
