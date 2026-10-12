@@ -43,8 +43,12 @@ function HomeCareService({ title = "Home Care Services", services = HOME_CARE_SE
                                             alt={`${Service.name} services`}
                                             title={`${Service.name} services`}
                                             className="serviceImg w-28 h-28"
-                                            height="auto"
-                                            width={128}
+                                            height={112}
+                                            width={112}
+                                            // Fixed square tile: globals.css sets .serviceImg
+                                            // height:auto, so 300x200 icons rendered shorter
+                                            // than the 500x500 ones. Contain keeps them uncropped.
+                                            style={{ width: 112, height: 112, objectFit: "contain" }}
                                         />
                                     ) : (
                                         // No icon yet — keep the tile the same size.

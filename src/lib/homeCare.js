@@ -17,7 +17,7 @@ export const HOME_CARE_SERVICES = [
 export const HANDYMAN_SERVICES = [
   { name: "Plumber", url: "plumber", image: "/assets/images/plumber1.webp" },
   { name: "Electrician", url: "electrician", image: "/assets/images/electrician.webp" },
-  { name: "Carpenter", url: "carpenter", image: null },
+  { name: "Carpenter", url: "carpenter", image: "/carpenter.webp" },
   { name: "House Painting", url: "house-painting", image: "/assets/HomeCare/PAINTER.webp" },
   { name: "Mason Service", url: "mason-service", image: "/assets/HomeCare/masons.webp" },
 ];
