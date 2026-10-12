@@ -43,6 +43,9 @@ const LEAD_TYPES = [
   { id: 33, name: "Pest Control" },
   { id: 34, name: "Tank Cleaning" },
   { id: 35, name: "House Painting" },
+  { id: 36, name: "Plumber" },
+  { id: 37, name: "Carpenter" },
+  { id: 38, name: "Electrician" },
   { id: 39, name: "Mason Service" },
 ];
 

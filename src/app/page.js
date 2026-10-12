@@ -3,6 +3,7 @@ import React from 'react';
 import RepairView from '../app/components/repairs/repairView';
 import ServiceSection from '../app/components/servicesSection/servicesSection';
 import HomeCareService from './components/servicesSection/homeCareService';
+import { HANDYMAN_SERVICES } from '@/lib/homeCare';
 import PopularCities from './components/popularCities/PopularCities';
 import OtherCities from './components/popularCities/OtherCities';
 
@@ -291,6 +292,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
         <div className='my-8'>
           <HomeCareService />
+        </div>
+
+        <div className='my-8'>
+          <HomeCareService title="Handyman Services" services={HANDYMAN_SERVICES} />
         </div>
 
         {/* <div className='my-8'>

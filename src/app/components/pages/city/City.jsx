@@ -7,6 +7,7 @@ import ServiceProcedure from '@/app/components/serviceProcedure/index';
 import AllServicesList from "@/app/components/pages/Services/Services";
 import ServicesList from "@/app/components/service/ServicesList";
 import HomeCareService from "../../servicesSection/homeCareService";
+import { HANDYMAN_SERVICES } from "@/lib/homeCare";
 import Cart from "../../cart/Cart";
 import Popup from "@/app/components/popup"
 import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
@@ -137,6 +138,10 @@ const City = ({ city, cityData }) => {
                     <div className="common-spacing">
                         {/* <ServiceSection/> */}
                         <HomeCareService />
+                    </div>
+
+                    <div className="common-spacing">
+                        <HomeCareService title="Handyman Services" services={HANDYMAN_SERVICES} />
                     </div>
 
                     <StoreLocator stores={cityData?.stores} city={cityData?.city_name} />
