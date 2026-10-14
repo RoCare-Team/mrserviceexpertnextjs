@@ -49,24 +49,28 @@ async function importKey(secret) {
   );
 }
 
-/** Sign a payload object → token string. */
-export async function signSession(payload, ttlSeconds = DEFAULT_TTL_SECONDS) {
+/**
+ * Sign a payload object → token string. `secret` lets other session types
+ * (e.g. partners) use a different key, so their tokens can never pass as an
+ * admin session.
+ */
+export async function signSession(payload, ttlSeconds = DEFAULT_TTL_SECONDS, secret = getSecret()) {
   const now = Math.floor(Date.now() / 1000);
   const body = { ...payload, iat: now, exp: now + ttlSeconds };
   const head = bytesToB64url(enc.encode(JSON.stringify(body)));
-  const key = await importKey(getSecret());
+  const key = await importKey(secret);
   const sigBuf = await crypto.subtle.sign("HMAC", key, enc.encode(head));
   const sig = bytesToB64url(new Uint8Array(sigBuf));
   return `${head}.${sig}`;
 }
 
 /** Verify a token → payload object, or null if invalid/expired. */
-export async function verifySession(token) {
+export async function verifySession(token, secret) {
   if (!token || typeof token !== "string" || !token.includes(".")) return null;
   const [head, sig] = token.split(".");
   if (!head || !sig) return null;
   try {
-    const key = await importKey(getSecret());
+    const key = await importKey(secret || getSecret());
     const ok = await crypto.subtle.verify(
       "HMAC",
       key,
@@ -108,4 +112,4 @@ export function sessionCookieOptions(maxAgeSeconds = DEFAULT_TTL_SECONDS) {
   };
 }
 
-export { COOKIE_NAME, DEFAULT_TTL_SECONDS };
+export { COOKIE_NAME, DEFAULT_TTL_SECONDS, getSecret };

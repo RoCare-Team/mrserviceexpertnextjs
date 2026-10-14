@@ -23,6 +23,7 @@ const quickLinks = [
   { label: 'Career', href: '/careers' },
   { label: 'Contact Us', href: '/contact' },
   { label: 'Store Locator', href: '/store-locator' },
+  { label: 'Join as a Partner', href: '/join-as-partner' },
 ];
 
 const serviceLinks = [

@@ -24,6 +24,7 @@ import {
   LogOut,
   Inbox,
   Wrench,
+  Handshake,
 } from "lucide-react";
 
 const NAV = [
@@ -34,6 +35,10 @@ const NAV = [
   {
     label: "Leads",
     items: [{ href: "/admin/contact_us", icon: Inbox, name: "Contact Us" }],
+  },
+  {
+    label: "Partners",
+    items: [{ href: "/admin/partners", icon: Handshake, name: "Partners" }],
   },
   {
     label: "Catalogue",
@@ -88,6 +93,9 @@ const TITLES = {
   "/admin/ai_content": "AI Content",
   "/admin/ai_content/library": "Content Manager",
   "/admin/contact_us": "Contact Us Enquiries",
+  "/admin/partners": "Partners",
+  "/admin/partners/locations": "Partner Localities",
+  "/admin/partners/services": "Partner Service Catalogue",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",
 };
@@ -127,7 +135,7 @@ export default function AdminShell({ children }) {
   const isActive = (item) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
-  const title = TITLES[pathname] || "Admin";
+  const title = TITLES[pathname] || (pathname.startsWith("/admin/partners/") ? "Partner Review" : "Admin");
   const isSuper = user?.role === "super_admin";
 
   const logout = async () => {

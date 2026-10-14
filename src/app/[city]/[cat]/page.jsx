@@ -8,6 +8,7 @@ import { getPublicAiContent } from "@/lib/aiContent";
 import StoreLocator from "@/app/components/StoreLocator/StoreLocator";
 import PopularCities from "@/app/components/popularCities/PopularCities";
 import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
+import PartnerListingSection from "@/app/components/partners/PartnerListingSection";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -122,6 +123,13 @@ export default async function Page({ params }) {
   return (
     <>
       <ServicePage pagedata={data} city={city} cat={cat} aiContent={aiContent} />
+
+      <PartnerListingSection
+        cityUrl={city}
+        categoryUrl={cat}
+        cityName={data?.city_name}
+        categoryName={data?.category_name}
+      />
 
       <StoreLocator
         stores={data?.stores}
