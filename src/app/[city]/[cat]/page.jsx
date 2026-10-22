@@ -122,13 +122,19 @@ export default async function Page({ params }) {
 
   return (
     <>
-      <ServicePage pagedata={data} city={city} cat={cat} aiContent={aiContent} />
-
-      <PartnerListingSection
-        cityUrl={city}
-        categoryUrl={cat}
-        cityName={data?.city_name}
-        categoryName={data?.category_name}
+      <ServicePage
+        pagedata={data}
+        city={city}
+        cat={cat}
+        aiContent={aiContent}
+        partnerSection={
+          <PartnerListingSection
+            cityUrl={city}
+            categoryUrl={cat}
+            cityName={data?.city_name}
+            categoryName={data?.category_name}
+          />
+        }
       />
 
       <StoreLocator

@@ -11,8 +11,9 @@ export const BUSINESS_TYPES = {
 export const CONTACT_PREFERENCES = { call: "Call", whatsapp: "WhatsApp", both: "Call & WhatsApp" };
 
 export const DOC_TYPES = {
+  aadhaar: "Aadhaar card",
   gst_certificate: "GST certificate",
-  id_proof: "ID proof (Aadhaar / PAN)",
+  id_proof: "PAN / other ID proof",
   business_proof: "Business proof (shop licence, Udyam, etc.)",
   other: "Other document",
 };

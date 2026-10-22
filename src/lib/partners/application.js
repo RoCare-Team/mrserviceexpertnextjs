@@ -236,14 +236,13 @@ export function completion(app) {
   if (!app.categories.length) missing[2] = "Select at least one category.";
   const noSvc = app.categories.filter((c) => !app.services[c.id]?.length);
   if (app.categories.length && noSvc.length) missing[3] = `Select services for: ${noSvc.map((c) => c.name).join(", ")}.`;
-  const noBrand = app.categories.filter((c) => !app.brands[c.id]?.length);
-  if (app.categories.length && noBrand.length) missing[4] = `Select brands for: ${noBrand.map((c) => c.name).join(", ")}.`;
+  // Step 4 (brands) is optional and never blocks submission.
   if (!app.business.business_type || !app.business.business_name) missing[5] = "Add your business type and name.";
   const a = app.address;
   if (!a.line || !a.state_id || !a.city_id || !a.pincode) missing[6] = "Complete your business address.";
   else if (!app.areas.length) missing[6] = "Add at least one service area.";
-  const done = 6 - Object.keys(missing).length;
-  return { missing, percent: Math.round((done / 6) * 100), ready: done === 6 };
+  const done = 5 - Object.keys(missing).length;
+  return { missing, percent: Math.round((done / 5) * 100), ready: done === 5 };
 }
 
 /* ── wizard saves ─────────────────────────────────────────────────────── */
@@ -336,7 +335,7 @@ async function saveServices(conn, p, data) {
 
 async function saveBrands(conn, p, data) {
   const map = data.brands;
-  if (!map || typeof map !== "object") throw bad("Select brands for each category.");
+  if (!map || typeof map !== "object") throw bad("Invalid brand selection.");
   const selected = await selectedCategoryIds(conn, p.id);
   for (const key of Object.keys(map)) {
     if (!selected.has(Number(key))) throw bad("Brands were sent for a category you haven't selected.");
@@ -369,10 +368,7 @@ async function saveBrands(conn, p, data) {
       if (match) chosen.add(match.id);
       else custom = other.value;
     }
-    if (!chosen.size && !custom) {
-      fields[`brands.${catId}`] = "Select at least one brand (or enter one under Other).";
-      continue;
-    }
+    // Brands are optional — a category may be left empty (step skipped).
     for (const id of chosen) rows.push([p.id, catId, id, null, null]);
     if (custom) rows.push([p.id, catId, null, custom, "pending"]);
   }
@@ -390,6 +386,7 @@ async function saveBrands(conn, p, data) {
   }
 
   await conn.query("DELETE FROM partner_brands WHERE partner_id = ?", [p.id]);
+  if (!rows.length) return;
   await conn.query(
     "INSERT INTO partner_brands (partner_id, category_id, brand_id, custom_name, custom_status) VALUES ?",
     [rows]

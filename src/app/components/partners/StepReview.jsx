@@ -78,7 +78,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
         </p>
       </Section>
 
-      <Section title="Categories, services & brands" step={2} onJump={onJump} missing={missing[2] || missing[3] || missing[4]}>
+      <Section title="Categories, services & brands" step={2} onJump={onJump} missing={missing[2] || missing[3]}>
         {app.categories.length === 0 && <p>No categories selected.</p>}
         <ul className="space-y-2">
           {app.categories.map((c) => (
@@ -87,7 +87,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
               <Row k="Services" v={(app.services[c.id] || []).map((s) => s.name).join(", ")} />
               <Row
                 k="Brands"
-                v={(app.brands[c.id] || []).map((x) => (x.custom ? `${x.name} (pending review)` : x.name)).join(", ")}
+                v={(app.brands[c.id] || []).map((x) => (x.custom ? `${x.name} (pending review)` : x.name)).join(", ") || "Skipped (optional)"}
               />
             </li>
           ))}

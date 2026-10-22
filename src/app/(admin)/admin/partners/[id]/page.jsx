@@ -220,7 +220,7 @@ export default function AdminPartnerDetail({ params }) {
         <FormCard>
           <SectionTitle>Verification (separate from approval)</SectionTitle>
           {[
-            ["identity", "Identity checked (ID proof)"],
+            ["identity", "Identity checked (Aadhaar / ID proof)"],
             ["business", "Business checked (shop / licence)"],
             ["gst", "GST registration checked"],
           ].map(([field, label]) => (

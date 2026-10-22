@@ -100,23 +100,22 @@ export default async function Page({ params }) {
   const aiContent = await getPublicAiContent(`${city}/${brand}/${cat}`);
 
   return (
-    <>
-      <ServicePage
-        city={city}
-        brand={brand}
-        pagedata={data}
-        cat={cat}
-        aiContent={aiContent}
-      />
-
-      {/* Partners in this city/locality who service this brand. */}
-      <PartnerListingSection
-        cityUrl={city.toLowerCase()}
-        categoryUrl={cat.toLowerCase()}
-        brandUrl={brand.toLowerCase()}
-        cityName={data.city_name}
-        categoryName={`${data.brandname} ${data.categoryname}`}
-      />
-    </>
+    <ServicePage
+      city={city}
+      brand={brand}
+      pagedata={data}
+      cat={cat}
+      aiContent={aiContent}
+      partnerSection={
+        // Partners in this city/locality who service this brand.
+        <PartnerListingSection
+          cityUrl={city.toLowerCase()}
+          categoryUrl={cat.toLowerCase()}
+          brandUrl={brand.toLowerCase()}
+          cityName={data.city_name}
+          categoryName={`${data.brandname} ${data.categoryname}`}
+        />
+      }
+    />
   );
 }

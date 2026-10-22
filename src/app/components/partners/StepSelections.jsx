@@ -225,16 +225,22 @@ export function StepBrands({ app, onSave, onBack }) {
     const brands = {};
     for (const c of app.categories) {
       const custom = otherOpen[c.id] ? other[c.id].trim() : "";
-      if (!picked[c.id]?.length && !custom) fields[`brands.${c.id}`] = "Select at least one brand, or enter one under Other.";
+      if (otherOpen[c.id] && !custom) fields[`brands.${c.id}`] = "Enter the brand name, or untick Other.";
       brands[c.id] = { brand_ids: picked[c.id] || [], other: custom || null };
     }
-    if (Object.keys(fields).length) return setErr({ message: "Select brands for every category.", fields });
+    if (Object.keys(fields).length) return setErr({ message: "Please fix the highlighted fields.", fields });
     run({ brands });
   };
 
+  // Brands are optional: skipping clears any saved brand selection.
+  const skip = () => run({ brands: {} });
+
   return (
     <form onSubmit={submit} noValidate>
-      <p className="mb-5 text-sm text-[var(--muted)]">Which brands do you service in each category?</p>
+      <p className="mb-5 text-sm text-[var(--muted)]">
+        Which brands do you service in each category? This step is optional — skip it if you service all brands or
+        prefer not to say. (You&apos;ll only appear on brand-specific pages for brands you select.)
+      </p>
       <LoadState {...br} />
       {br.data && (
         <div className="space-y-6">
@@ -273,6 +279,11 @@ export function StepBrands({ app, onSave, onBack }) {
       )}
       {err && !err.fields && <FieldError msg={err.message} />}
       <StepNav onBack={onBack} busy={busy} disabled={!br.data} />
+      <div className="mt-3 text-center sm:text-right">
+        <button type="button" onClick={skip} disabled={busy} className="text-sm font-medium text-purple-700 underline disabled:opacity-60">
+          Skip brand selection
+        </button>
+      </div>
     </form>
   );
 }

@@ -10,7 +10,8 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
   const b = app.business;
   const [f, setF] = useState({
     business_type: b.business_type || "",
-    business_name: b.business_name || "",
+    // Individual technicians list under their own name (from step 1) unless they change it.
+    business_name: b.business_name || (b.business_type === "individual" ? app.full_name || "" : ""),
     description: b.description || "",
     experience_years: b.experience_years ?? "",
     gstin: b.gstin || "",
@@ -23,11 +24,27 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
   const [err, setErr] = useState(null);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
 
+  const isIndividual = f.business_type === "individual";
+
+  // Switching to Individual pre-fills the step-1 name; switching away clears it
+  // again if it was only that pre-fill, so a shop name is entered instead.
+  const changeType = (e) => {
+    const type = e.target.value;
+    setF((s) => {
+      const name = s.business_name.trim();
+      let business_name = s.business_name;
+      if (type === "individual" && !name) business_name = app.full_name || "";
+      else if (type !== "individual" && s.business_type === "individual" && name === (app.full_name || "").trim()) business_name = "";
+      return { ...s, business_type: type, business_name };
+    });
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     const fields = {};
     if (!f.business_type) fields.business_type = "Choose your business type.";
-    if (f.business_name.trim().length < 2) fields.business_name = "Business / shop name is required.";
+    if (f.business_name.trim().length < 2)
+      fields.business_name = isIndividual ? "Technician name is required." : "Business / shop name is required.";
     const g = validGstin(f.gstin);
     if (g.error) fields.gstin = g.error;
     if (f.show_phone_publicly && !f.contact_preference) fields.contact_preference = "Choose how customers should contact you.";
@@ -52,7 +69,7 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
                 f.business_type === v ? "border-purple-600 bg-purple-50 text-purple-800" : "border-[var(--line)] text-[var(--ink-soft)] hover:border-purple-300"
               }`}
             >
-              <input type="radio" name="business_type" value={v} checked={f.business_type === v} onChange={set("business_type")} className="sr-only" />
+              <input type="radio" name="business_type" value={v} checked={f.business_type === v} onChange={changeType} className="sr-only" />
               {label}
             </label>
           ))}
@@ -62,8 +79,13 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <label htmlFor="bz-name" className={labelCls}>Business / shop name *</label>
+          <label htmlFor="bz-name" className={labelCls}>{isIndividual ? "Technician name *" : "Business / shop name *"}</label>
           <input id="bz-name" className={inputCls} value={f.business_name} onChange={set("business_name")} maxLength={150} aria-invalid={!!fe.business_name} />
+          {isIndividual && (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              This is the name customers will see. We&apos;ve used your name from step 1 — change it if you work under a different name.
+            </p>
+          )}
           <FieldError msg={fe.business_name} />
         </div>
         <div className="sm:col-span-2">
@@ -120,7 +142,7 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
         <ImageField label="Shop / work photo" kind="shop" url={app.shop_image_url} onAppUpdate={onAppUpdate} onError={onError} />
       </div>
 
-      <Documents app={app} onAppUpdate={onAppUpdate} onError={onError} />
+      <Documents app={app} individual={isIndividual} onAppUpdate={onAppUpdate} onError={onError} />
 
       {err && !err.fields && <FieldError msg={err.message} />}
       <StepNav onBack={onBack} busy={busy} />
@@ -192,8 +214,8 @@ const fmtSize = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` :
 const REVIEW = { pending: "Awaiting review", verified: "Verified", rejected: "Rejected" };
 
 /** Private documents → S3 partner-docs/ (never public). */
-function Documents({ app, onAppUpdate, onError }) {
-  const [type, setType] = useState("gst_certificate");
+function Documents({ app, individual, onAppUpdate, onError }) {
+  const [type, setType] = useState(individual ? "aadhaar" : "gst_certificate");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const input = useRef(null);
@@ -243,6 +265,11 @@ function Documents({ app, onAppUpdate, onError }) {
           <input ref={input} type="file" accept="application/pdf,image/jpeg,image/png" className="sr-only" disabled={busy} onChange={(e) => upload(e.target.files?.[0])} />
         </label>
       </div>
+      {type === "aadhaar" && (
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          Tip: upload a <b>masked Aadhaar</b> (only the last 4 digits visible), downloadable from the UIDAI website.
+        </p>
+      )}
       <FieldError msg={msg} />
       {app.documents.length > 0 && (
         <ul className="mt-3 divide-y divide-[var(--line)]">
