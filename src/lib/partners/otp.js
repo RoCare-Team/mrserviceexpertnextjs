@@ -85,7 +85,8 @@ export async function sendPartnerOtp(mobile, ip) {
   return { resendAfter: RESEND_COOLDOWN_SEC, expiresInMin: EXPIRY_MIN, length: OTP_LENGTH };
 }
 
-/** Returns true only after the provider confirms the code. */
+/** Resolves to the provider response only after it confirms the code
+ *  (contains name / c_id / address for existing customers). */
 export async function verifyPartnerOtp(mobile, otp) {
   const [rows] = await db.query(
     `SELECT id, attempts FROM partner_otp_challenges
@@ -119,7 +120,7 @@ export async function verifyPartnerOtp(mobile, otp) {
       "UPDATE partner_otp_challenges SET status = 'verified', verified_at = NOW() WHERE id = ?",
       [challenge.id]
     );
-    return true;
+    return data;
   }
 
   const left = MAX_ATTEMPTS - (challenge.attempts + 1);

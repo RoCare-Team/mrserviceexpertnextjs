@@ -112,6 +112,8 @@ export default async function Page({ params }) {
           cityUrl={city.toLowerCase()}
           categoryUrl={cat.toLowerCase()}
           brandUrl={brand.toLowerCase()}
+          brandName={data.brandname}
+          baseCategoryName={data.categoryname}
           cityName={data.city_name}
           categoryName={`${data.brandname} ${data.categoryname}`}
         />

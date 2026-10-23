@@ -2,6 +2,7 @@ import Link from "next/link";
 import PartnerCard from "./PartnerCard";
 import PartnerLoadMore from "./PartnerLoadMore";
 import { resolvePageIds, getListingPage } from "@/lib/partners/listing";
+import { CRM_LEAD_TYPES } from "@/lib/partners/crmMap";
 
 /**
  * Server component: approved partners for an existing service page.
@@ -11,7 +12,7 @@ import { resolvePageIds, getListingPage } from "@/lib/partners/listing";
  * same until someone is approved for that area. A listing failure never
  * breaks the page.
  */
-export default async function PartnerListingSection({ cityUrl, categoryUrl, brandUrl = null, cityName, categoryName }) {
+export default async function PartnerListingSection({ cityUrl, categoryUrl, brandUrl = null, brandName = null, cityName, categoryName, baseCategoryName = null }) {
   let ids = null;
   let first = null;
   try {
@@ -23,6 +24,16 @@ export default async function PartnerListingSection({ cityUrl, categoryUrl, bran
     return null;
   }
   if (!first?.total) return null;
+
+  // "Book now" is pre-filled with this page's category / brand / city.
+  const bookingContext = CRM_LEAD_TYPES[categoryUrl]
+    ? {
+        categories: [{ url: categoryUrl, name: baseCategoryName || categoryName }],
+        defaultCategory: categoryUrl,
+        brandName: brandName || null,
+        cityName,
+      }
+    : null;
 
   return (
     <section aria-labelledby="partners-h" className="common-spacing">
@@ -43,10 +54,10 @@ export default async function PartnerListingSection({ cityUrl, categoryUrl, bran
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {first.items.map((p) => (
             <li key={p.slug}>
-              <PartnerCard partner={p} />
+              <PartnerCard partner={p} bookingContext={bookingContext} />
             </li>
           ))}
-          {first.hasMore && <PartnerLoadMore query={ids} startPage={2} />}
+          {first.hasMore && <PartnerLoadMore query={ids} startPage={2} bookingContext={bookingContext} />}
         </ul>
       </div>
     </section>

@@ -1,6 +1,8 @@
 import db from "@/lib/db";
 import { ok, handle, requireAdmin, readJson, toInt, HttpError } from "@/lib/partners/http";
 import { getApplication } from "@/lib/partners/application";
+import { getWallet } from "@/lib/partners/wallet";
+import { listReviewsForOwner } from "@/lib/partners/reviews";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,9 +15,11 @@ async function partnerId(ctx) {
 
 export const GET = handle(async (req, ctx) => {
   await requireAdmin(req);
-  const app = await getApplication(await partnerId(ctx), { forAdmin: true });
+  const id = await partnerId(ctx);
+  const app = await getApplication(id, { forAdmin: true });
   if (!app) throw new HttpError(404, "not_found", "Partner not found.");
-  return ok(app);
+  const [wallet, reviews] = await Promise.all([getWallet(id, { limit: 20 }), listReviewsForOwner(id)]);
+  return ok({ ...app, wallet, reviews });
 });
 
 /** Internal note only — status changes go through /status. */

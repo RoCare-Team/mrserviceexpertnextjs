@@ -10,6 +10,8 @@
 
 import db from "@/lib/db";
 import { publicUrl } from "@/lib/partners/storage";
+import { getRatingSummaries } from "@/lib/partners/reviews";
+import { CRM_LEAD_TYPES } from "@/lib/partners/crm";
 
 const PUBLIC_WHERE = `p.status = 'approved' AND p.is_listed = 1
   AND p.mobile_verified_at IS NOT NULL AND p.deleted_at IS NULL`;
@@ -60,7 +62,7 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
 
   const [rows] = await db.query(
     `SELECT p.id, p.slug, p.business_name, p.business_type, p.experience_years, p.logo_key,
-            p.operating_hours, p.contact_preference, p.show_phone_publicly, p.mobile,
+            p.operating_hours,
             p.identity_verified_at IS NOT NULL AS identity_verified,
             p.gst_verified_at IS NOT NULL AS gst_verified
        FROM partners p
@@ -77,7 +79,7 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
 async function decorate(rows, categoryId) {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
-  const [[svcs], [areas]] = await Promise.all([
+  const [[svcs], [areas], ratings] = await Promise.all([
     db.query(
       `SELECT ps.partner_id, t.name FROM partner_services ps
          JOIN partner_service_types t ON t.id = ps.service_type_id
@@ -92,6 +94,7 @@ async function decorate(rows, categoryId) {
         WHERE a.partner_id IN (?) ORDER BY a.is_primary DESC, a.id`,
       [ids]
     ),
+    getRatingSummaries(ids),
   ]);
   return rows.map((r) => ({
     slug: r.slug,
@@ -104,18 +107,8 @@ async function decorate(rows, categoryId) {
     gst_verified: !!r.gst_verified,
     services: svcs.filter((s) => s.partner_id === r.id).map((s) => s.name),
     areas: areas.filter((a) => a.partner_id === r.id).map((a) => a.name).slice(0, 4),
-    contact: publicContact(r),
+    rating: ratings.get(r.id) || null,
   }));
-}
-
-/** Phone is exposed only with the partner's explicit consent. */
-function publicContact(r) {
-  if (!r.show_phone_publicly || !r.contact_preference) return null;
-  return {
-    phone: r.mobile,
-    call: r.contact_preference !== "whatsapp",
-    whatsapp: r.contact_preference !== "call",
-  };
 }
 
 /** Public profile by slug, or null when it must not be shown. */
@@ -176,6 +169,7 @@ export async function getPublicProfile(slug) {
   }
 
   return {
+    id: p.id,
     slug: p.slug,
     business_name: p.business_name,
     business_type: p.business_type,
@@ -199,7 +193,8 @@ export async function getPublicProfile(slug) {
       brands: brands.filter((b) => b.category_id === c.id).map((b) => b.name),
     })),
     coverage,
-    contact: publicContact(p),
+    // Categories customers can book online (mapped to a CRM lead type).
+    bookable: cats.filter((c) => CRM_LEAD_TYPES[c.url]).map((c) => ({ url: c.url, name: c.name })),
     approved_at: p.approved_at,
     updated_at: p.updated_at,
   };

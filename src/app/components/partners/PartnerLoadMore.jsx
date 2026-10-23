@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react";
 import PartnerCard from "./PartnerCard";
 
 /** Appends further pages of partners in place (no new URLs for SEO pages). */
-export default function PartnerLoadMore({ query, startPage }) {
+export default function PartnerLoadMore({ query, startPage, bookingContext }) {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(startPage);
   const [more, setMore] = useState(true);
@@ -35,7 +35,7 @@ export default function PartnerLoadMore({ query, startPage }) {
     <>
       {items.map((p) => (
         <li key={p.slug}>
-          <PartnerCard partner={p} />
+          <PartnerCard partner={p} bookingContext={bookingContext} />
         </li>
       ))}
       {more && (

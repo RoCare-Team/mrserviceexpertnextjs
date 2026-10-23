@@ -6,6 +6,8 @@ import { getApplication } from "@/lib/partners/application";
 import { DOC_TYPES } from "@/lib/partners/validation";
 import { TrustBadges, CategoryIcon, cardCls, btnPrimary } from "@/app/components/partners/ui";
 import DashboardActions from "@/app/components/partners/DashboardActions";
+import PartnerLeadsPanel from "@/app/components/partners/PartnerLeadsPanel";
+import PartnerReviewsPanel from "@/app/components/partners/PartnerReviewsPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -100,6 +102,9 @@ export default async function PartnerDashboardPage() {
           )}
         </section>
 
+        {/* Leads + wallet once the partner has been approved at least once. */}
+        {(app.status === "approved" || app.approved_at) && <PartnerLeadsPanel />}
+
         <section className={cardCls}>
           <h2 className="mb-3 text-lg font-bold text-[var(--ink)]">Verification</h2>
           <TrustBadges verification={{ ...app.verification, approved: app.status === "approved" }} />
@@ -134,6 +139,8 @@ export default async function PartnerDashboardPage() {
             ))}
           </ul>
         </section>
+
+        {app.approved_at && <PartnerReviewsPanel />}
 
         <section className={cardCls}>
           <h2 className="mb-3 text-lg font-bold text-[var(--ink)]">Service coverage</h2>

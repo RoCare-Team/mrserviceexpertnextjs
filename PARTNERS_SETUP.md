@@ -75,3 +75,35 @@ Push as usual (`.cpanel.yml` / `deploy.sh`), run the migration, restart the Node
 ## 8. Tests
 `node --test tests/partners.validation.test.mjs` — validator unit tests (no DB / network).
 End-to-end scenarios (OTP, transitions, listing matching, IDOR, uploads) are covered by the checklist above; run them on staging data, never with real customer numbers.
+
+## 9. Booking leads, wallet & reviews (migration 003)
+
+**Flow.** "Book now" on a partner card / profile → compact popup (category, brand and city pre-filled from the page; name + mobile from the customer's OTP-verified session; saved addresses) → lead saved in `partner_leads` → shown on that partner's dashboard for **30 minutes**.
+- Accept → 50% of the service price is debited in coins (1 coin = ₹1); the customer's phone and full address become visible. Not enough coins → accept is blocked.
+- Reject, or no action in 30 min → the lead is forwarded to the CRM (`AddLead_new.php`, `site_url` gets `?partner=<slug>`).
+- Prices/brands are re-read from the CRM APIs on the server — a tampered price is ignored.
+- One open booking per customer + partner + category per day (duplicates blocked).
+- Partners can "Report a problem"; admins refund coins from **Admin → Partner Leads** (once per lead).
+
+**Customer login.** Booking and reviews need an OTP-verified customer session (`mse_customer_session` cookie), issued after the existing customer OTP API confirms the code on our server. Name / number are pre-filled from the site's existing login.
+
+**Reviews.** Any verified customer, one per partner (editable), published immediately; removable by admin (partner detail page) or the partner (dashboard).
+
+**Wallet recharge (Easebuzz).** Minimum ₹500, credited 1:1 as coins only after the response hash is valid **and** the Transaction Retrieve API confirms success for the same amount.
+```
+NEXT_PUBLIC_EASEBUZZ_MODE=test        # or live — keep test until verified
+EASEBUZZ_TEST_KEY / EASEBUZZ_TEST_SALT / EASEBUZZ_LIVE_KEY / EASEBUZZ_LIVE_SALT
+SITE_URL=https://www.mrserviceexpert.com   # production only: Easebuzz return URL base
+CRON_SECRET=<long random string>
+```
+Return URL: `{SITE_URL}/api/payments/easebuzz/return` (surl and furl).
+
+**Cron (cPanel → Cron Jobs, every 2 minutes):**
+```
+*/2 * * * * curl -s "https://www.mrserviceexpert.com/api/cron/partner-leads?key=YOUR_CRON_SECRET" > /dev/null
+```
+Expires 30-minute-old leads and forwards them (and rejected ones) to the CRM, retrying failures up to 3 times. Dashboards also trigger this when opened, so leads still move if the cron is late.
+
+**Admin badge.** The sidebar shows counts for new applications + locality requests (Partners) and problem reports + failed CRM forwards (Partner Leads), refreshed every minute.
+
+**Rollback:** `scripts/migrations/rollback/2026_10_22_003_partner_leads_wallet_reviews.down.sql` (drops only these new tables).

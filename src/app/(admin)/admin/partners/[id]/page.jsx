@@ -78,7 +78,8 @@ export default function AdminPartnerDetail({ params }) {
     setSaving(true);
     try {
       const d = await fn();
-      if (d) setApp(d);
+      // Status/verification endpoints return the application only; keep wallet + reviews.
+      if (d) setApp((prev) => ({ ...prev, ...d }));
       showToast(okMsg);
       return true;
     } catch (e) {
@@ -333,6 +334,63 @@ export default function AdminPartnerDetail({ params }) {
         )}
       </FormCard>
 
+      <div className="adm-formgrid mt-4" style={{ alignItems: "start" }}>
+        <FormCard>
+          <SectionTitle>Wallet</SectionTitle>
+          <p style={{ fontSize: 26, fontWeight: 800 }}>
+            {Number(app.wallet?.balance || 0).toLocaleString("en-IN")} <span className="col-muted" style={{ fontSize: 14 }}>coins</span>
+          </p>
+          <p className="col-muted" style={{ margin: "4px 0 10px" }}>
+            Refunds for fake / problem leads: <Link href={`/admin/partners/leads?partnerId=${app.id}`}>Partner leads</Link>
+          </p>
+          {(app.wallet?.txns || []).map((t) => (
+            <div key={t.id} style={{ display: "flex", gap: 8, fontSize: 13, padding: "4px 0", borderBottom: "1px solid #eee" }}>
+              <span>{t.type.replace("_", " ")}</span>
+              <span className="col-muted adm-truncate" style={{ flex: 1 }}>{t.note}</span>
+              <b style={{ color: Number(t.amount) < 0 ? "#b42318" : "#15803d" }}>{Number(t.amount) > 0 ? "+" : ""}{Number(t.amount)}</b>
+            </div>
+          ))}
+          {!app.wallet?.txns?.length && <Dash />}
+        </FormCard>
+
+        <FormCard>
+          <SectionTitle>Reviews</SectionTitle>
+          {!app.reviews?.length && <Dash />}
+          {(app.reviews || []).map((r) => (
+            <div key={r.id} style={{ padding: "6px 0", borderBottom: "1px solid #eee", opacity: r.status === "removed" ? 0.5 : 1 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <b>{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</b>
+                <span>{r.author}</span>
+                {r.status === "removed" ? (
+                  <span className="col-muted">removed by {r.removed_by}</span>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    style={{ marginLeft: "auto" }}
+                    disabled={saving}
+                    onClick={() =>
+                      setConfirm({
+                        title: "Remove this review?",
+                        message: "It will disappear from the partner's public profile.",
+                        tone: "danger",
+                        run: async () => {
+                          await call(`/api/admin/partners/reviews/${r.id}`, "DELETE");
+                          return call(`/api/admin/partners/${id}`);
+                        },
+                      })
+                    }
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+              {r.comment && <p className="col-muted" style={{ marginTop: 2 }}>{r.comment}</p>}
+            </div>
+          ))}
+        </FormCard>
+      </div>
+
       <FormCard className="mt-4">
         <SectionTitle>History & consents</SectionTitle>
         <div className="adm-tablescroll">
@@ -397,8 +455,9 @@ export default function AdminPartnerDetail({ params }) {
           saving={saving}
           confirmLabel="Yes, continue"
           onCancel={() => setConfirm(null)}
+          tone={confirm.tone}
           onConfirm={async () => {
-            if (await run(confirm.run, "Listing updated.")) setConfirm(null);
+            if (await run(confirm.run, "Done.")) setConfirm(null);
           }}
         />
       )}

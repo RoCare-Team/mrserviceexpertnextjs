@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MapPin, Clock, Briefcase, Phone, MessageCircle, Store } from "lucide-react";
+import { MapPin, Clock, Briefcase, Store, Star } from "lucide-react";
 import { getPublicProfile } from "@/lib/partners/listing";
 import { TrustBadges, CategoryIcon, cardCls } from "@/app/components/partners/ui";
 import { BUSINESS_TYPES } from "@/lib/partners/validation";
+import { getPublicReviews } from "@/lib/partners/reviews";
+import BookNowButton from "@/app/components/partners/BookNowButton";
+import ReviewForm from "@/app/components/partners/ReviewForm";
 
 export const dynamic = "force-dynamic"; // status / listing changes apply immediately
 
@@ -32,6 +35,7 @@ export default async function PartnerProfilePage({ params }) {
   const { slug } = await params;
   const p = await getPublicProfile(slug);
   if (!p) notFound();
+  const reviews = await getPublicReviews(p.id);
 
   // Only facts we actually hold — no ratings or reviews.
   const jsonLd = {
@@ -42,7 +46,9 @@ export default async function PartnerProfilePage({ params }) {
     ...(p.description ? { description: p.description } : {}),
     ...(p.logo_url ? { logo: p.logo_url } : {}),
     ...(p.shop_image_url ? { image: p.shop_image_url } : {}),
-    ...(p.contact ? { telephone: `+91${p.contact.phone}` } : {}),
+    ...(reviews.count
+      ? { aggregateRating: { "@type": "AggregateRating", ratingValue: reviews.average, reviewCount: reviews.count, bestRating: 5, worstRating: 1 } }
+      : {}),
     address: {
       "@type": "PostalAddress",
       ...(p.locality ? { streetAddress: p.locality } : {}),
@@ -89,25 +95,23 @@ export default async function PartnerProfilePage({ params }) {
             </div>
           </div>
 
-          {p.contact && (
-            <div className="mt-5 flex flex-wrap gap-2">
-              {p.contact.call && (
-                <a href={`tel:+91${p.contact.phone}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-purple-600 px-5 font-semibold text-white hover:bg-purple-700">
-                  <Phone className="h-4 w-4" /> Call +91 {p.contact.phone}
-                </a>
-              )}
-              {p.contact.whatsapp && (
-                <a
-                  href={`https://wa.me/91${p.contact.phone}`}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 font-semibold text-white hover:bg-emerald-700"
-                >
-                  <MessageCircle className="h-4 w-4" /> WhatsApp
-                </a>
-              )}
-            </div>
-          )}
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <BookNowButton
+              className="min-h-11 px-5 text-base"
+              booking={{
+                partner: { slug: p.slug, name: p.business_name },
+                categories: p.bookable,
+                defaultCategory: p.bookable[0]?.url,
+                cityName: p.city_name,
+              }}
+            />
+            {reviews.count > 0 && (
+              <a href="#reviews" className="inline-flex items-center gap-1 text-sm text-[var(--ink-soft)]">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> <b>{reviews.average.toFixed(1)}</b>
+                <span className="text-[var(--muted)]">({reviews.count} review{reviews.count === 1 ? "" : "s"})</span>
+              </a>
+            )}
+          </div>
 
           {p.description && <p className="mt-5 whitespace-pre-line leading-relaxed text-[var(--body-text)]">{p.description}</p>}
 
@@ -164,6 +168,38 @@ export default async function PartnerProfilePage({ params }) {
                     </Link>
                   ))}
                 </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section id="reviews" className={cardCls} aria-labelledby="reviews-h">
+          <h2 id="reviews-h" className="mb-4 text-xl font-bold text-[var(--ink)]">
+            Customer reviews
+            {reviews.count > 0 && (
+              <span className="ml-2 text-base font-normal text-[var(--muted)]">
+                {reviews.average.toFixed(1)} ★ · {reviews.count}
+              </span>
+            )}
+          </h2>
+          <ReviewForm partnerSlug={p.slug} partnerName={p.business_name} />
+          {reviews.count === 0 && <p className="mt-4 text-sm text-[var(--muted)]">No reviews yet.</p>}
+          <ul className="mt-4 divide-y divide-[var(--line)]">
+            {reviews.items.map((r) => (
+              <li key={r.id} className="py-3">
+                <p className="flex items-center gap-2 text-sm">
+                  <span className="flex" aria-label={`${r.rating} out of 5 stars`}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star key={n} className={`h-4 w-4 ${n <= r.rating ? "fill-amber-400 text-amber-400" : "text-gray-300"}`} aria-hidden="true" />
+                    ))}
+                  </span>
+                  <b className="text-[var(--ink-soft)]">{r.author}</b>
+                  <span className="text-xs text-[var(--muted)]">
+                    {new Date(r.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                    {r.edited ? " · edited" : ""}
+                  </span>
+                </p>
+                {r.comment && <p className="mt-1 whitespace-pre-line text-sm text-[var(--body-text)]">{r.comment}</p>}
               </li>
             ))}
           </ul>

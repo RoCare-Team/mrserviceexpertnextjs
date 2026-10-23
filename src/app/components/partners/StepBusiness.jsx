@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Upload, Trash2, FileText, Loader2, Eye } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { inputCls, labelCls, btnGhost, FieldError, StepNav } from "./ui";
-import { BUSINESS_TYPES, CONTACT_PREFERENCES, DOC_TYPES, validGstin } from "@/lib/partners/validation";
+import { BUSINESS_TYPES, DOC_TYPES, validGstin } from "@/lib/partners/validation";
 
 export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError }) {
   const b = app.business;
@@ -18,7 +18,8 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
     business_email: b.business_email || "",
     operating_hours: b.operating_hours || "",
     contact_preference: b.contact_preference || "",
-    show_phone_publicly: !!b.show_phone_publicly,
+    // Phone numbers are no longer shown publicly — customers book via "Book now".
+    show_phone_publicly: false,
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -47,7 +48,6 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
       fields.business_name = isIndividual ? "Technician name is required." : "Business / shop name is required.";
     const g = validGstin(f.gstin);
     if (g.error) fields.gstin = g.error;
-    if (f.show_phone_publicly && !f.contact_preference) fields.contact_preference = "Choose how customers should contact you.";
     if (Object.keys(fields).length) return setErr({ message: "Please fix the highlighted fields.", fields });
     setBusy(true);
     const error = await onSave(f);
@@ -115,27 +115,6 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
           <FieldError msg={fe.operating_hours} />
         </div>
       </div>
-
-      <fieldset className="rounded-2xl bg-purple-50/60 p-4">
-        <legend className="sr-only">Customer contact</legend>
-        <label className="flex items-start gap-3 text-sm text-[var(--ink-soft)]">
-          <input type="checkbox" className="mt-1 h-4 w-4 accent-purple-600" checked={f.show_phone_publicly} onChange={set("show_phone_publicly")} />
-          <span>
-            Show my verified mobile number on my public profile so customers can contact me directly.
-          </span>
-        </label>
-        {f.show_phone_publicly && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {Object.entries(CONTACT_PREFERENCES).map(([v, label]) => (
-              <label key={v} className="inline-flex items-center gap-2 rounded-full border border-[var(--line-strong)] bg-white px-3 py-1.5 text-sm">
-                <input type="radio" name="contact_preference" value={v} checked={f.contact_preference === v} onChange={set("contact_preference")} className="accent-purple-600" />
-                {label}
-              </label>
-            ))}
-          </div>
-        )}
-        <FieldError msg={fe.contact_preference} />
-      </fieldset>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <ImageField label="Logo / profile photo" kind="logo" url={app.logo_url} onAppUpdate={onAppUpdate} onError={onError} />

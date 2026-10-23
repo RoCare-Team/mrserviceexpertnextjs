@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { MapPin, Clock, Phone, MessageCircle, Briefcase, Store } from "lucide-react";
+import { MapPin, Clock, Briefcase, Store, Star } from "lucide-react";
+import BookNowButton from "./BookNowButton";
 import { TrustBadges } from "./ui";
 import { BUSINESS_TYPES } from "@/lib/partners/validation";
 
-/** One partner in a listing. Works in server and client trees (no hooks). */
-export default function PartnerCard({ partner: p }) {
+/**
+ * One partner in a listing. Works in server and client trees (no hooks).
+ * bookingContext: { categories, defaultCategory, brandName, cityName } from the page.
+ */
+export default function PartnerCard({ partner: p, bookingContext }) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-[var(--line)] bg-white p-4 shadow-sm transition hover:shadow-md">
       <div className="flex items-start gap-3">
@@ -22,6 +26,13 @@ export default function PartnerCard({ partner: p }) {
               {p.business_name}
             </Link>
           </h3>
+          {p.rating?.count > 0 && (
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--ink-soft)]">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+              <b>{p.rating.average.toFixed(1)}</b>
+              <span className="text-[var(--muted)]">({p.rating.count} review{p.rating.count === 1 ? "" : "s"})</span>
+            </p>
+          )}
           <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs text-[var(--muted)]">
             {BUSINESS_TYPES[p.business_type] && <span>{BUSINESS_TYPES[p.business_type]}</span>}
             {p.experience_years ? (
@@ -55,21 +66,7 @@ export default function PartnerCard({ partner: p }) {
       )}
 
       <div className="mt-auto flex flex-wrap gap-2 pt-4">
-        {p.contact?.call && (
-          <a href={`tel:+91${p.contact.phone}`} className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-purple-600 px-3.5 text-sm font-semibold text-white hover:bg-purple-700">
-            <Phone className="h-4 w-4" aria-hidden="true" /> Call
-          </a>
-        )}
-        {p.contact?.whatsapp && (
-          <a
-            href={`https://wa.me/91${p.contact.phone}`}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 text-sm font-semibold text-white hover:bg-emerald-700"
-          >
-            <MessageCircle className="h-4 w-4" aria-hidden="true" /> WhatsApp
-          </a>
-        )}
+        <BookNowButton booking={bookingContext ? { ...bookingContext, partner: { slug: p.slug, name: p.business_name } } : null} />
         <Link
           href={`/partners/${p.slug}`}
           className="inline-flex min-h-10 items-center rounded-xl border border-[var(--line-strong)] px-3.5 text-sm font-semibold text-[var(--ink-soft)] hover:bg-purple-50"

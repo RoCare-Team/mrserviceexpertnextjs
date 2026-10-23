@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Pencil, Loader2, BadgeCheck, CircleAlert } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { btnPrimary, btnGhost, FieldError } from "./ui";
-import { BUSINESS_TYPES, CONTACT_PREFERENCES, DOC_TYPES } from "@/lib/partners/validation";
+import { BUSINESS_TYPES, DOC_TYPES } from "@/lib/partners/validation";
 
 function Section({ title, step, onJump, missing, children }) {
   return (
@@ -105,7 +105,6 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
         <Row k="GSTIN" v={b.gstin ? `${b.gstin} (format checked, not yet verified)` : null} />
         <Row k="Email" v={b.business_email} />
         <Row k="Hours" v={b.operating_hours} />
-        <Row k="Public contact" v={b.show_phone_publicly ? CONTACT_PREFERENCES[b.contact_preference] : "Not shown"} />
         <Row k="Images" v={[app.logo_url && "Logo", app.shop_image_url && "Shop photo"].filter(Boolean).join(", ")} />
         <Row
           k="Documents"
@@ -152,7 +151,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
           <input type="checkbox" className="mt-0.5 h-4 w-4 accent-purple-600" checked={consents.public_display} onChange={set("public_display")} />
           <span>
             After approval, Mr. Service Expert may show my business name, description, categories, services, brands, locality,
-            service areas, images{b.show_phone_publicly ? " and mobile number" : ""} on its website.
+            service areas and images on its website, and send me customer booking requests. My mobile number is not shown publicly.
           </span>
         </label>
       </fieldset>
