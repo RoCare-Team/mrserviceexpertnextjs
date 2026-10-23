@@ -87,16 +87,20 @@ export async function forwardLeadToCrm(lead, partnerSlug) {
     await call({ brand });
     const date = typeof lead.appointment_date === "string" ? lead.appointment_date : new Date(lead.appointment_date).toISOString().slice(0, 10);
     await call({ brand, appointment_date: date, appointment_time: lead.appointment_time });
-    await call({
-      brand,
-      appointment_date: date,
-      appointment_time: lead.appointment_time,
-      service_id: String(lead.php_service_id),
-      service_name: lead.service_name,
-      service_price: String(lead.service_price),
-      amount: String(lead.service_price),
-      price: String(lead.service_price),
-    });
+    // One call per service, exactly like selecting services in the popup.
+    const services = lead.services?.length ? lead.services : [{ id: lead.php_service_id, name: lead.service_name, price: lead.service_price }];
+    for (const s of services) {
+      await call({
+        brand,
+        appointment_date: date,
+        appointment_time: lead.appointment_time,
+        service_id: String(s.id),
+        service_name: s.name,
+        service_price: String(s.price),
+        amount: String(s.price),
+        price: String(s.price),
+      });
+    }
     return { status: "sent", message: "Forwarded to CRM." };
   } catch (err) {
     return { status: "failed", message: `CRM error: ${String(err?.message || err).slice(0, 200)}` };

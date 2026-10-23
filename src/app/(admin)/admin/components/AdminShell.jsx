@@ -42,6 +42,7 @@ const NAV = [
     items: [
       { href: "/admin/partners", icon: Handshake, name: "Partners", exact: true, badge: "partners" },
       { href: "/admin/partners/leads", icon: Inbox, name: "Partner Leads", badge: "leads" },
+      { href: "/admin/partners/locations", icon: MapPin, name: "Partner Localities", badge: "localities" },
       { href: "/admin/partners/payments", icon: Wallet, name: "Partner Payments" },
     ],
   },
@@ -157,7 +158,7 @@ export default function AdminShell({ children }) {
   }, [isLogin, pathname]);
 
   const badgeCount = (key) =>
-    !alerts ? 0 : key === "partners" ? (alerts.pending_applications || 0) + (alerts.locality_requests || 0) + (alerts.change_requests || 0) : key === "leads" ? (alerts.lead_issues || 0) + (alerts.crm_failed || 0) : 0;
+    !alerts ? 0 : key === "partners" ? (alerts.pending_applications || 0) + (alerts.change_requests || 0) : key === "localities" ? alerts.locality_requests || 0 : key === "leads" ? (alerts.lead_issues || 0) + (alerts.crm_failed || 0) : 0;
 
   if (isLogin) return <>{children}</>;
 
@@ -225,7 +226,9 @@ export default function AdminShell({ children }) {
                           <span
                             title={
                               item.badge === "partners"
-                                ? `${alerts.pending_applications} application(s), ${alerts.change_requests || 0} profile change(s), ${alerts.locality_requests} locality request(s)`
+                                ? `${alerts.pending_applications} application(s), ${alerts.change_requests || 0} profile change(s) to review`
+                                : item.badge === "localities"
+                                ? `${alerts.locality_requests} locality request(s) from partners`
                                 : `${alerts.lead_issues} problem report(s), ${alerts.crm_failed} failed CRM forward(s)`
                             }
                             style={{ marginLeft: "auto", minWidth: 20, height: 20, padding: "0 6px", borderRadius: 10, background: "#ef4444", color: "#fff", fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}

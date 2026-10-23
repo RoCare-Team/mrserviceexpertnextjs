@@ -78,6 +78,7 @@ export default function WalletTab({ app, setApp, paymentResult, setBalance }) {
       if (r.ok) {
         setW(r.data);
         setBalance(r.data.balance);
+        if (r.data.min_recharge < 500) setAmount(r.data.min_recharge); // temporary low minimum for testing
         if (!email && r.data.email) setEmail(r.data.email);
       }
     });

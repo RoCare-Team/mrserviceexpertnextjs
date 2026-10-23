@@ -64,24 +64,47 @@ export function verifyResponseHash(p, mode = easebuzzMode()) {
   return got.length === expected.length && crypto.timingSafeEqual(Buffer.from(got), Buffer.from(expected));
 }
 
-/** Server-to-server status check (Transaction Retrieve API). */
+/**
+ * Server-to-server status check (Transaction Retrieve API v2.1 — v1 rejects
+ * requests). Returns:
+ *   { found: false }                        Easebuzz has no such transaction
+ *   { found: true, status, amount, ... }    best entry (a success wins over
+ *                                           earlier failed attempts)
+ * THROWS on network / API errors, so callers never mistake an outage for
+ * "not found" and fail a payment that actually succeeded.
+ */
 export async function retrieveTransaction(txnid, mode = easebuzzMode()) {
   const { key, salt } = creds(mode);
   const hash = sha512([key, txnid, salt].join("|"));
-  const res = await fetch(`${HOSTS[mode].dashboard}/transaction/v1/retrieve`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
-    body: new URLSearchParams({ key, txnid, hash }),
-    cache: "no-store",
-  });
-  const json = await res.json().catch(() => null);
-  const msg = Array.isArray(json?.msg) ? json.msg[0] : json?.msg;
-  if (!json?.status || !msg || typeof msg !== "object") return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 20_000);
+  let json;
+  try {
+    const res = await fetch(`${HOSTS[mode].dashboard}/transaction/v2.1/retrieve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+      body: new URLSearchParams({ key, txnid, hash }),
+      cache: "no-store",
+      signal: ctrl.signal,
+    });
+    json = await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+  if (json?.status === false && /not found/i.test(String(json.msg))) return { found: false };
+  if (!json?.status || !Array.isArray(json.msg) || !json.msg.length) {
+    throw new Error(`Easebuzz retrieve error: ${JSON.stringify(json).slice(0, 160)}`);
+  }
+  // Only trust entries signed by Easebuzz for this exact transaction.
+  const entries = json.msg.filter((m) => m && typeof m === "object" && String(m.txnid) === txnid && verifyResponseHash(m, mode));
+  if (!entries.length) throw new Error("Easebuzz retrieve returned no verifiable entry.");
+  const best = entries.find((m) => String(m.status).toLowerCase() === "success") || entries[entries.length - 1];
   return {
-    status: String(msg.status || ""),
-    amount: Number(msg.amount),
-    easepayid: String(msg.easepayid || ""),
-    txnid: String(msg.txnid || ""),
-    raw: msg,
+    found: true,
+    status: String(best.status || ""),
+    amount: Number(best.amount),
+    easepayid: String(best.easepayid || ""),
+    txnid: String(best.txnid || ""),
+    raw: best,
   };
 }

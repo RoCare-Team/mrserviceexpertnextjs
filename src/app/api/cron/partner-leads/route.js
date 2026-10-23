@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { processDueLeads } from "@/lib/partners/leads";
+import { reconcileStalePayments } from "@/lib/partners/payments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +9,8 @@ export const dynamic = "force-dynamic";
 /**
  * cPanel cron (every 2–5 min):
  *   curl -s "https://www.mrserviceexpert.com/api/cron/partner-leads?key=$CRON_SECRET" > /dev/null
- * Expires leads older than 30 minutes and forwards them to the CRM.
+ * Expires leads older than 30 minutes and forwards them to the CRM, and
+ * re-checks pending wallet payments with Easebuzz.
  */
 export async function GET(req) {
   const secret = process.env.CRON_SECRET || "";
@@ -18,6 +20,7 @@ export async function GET(req) {
   }
   try {
     const r = await processDueLeads({ force: true });
+    await reconcileStalePayments({ limit: 20 });
     return NextResponse.json({ success: true, data: r });
   } catch (err) {
     console.error("[cron] partner-leads", err);

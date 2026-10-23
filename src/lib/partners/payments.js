@@ -4,7 +4,7 @@
 import db from "@/lib/db";
 import { withTransaction } from "@/lib/partners/application";
 import { applyTxn } from "@/lib/partners/wallet";
-import { retrieveTransaction } from "@/lib/partners/easebuzz";
+import { retrieveTransaction, verifyResponseHash } from "@/lib/partners/easebuzz";
 import { notifyPartner } from "@/lib/partners/notify";
 
 const s = (v, n) => (v === undefined || v === null || v === "" ? null : String(v).slice(0, n));
@@ -29,16 +29,23 @@ function gatewayDetails(g = {}) {
 
 /**
  * Settle one payment. outcome: "success" | "failed".
- * Idempotent: only an `initiated` row changes; success credits coins.
+ * - initiated → success | failed
+ * - failed → success   (a gateway-confirmed success always wins, e.g. a
+ *                        late webhook after the user saw a failure)
+ * - success is final. Coins are credited exactly once (row lock + unique
+ *   ledger key on payment_id).
  */
 export async function settlePayment(paymentId, outcome, gateway = {}) {
   const d = gatewayDetails(gateway);
   const result = await withTransaction(async (conn) => {
     const [[row]] = await conn.query("SELECT * FROM partner_payments WHERE id = ? FOR UPDATE", [paymentId]);
-    if (!row || row.status !== "initiated") return null;
+    if (!row || row.status === "success") return null;
+    if (row.status === "failed" && outcome !== "success") return null;
     await conn.query(
-      `UPDATE partner_payments SET status = ?, easebuzz_id = COALESCE(?, easebuzz_id), payment_mode = ?, bank_ref_num = ?,
-              card_or_vpa = ?, bank_name = ?, error_message = ?, gateway_status = ?, gateway_msg = ?, raw_response = ?, completed_at = NOW()
+      `UPDATE partner_payments SET status = ?, easebuzz_id = COALESCE(?, easebuzz_id), payment_mode = COALESCE(?, payment_mode),
+              bank_ref_num = COALESCE(?, bank_ref_num), card_or_vpa = COALESCE(?, card_or_vpa), bank_name = COALESCE(?, bank_name),
+              error_message = ?, gateway_status = COALESCE(?, gateway_status), gateway_msg = ?, raw_response = COALESCE(?, raw_response),
+              completed_at = NOW()
         WHERE id = ?`,
       [
         outcome, d.easebuzz_id, d.payment_mode, d.bank_ref_num, d.card_or_vpa, d.bank_name,
@@ -70,26 +77,68 @@ export async function settlePayment(paymentId, outcome, gateway = {}) {
 }
 
 /**
- * Re-check payments still "initiated" after 10 min (customer closed the tab,
- * return URL never hit). Not found at the gateway after 30 min → failed.
+ * Decide from gateway fields that carry Easebuzz's hash (return URL POST,
+ * webhook POST, or a Retrieve API entry). The hash is verified with our salt,
+ * so the status can't be forged by the browser.
+ * Returns "success" | "failed" | "pending" | "unverified".
+ */
+export async function applyGatewayResult(payment, fields) {
+  if (!verifyResponseHash(fields, payment.mode)) return "unverified";
+  if (String(fields.txnid) !== payment.txnid) return "unverified";
+  const status = String(fields.status || "").toLowerCase();
+  if (status === "success") {
+    if (Number(fields.amount) !== Number(payment.amount)) {
+      console.error("[payments] amount mismatch", payment.txnid, fields.amount, payment.amount);
+      return "pending"; // never credit a different amount; admin can investigate
+    }
+    await settlePayment(payment.id, "success", fields);
+    return "success";
+  }
+  if (FAIL_STATES.has(status)) {
+    await settlePayment(payment.id, "failed", fields);
+    return "failed";
+  }
+  return "pending";
+}
+
+/** Ask Easebuzz directly. Network / API errors leave the payment pending. */
+export async function checkWithGateway(payment) {
+  let t;
+  try {
+    t = await retrieveTransaction(payment.txnid, payment.mode);
+  } catch (err) {
+    console.error("[payments] retrieve failed", payment.txnid, err?.message);
+    return "pending";
+  }
+  if (!t.found) return "not_found";
+  return applyGatewayResult(payment, t.raw);
+}
+
+const ABANDON_AFTER_MIN = 120;
+
+/**
+ * Re-check payments still pending (tab closed, return URL missed, gateway
+ * slow). Runs from the cron (every few minutes) and when wallets are opened.
+ * Only marks "failed (abandoned)" when Easebuzz explicitly says the
+ * transaction doesn't exist and 2 hours have passed — never on an error.
  */
 export async function reconcileStalePayments({ partnerId = null, limit = 10 } = {}) {
   const params = [];
-  let where = "status = 'initiated' AND created_at < NOW() - INTERVAL 10 MINUTE";
+  let where = "status = 'initiated' AND created_at < NOW() - INTERVAL 2 MINUTE";
   if (partnerId) {
     where += " AND partner_id = ?";
     params.push(partnerId);
   }
   const [rows] = await db.query(
-    `SELECT id, txnid, amount, mode, TIMESTAMPDIFF(MINUTE, created_at, NOW()) AS age FROM partner_payments WHERE ${where} ORDER BY id LIMIT ${Number(limit) || 10}`,
+    `SELECT *, TIMESTAMPDIFF(MINUTE, created_at, NOW()) AS age FROM partner_payments WHERE ${where} ORDER BY id LIMIT ${Number(limit) || 10}`,
     params
   );
   for (const p of rows) {
     try {
-      const t = await retrieveTransaction(p.txnid, p.mode);
-      if (t?.status === "success" && Number(t.amount) === Number(p.amount)) await settlePayment(p.id, "success", t.raw);
-      else if (t && FAIL_STATES.has(t.status.toLowerCase())) await settlePayment(p.id, "failed", t.raw);
-      else if (!t && p.age >= 30) await settlePayment(p.id, "failed", { error_Message: "Payment not completed (abandoned)" });
+      const r = await checkWithGateway(p);
+      if (r === "not_found" && p.age >= ABANDON_AFTER_MIN) {
+        await settlePayment(p.id, "failed", { error_Message: "Payment not completed (abandoned)" });
+      }
     } catch (err) {
       console.error("[payments] reconcile", p.txnid, err?.message);
     }

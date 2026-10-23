@@ -79,7 +79,12 @@ function LeadCard({ l, balance, onAction, busy }) {
         {l.service} · {l.category}{l.brand ? ` · ${l.brand}` : ""}
       </p>
       <div className="mt-1 grid gap-x-4 gap-y-1 text-sm text-[var(--body-text)] sm:grid-cols-2">
-        <span>Service price: <b>₹{l.service_price}</b></span>
+        <span>
+          {l.services?.length > 1 ? "Total" : "Service price"}: <b>₹{l.service_price}</b>
+          {l.services?.length > 1 && (
+            <span className="block text-xs text-[var(--muted)]">{l.services.map((s) => `${s.name} ₹${s.price}`).join(" · ")}</span>
+          )}
+        </span>
         <span className="inline-flex items-center gap-1"><Coins className="h-4 w-4 text-amber-500" /> Lead cost: <b>{l.coin_cost} coins</b></span>
         <span>Appointment: <b>{fmtDate(l.appointment_date)}, {l.appointment_time}</b></span>
         <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" /> {l.area}</span>

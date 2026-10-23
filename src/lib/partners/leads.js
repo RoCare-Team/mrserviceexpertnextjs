@@ -12,6 +12,7 @@ import { notifyPartner } from "@/lib/partners/notify";
 
 export const LEAD_WINDOW_MIN = 30;
 export const LEAD_SHARE = 0.5; // partner pays 50% of the service price in coins
+const MAX_SERVICES = 5;
 const MAX_CRM_ATTEMPTS = 3;
 
 const bad = (message, fields) => new HttpError(422, "validation_error", message, fields);
@@ -50,9 +51,17 @@ export async function createLead(customer, input) {
   const brand = brands.find((b) => b.id === phpBrandId);
   if (!brand) throw bad("Please choose a brand.", { brand: "Choose a brand." });
 
-  const services = await crmServices(leadType, phpBrandId);
-  const service = services.find((s) => s.id === Number(input.php_service_id));
-  if (!service || !(service.price > 0)) throw bad("Please choose a service.", { service: "Choose a service." });
+  // One or more services; prices always from the CRM catalogue.
+  const wanted = [...new Set((Array.isArray(input.php_service_ids) ? input.php_service_ids : [input.php_service_id]).map(Number))].filter(
+    (n) => Number.isInteger(n) && n > 0
+  );
+  if (!wanted.length) throw bad("Please choose at least one service.", { service: "Choose a service." });
+  if (wanted.length > MAX_SERVICES) throw bad(`You can book up to ${MAX_SERVICES} services at once.`, { service: "Too many services." });
+  const catalogue = await crmServices(leadType, phpBrandId);
+  const picked = wanted.map((id) => catalogue.find((s) => s.id === id));
+  if (picked.some((s) => !s || !(s.price > 0))) throw bad("A selected service is no longer available.", { service: "Choose again." });
+  const total = round2(picked.reduce((a, s) => a + s.price, 0));
+  const service = { id: picked[0].id, name: picked.map((s) => s.name).join(" + ").slice(0, 500), price: total };
 
   // Appointment: today … +30 days, slot text as given by getTimeSlots.php.
   const date = String(input.appointment_date || "");
@@ -115,16 +124,16 @@ export async function createLead(customer, input) {
     const [ins] = await conn.query(
       `INSERT INTO partner_leads
          (partner_id, customer_id, customer_name, customer_mobile, category_id, brand_id, php_lead_type, php_brand_id, brand_name,
-          php_service_id, service_name, service_price, coin_cost, appointment_date, appointment_time,
+          php_service_id, service_name, service_price, services_json, coin_cost, appointment_date, appointment_time,
           house_no, area, landmark, pincode, address_city, address_state, php_city_id, page_url, page_city_id, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL ${LEAD_WINDOW_MIN} MINUTE)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL ${LEAD_WINDOW_MIN} MINUTE)`,
       [
         partner.id, customer.id, name.value, customer.mobile, cat.id, ourBrand?.id || null, leadType, brand.id, brand.name,
-        service.id, service.name, service.price, round2(service.price * LEAD_SHARE), date, slot,
+        service.id, service.name, service.price, JSON.stringify(picked), round2(service.price * LEAD_SHARE), date, slot,
         address.house_no, address.area, address.landmark, address.pincode, loc.city, loc.state, loc.cityId, pageUrl, pageCityId,
       ]
     );
-    return { id: ins.insertId, service: service.name, price: service.price };
+    return { id: ins.insertId, service: service.name, price: service.price, services: picked };
   });
   await notifyPartner(
     partner.id,
@@ -143,6 +152,15 @@ export async function createLead(customer, input) {
 
 const mask = (m) => `${m.slice(0, 2)}******${m.slice(-2)}`;
 
+/** [{ id, name, price }] — older single-service leads fall back to the row. */
+export function parseServices(l) {
+  try {
+    const list = JSON.parse(l.services_json || "null");
+    if (Array.isArray(list) && list.length) return list.map((s) => ({ id: Number(s.id), name: String(s.name), price: Number(s.price) }));
+  } catch {}
+  return [{ id: Number(l.php_service_id), name: l.service_name, price: Number(l.service_price) }];
+}
+
 /** Customer contact + full address are revealed only after accepting. */
 function shapeForPartner(l) {
   const open = l.status === "accepted" || l.status === "completed";
@@ -153,6 +171,7 @@ function shapeForPartner(l) {
     brand: l.brand_name,
     service: l.service_name,
     service_price: Number(l.service_price),
+    services: parseServices(l),
     coin_cost: Number(l.coin_cost),
     appointment_date: l.appointment_date,
     appointment_time: l.appointment_time,
@@ -308,7 +327,7 @@ async function forwardOne(leadId) {
     [l.id, l.crm_attempts]
   );
   if (!claim.affectedRows) return;
-  const r = await forwardLeadToCrm(l, l.slug || "");
+  const r = await forwardLeadToCrm({ ...l, services: parseServices(l) }, l.slug || "");
   await db.query(
     `UPDATE partner_leads SET crm_status = ?, crm_response = ?, crm_sent_at = IF(? IN ('sent','duplicate'), NOW(), crm_sent_at) WHERE id = ?`,
     [r.status, r.message.slice(0, 500), r.status, l.id]

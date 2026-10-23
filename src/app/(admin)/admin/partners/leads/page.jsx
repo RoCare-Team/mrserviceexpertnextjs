@@ -58,6 +58,7 @@ export default function AdminPartnerLeadsPage() {
   useEffect(() => {
     const pid = Number(new URLSearchParams(window.location.search).get("partnerId"));
     if (Number.isInteger(pid) && pid > 0) setPartnerId(pid);
+    if (new URLSearchParams(window.location.search).get("issues") === "1") setIssues(true);
     setReady(true);
   }, []);
 

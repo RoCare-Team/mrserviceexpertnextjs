@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
-import { verifyResponseHash, retrieveTransaction } from "@/lib/partners/easebuzz";
-import { settlePayment } from "@/lib/partners/payments";
+import { applyGatewayResult, checkWithGateway } from "@/lib/partners/payments";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -10,39 +9,32 @@ const siteOrigin = (req) => process.env.SITE_URL?.replace(/\/$/, "") || new URL(
 const back = (req, result) => NextResponse.redirect(`${siteOrigin(req)}/partner/dashboard?tab=wallet&payment=${result}`, 303);
 
 /**
- * Easebuzz surl / furl. Coins are credited only when the posted hash is valid
- * AND the Retrieve API independently confirms success for the same amount.
- * Failures are stored with the gateway's details too.
+ * Easebuzz surl / furl (browser POST after checkout).
+ * 1. Posted fields with a valid Easebuzz hash decide the result at once
+ *    (success credits coins, failure is recorded with the reason).
+ * 2. If the hash doesn't verify, ask Easebuzz's Retrieve API instead.
+ * 3. Anything uncertain stays "pending" and is settled by the cron / webhook.
  */
 export async function POST(req) {
-  let p;
+  let posted;
   try {
-    p = Object.fromEntries((await req.formData()).entries());
+    posted = Object.fromEntries((await req.formData()).entries());
   } catch {
-    return back(req, "failed");
+    return back(req, "pending");
   }
-  const [[payment]] = await db.query("SELECT * FROM partner_payments WHERE txnid = ?", [String(p.txnid || "")]);
+  const [[payment]] = await db.query("SELECT * FROM partner_payments WHERE txnid = ?", [String(posted.txnid || "")]);
   if (!payment) return back(req, "failed");
+  if (payment.status === "success") return back(req, "success");
 
   try {
-    if (!verifyResponseHash(p, payment.mode)) {
-      // Possibly forged — don't trust the posted status; reconciliation will re-check.
-      console.error("[easebuzz] bad hash for", payment.txnid);
-      return back(req, "pending");
+    let r = await applyGatewayResult(payment, posted);
+    if (r === "unverified") {
+      console.error("[easebuzz] return hash not verified, checking with gateway:", payment.txnid);
+      r = await checkWithGateway(payment);
     }
-    const postedOk = String(p.status) === "success" && Number(p.amount) === Number(payment.amount);
-    if (postedOk) {
-      const confirmed = await retrieveTransaction(payment.txnid, payment.mode);
-      if (confirmed?.status === "success" && Number(confirmed.amount) === Number(payment.amount)) {
-        await settlePayment(payment.id, "success", { ...p, ...confirmed.raw });
-        return back(req, "success");
-      }
-      return back(req, "pending"); // gateway says success but not confirmed yet
-    }
-    await settlePayment(payment.id, "failed", p);
-    return back(req, "failed");
+    return back(req, r === "success" ? "success" : r === "failed" ? "failed" : "pending");
   } catch (err) {
-    console.error("[easebuzz] return error:", err?.message);
+    console.error("[easebuzz] return error:", payment.txnid, err?.message);
     return back(req, "pending");
   }
 }

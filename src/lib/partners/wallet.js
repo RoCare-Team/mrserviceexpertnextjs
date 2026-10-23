@@ -5,7 +5,9 @@
 import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
 
-export const MIN_RECHARGE = 500;
+// Override with PARTNER_MIN_RECHARGE (e.g. 1 for a live ₹1 test); default ₹500.
+const envMin = Number(process.env.PARTNER_MIN_RECHARGE);
+export const MIN_RECHARGE = Number.isInteger(envMin) && envMin >= 1 ? envMin : 500;
 export const MAX_RECHARGE = 100000;
 
 const round2 = (n) => Math.round(Number(n) * 100) / 100;

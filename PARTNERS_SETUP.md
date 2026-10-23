@@ -124,3 +124,14 @@ Expires 30-minute-old leads and forwards them (and rejected ones) to the CRM, re
 **Admin:** Partner Payments page (all attempts + raw gateway response), change-request review on partner detail, sidebar badge includes pending change requests.
 
 **Payments are in TEST mode** (`NEXT_PUBLIC_EASEBUZZ_MODE=test`) until switched to `live`.
+
+## 11. Payment safety rules (Easebuzz)
+
+A payment changes state only from data signed by Easebuzz (hash verified with our salt) or from the Retrieve API (v2.1, entries hash-verified too):
+- **Return URL** (`/api/payments/easebuzz/return`): valid signed success → coins credited immediately; signed failure → failed with reason; unverifiable → asks the Retrieve API; anything uncertain → pending.
+- **Webhook** (`/api/payments/easebuzz/webhook`): set this as the Webhook URL in the Easebuzz dashboard (`https://www.mrserviceexpert.com/api/payments/easebuzz/webhook`). Covers partners who close the browser after paying.
+- **Cron** (same `/api/cron/partner-leads` job, every 2 min) re-checks every pending payment older than 2 minutes; wallets and the admin Payments page also trigger a re-check.
+- A gateway/network error never fails a payment. "Failed (abandoned)" only when Easebuzz says *Transaction not found* and 2 hours have passed.
+- A later confirmed success upgrades a failed payment (credits once). A success is never downgraded.
+- Credits are idempotent (row lock + unique ledger key) — return + webhook + cron arriving together credit once.
+- Signed success with a different amount than charged is not credited and stays pending for manual review.

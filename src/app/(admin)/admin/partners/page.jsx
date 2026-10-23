@@ -28,6 +28,7 @@ export default function AdminPartnersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [counts, setCounts] = useState({});
   const [categories, setCategories] = useState([]);
+  const [alerts, setAlerts] = useState(null);
 
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
@@ -52,6 +53,13 @@ export default function AdminPartnersPage() {
       setPage(1);
     }, 400);
   }, [searchInput]);
+
+  useEffect(() => {
+    fetch("/api/admin/partners/notifications")
+      .then((r) => r.json())
+      .then((d) => d.success && setAlerts(d.data))
+      .catch(() => {});
+  }, [rows]);
 
   useEffect(() => {
     fetch("/api/admin/partners/service-types")
@@ -129,6 +137,15 @@ export default function AdminPartnersPage() {
         count={counts.pending || 0}
         countLabel="awaiting review"
       />
+
+      {alerts && (alerts.locality_requests > 0 || alerts.lead_issues > 0 || alerts.crm_failed > 0) && (
+        <div className="adm-card" style={{ padding: 12, marginBottom: 12, display: "flex", flexWrap: "wrap", gap: 16, fontSize: 14 }}>
+          <b>Also waiting:</b>
+          {alerts.locality_requests > 0 && <Link href="/admin/partners/locations">{alerts.locality_requests} locality request(s) from partners →</Link>}
+          {alerts.lead_issues > 0 && <Link href="/admin/partners/leads?issues=1">{alerts.lead_issues} lead problem report(s) →</Link>}
+          {alerts.crm_failed > 0 && <Link href="/admin/partners/leads">{alerts.crm_failed} failed CRM forward(s) →</Link>}
+        </div>
+      )}
 
       <div className="mb-4 flex flex-wrap gap-2">
         {[["", "All", allCount], ...Object.entries(STATUS_META).map(([k, m]) => [k, m.label, counts[k] || 0])].map(([k, label, n]) => (
