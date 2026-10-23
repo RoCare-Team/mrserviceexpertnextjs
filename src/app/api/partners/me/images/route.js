@@ -19,8 +19,9 @@ function kindOf(v) {
 async function editablePartner(req) {
   assertSameOrigin(req);
   const p = await requirePartner(req);
-  if (!EDITABLE.has(p.status)) {
-    throw new HttpError(409, "not_editable", "Click “Edit profile” on your dashboard before changing images.");
+  // Photos are live edits: allowed while drafting and once approved.
+  if (!EDITABLE.has(p.status) && !["approved", "suspended"].includes(p.status)) {
+    throw new HttpError(409, "not_editable", "Images can't be changed while your application is under review.");
   }
   return p;
 }

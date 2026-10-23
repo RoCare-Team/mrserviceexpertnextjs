@@ -14,8 +14,8 @@ const MAX_DOCS = 10;
 export const POST = handle(async (req) => {
   assertSameOrigin(req);
   const p = await requirePartner(req);
-  if (!EDITABLE.has(p.status)) {
-    throw new HttpError(409, "not_editable", "Click “Edit profile” on your dashboard before adding documents.");
+  if (!EDITABLE.has(p.status) && !["approved", "suspended"].includes(p.status)) {
+    throw new HttpError(409, "not_editable", "Documents can't be added while your application is under review.");
   }
   rateLimit(`partner-upload:${p.id}`, 20, 10 * 60_000);
 

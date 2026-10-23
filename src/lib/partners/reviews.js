@@ -4,6 +4,7 @@
 
 import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
+import { notifyPartner } from "@/lib/partners/notify";
 
 const firstName = (n) => String(n || "Customer").trim().split(/\s+/)[0];
 
@@ -13,7 +14,7 @@ export async function getPublicReviews(partnerId, { limit = 20 } = {}) {
     [partnerId]
   );
   const [rows] = await db.query(
-    `SELECT r.id, r.rating, r.comment, r.created_at, r.updated_at, c.name, c.mobile
+    `SELECT r.id, r.rating, r.comment, r.reply, r.replied_at, r.created_at, r.updated_at, c.name, c.mobile
        FROM partner_reviews r JOIN site_customers c ON c.id = r.customer_id
       WHERE r.partner_id = ? AND r.status = 'published'
       ORDER BY r.id DESC LIMIT ${Math.min(Number(limit) || 20, 100)}`,
@@ -27,6 +28,8 @@ export async function getPublicReviews(partnerId, { limit = 20 } = {}) {
       id: r.id,
       rating: r.rating,
       comment: r.comment,
+      reply: r.reply,
+      replied_at: r.replied_at,
       author: `${firstName(r.name)} (••${r.mobile.slice(-2)})`,
       created_at: r.created_at,
       edited: +new Date(r.updated_at) - +new Date(r.created_at) > 60_000,
@@ -67,6 +70,14 @@ export async function upsertReview(customer, partnerSlug, { rating, comment }) {
      ON DUPLICATE KEY UPDATE rating = VALUES(rating), comment = VALUES(comment)`,
     [p.id, customer.id, stars, text]
   );
+  if (!existing) {
+    await notifyPartner(p.id, {
+      type: "review",
+      title: `New ${stars}★ review from ${firstName(customer.name)}`,
+      body: text.slice(0, 200),
+      link: "/partner/dashboard?tab=reviews",
+    });
+  }
   return getPublicReviews(p.id);
 }
 
@@ -98,10 +109,20 @@ export async function removeReview(reviewId, by) {
 /** All reviews (incl. removed) for the partner dashboard / admin. */
 export async function listReviewsForOwner(partnerId) {
   const [rows] = await db.query(
-    `SELECT r.id, r.rating, r.comment, r.status, r.removed_by, r.created_at, c.name
+    `SELECT r.id, r.rating, r.comment, r.reply, r.replied_at, r.status, r.removed_by, r.created_at, c.name
        FROM partner_reviews r JOIN site_customers c ON c.id = r.customer_id
       WHERE r.partner_id = ? ORDER BY r.id DESC LIMIT 200`,
     [partnerId]
   );
   return rows.map((r) => ({ ...r, author: firstName(r.name) }));
+}
+
+/** Partner's public reply on a review of their own profile ("" removes it). */
+export async function replyToReview(partnerId, reviewId, text) {
+  const reply = String(text ?? "").trim().slice(0, 1000);
+  const [r] = await db.query(
+    "UPDATE partner_reviews SET reply = ?, replied_at = IF(? IS NULL, NULL, NOW()), updated_at = updated_at WHERE id = ? AND partner_id = ? AND status = 'published'",
+    [reply || null, reply || null, reviewId, partnerId]
+  );
+  if (!r.affectedRows) throw new HttpError(404, "not_found", "Review not found.");
 }

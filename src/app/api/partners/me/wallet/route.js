@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 
 export const GET = handle(async (req) => {
   const p = await requirePartner(req);
-  return ok({ ...(await getWallet(p.id)), min_recharge: MIN_RECHARGE, email: p.business_email || "" });
+  return ok({ ...(await getWallet(p.id, { limit: 200 })), min_recharge: MIN_RECHARGE, email: p.business_email || "" });
 });

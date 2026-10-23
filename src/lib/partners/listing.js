@@ -62,7 +62,7 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
 
   const [rows] = await db.query(
     `SELECT p.id, p.slug, p.business_name, p.business_type, p.experience_years, p.logo_key,
-            p.operating_hours,
+            p.operating_hours, p.is_available,
             p.identity_verified_at IS NOT NULL AS identity_verified,
             p.gst_verified_at IS NOT NULL AS gst_verified
        FROM partners p
@@ -108,6 +108,7 @@ async function decorate(rows, categoryId) {
     services: svcs.filter((s) => s.partner_id === r.id).map((s) => s.name),
     areas: areas.filter((a) => a.partner_id === r.id).map((a) => a.name).slice(0, 4),
     rating: ratings.get(r.id) || null,
+    is_available: !!r.is_available,
   }));
 }
 
@@ -124,7 +125,7 @@ export async function getPublicProfile(slug) {
   );
   if (!p) return null;
 
-  const [[cats], [svcs], [brands], [areas]] = await Promise.all([
+  const [[cats], [svcs], [brands], [areas], [photos]] = await Promise.all([
     db.query(
       `SELECT c.id, c.category_name AS name, c.category_url AS url
          FROM partner_categories pc JOIN category_tb c ON c.id = pc.category_id
@@ -154,6 +155,7 @@ export async function getPublicProfile(slug) {
         WHERE a.partner_id = ? ORDER BY a.is_primary DESC, c.city_name, l.city_name`,
       [p.id]
     ),
+    db.query("SELECT s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id LIMIT 12", [p.id]),
   ]);
 
   // Group coverage by city: { city, cityWide, localities[] }.
@@ -178,6 +180,8 @@ export async function getPublicProfile(slug) {
     operating_hours: p.operating_hours,
     logo_url: publicUrl(p.logo_key),
     shop_image_url: publicUrl(p.shop_image_key),
+    photos: photos.map((ph) => publicUrl(ph.s3_key)),
+    is_available: !!p.is_available,
     locality: p.address_locality,
     city_name: p.address_city_name,
     state_name: p.state_name,

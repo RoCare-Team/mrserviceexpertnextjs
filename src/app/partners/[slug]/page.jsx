@@ -96,7 +96,10 @@ export default async function PartnerProfilePage({ params }) {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <BookNowButton
+            {!p.is_available && (
+              <span className="inline-flex min-h-11 items-center rounded-xl bg-gray-100 px-5 font-medium text-gray-500">Currently unavailable</span>
+            )}
+            {p.is_available && <BookNowButton
               className="min-h-11 px-5 text-base"
               booking={{
                 partner: { slug: p.slug, name: p.business_name },
@@ -104,7 +107,7 @@ export default async function PartnerProfilePage({ params }) {
                 defaultCategory: p.bookable[0]?.url,
                 cityName: p.city_name,
               }}
-            />
+            />}
             {reviews.count > 0 && (
               <a href="#reviews" className="inline-flex items-center gap-1 text-sm text-[var(--ink-soft)]">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> <b>{reviews.average.toFixed(1)}</b>
@@ -115,16 +118,22 @@ export default async function PartnerProfilePage({ params }) {
 
           {p.description && <p className="mt-5 whitespace-pre-line leading-relaxed text-[var(--body-text)]">{p.description}</p>}
 
-          {p.shop_image_url && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={p.shop_image_url}
-              alt={`${p.business_name} shop`}
-              loading="lazy"
-              width={800}
-              height={450}
-              className="mt-5 aspect-video w-full rounded-2xl object-cover"
-            />
+          {[p.shop_image_url, ...p.photos].filter(Boolean).length > 0 && (
+            <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {[p.shop_image_url, ...p.photos].filter(Boolean).map((src, i) => (
+                <li key={src} className={i === 0 ? "col-span-2 sm:col-span-3" : ""}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={`${p.business_name} photo ${i + 1}`}
+                    loading="lazy"
+                    width={i === 0 ? 800 : 400}
+                    height={i === 0 ? 450 : 300}
+                    className={`w-full rounded-2xl object-cover ${i === 0 ? "aspect-video" : "aspect-[4/3]"}`}
+                  />
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
@@ -200,6 +209,12 @@ export default async function PartnerProfilePage({ params }) {
                   </span>
                 </p>
                 {r.comment && <p className="mt-1 whitespace-pre-line text-sm text-[var(--body-text)]">{r.comment}</p>}
+                {r.reply && (
+                  <div className="mt-2 rounded-xl bg-purple-50/70 px-3 py-2 text-sm">
+                    <b className="text-purple-800">Reply from {p.business_name}:</b>{" "}
+                    <span className="whitespace-pre-line text-[var(--body-text)]">{r.reply}</span>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

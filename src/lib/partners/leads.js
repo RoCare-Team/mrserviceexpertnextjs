@@ -8,6 +8,7 @@ import { withTransaction } from "@/lib/partners/application";
 import { applyTxn } from "@/lib/partners/wallet";
 import { CRM_LEAD_TYPES, crmBrands, crmServices, crmPincode, forwardLeadToCrm } from "@/lib/partners/crm";
 import { brandKey, validName } from "@/lib/partners/validation";
+import { notifyPartner } from "@/lib/partners/notify";
 
 export const LEAD_WINDOW_MIN = 30;
 export const LEAD_SHARE = 0.5; // partner pays 50% of the service price in coins
@@ -22,11 +23,12 @@ const clean = (v, max) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, m
 export async function createLead(customer, input) {
   const slug = String(input.partner || "");
   const [[partner]] = await db.query(
-    `SELECT id, slug FROM partners
+    `SELECT id, slug, is_available FROM partners
       WHERE slug = ? AND status = 'approved' AND is_listed = 1 AND mobile_verified_at IS NOT NULL AND deleted_at IS NULL`,
     [slug]
   );
   if (!partner) throw new HttpError(404, "partner_unavailable", "This partner isn't taking bookings right now.");
+  if (!partner.is_available) throw new HttpError(409, "partner_offline", "This partner is not taking bookings at the moment. Please choose another partner.");
 
   const [[cat]] = await db.query(
     `SELECT c.id, c.category_url FROM category_tb c
@@ -96,7 +98,7 @@ export async function createLead(customer, input) {
   const [ourBrands] = await db.query("SELECT id, brand_name FROM brand_tb WHERE category_id = ?", [cat.id]);
   const ourBrand = ourBrands.find((b) => brandKey(b.brand_name) === brandKey(brand.name));
 
-  return withTransaction(async (conn) => {
+  const created = await withTransaction(async (conn) => {
     // One open booking per customer + partner + category per day.
     const [dupe] = await conn.query(
       `SELECT id FROM partner_leads
@@ -124,6 +126,17 @@ export async function createLead(customer, input) {
     );
     return { id: ins.insertId, service: service.name, price: service.price };
   });
+  await notifyPartner(
+    partner.id,
+    {
+      type: "lead_new",
+      title: `New booking: ${service.name}`,
+      body: `${loc.city} · ₹${service.price} · ${date} ${slot}. Accept within ${LEAD_WINDOW_MIN} minutes.`,
+      link: "/partner/dashboard?tab=leads",
+    },
+    { push: true }
+  );
+  return created;
 }
 
 /* ── partner side ─────────────────────────────────────────────────────── */
@@ -152,16 +165,40 @@ function shapeForPartner(l) {
     seconds_left: Math.max(0, Number(l.seconds_left || 0)),
     issue_note: l.issue_note,
     refunded: !!l.refunded_at,
+    partner_note: l.partner_note,
+    final_amount: l.final_amount === null ? null : Number(l.final_amount),
+    work_done: l.work_done,
+    accepted_at: l.accepted_at,
+    completed_at: l.completed_at,
   };
 }
 
-export async function listPartnerLeads(partnerId, { status = null, limit = 50 } = {}) {
+const GROUPS = { new: ["new"], accepted: ["accepted"], completed: ["completed"], missed: ["rejected", "expired"] };
+
+/** filters: { group: new|accepted|completed|missed, search, from, to } */
+export async function listPartnerLeads(partnerId, { group = null, search = "", from = null, to = null, limit = 50 } = {}) {
   await processDueLeads().catch((e) => console.error("[leads] process", e?.message));
   const params = [partnerId];
   let where = "l.partner_id = ?";
-  if (status) {
-    where += " AND l.status = ?";
-    params.push(status);
+  if (GROUPS[group]) {
+    where += " AND l.status IN (?)";
+    params.push(GROUPS[group]);
+  }
+  const q = String(search || "").trim().slice(0, 60);
+  if (q) {
+    // Customer name / mobile are searchable only on leads the partner paid for.
+    const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
+    where += ` AND (l.service_name LIKE ? OR l.area LIKE ? OR l.id = ?
+                OR (l.status IN ('accepted','completed') AND (l.customer_name LIKE ? OR l.customer_mobile LIKE ?)))`;
+    params.push(like, like, Number(q) || 0, like, like);
+  }
+  if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
+    where += " AND l.created_at >= ?";
+    params.push(`${from} 00:00:00`);
+  }
+  if (to && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
+    where += " AND l.created_at <= ?";
+    params.push(`${to} 23:59:59`);
   }
   const [rows] = await db.query(
     `SELECT l.*, c.category_name, TIMESTAMPDIFF(SECOND, NOW(), l.expires_at) AS seconds_left
@@ -217,12 +254,32 @@ export async function rejectLead(partnerId, leadId, reason) {
   await forwardOne(leadId).catch((e) => console.error("[leads] forward", e?.message));
 }
 
-export async function completeLead(partnerId, leadId) {
+/** details: { final_amount?, work_done? } — partner's own record of the job. */
+export async function completeLead(partnerId, leadId, details = {}) {
+  let amount = null;
+  if (details.final_amount !== undefined && details.final_amount !== null && details.final_amount !== "") {
+    amount = Number(details.final_amount);
+    if (!Number.isFinite(amount) || amount < 0 || amount > 1_000_000) throw bad("Enter a valid amount.");
+    amount = round2(amount);
+  }
   await withTransaction(async (conn) => {
     const l = await lockOwnLead(conn, partnerId, leadId);
     if (l.status !== "accepted") throw new HttpError(409, "bad_state", "Only accepted leads can be marked completed.");
-    await conn.query("UPDATE partner_leads SET status = 'completed', completed_at = NOW() WHERE id = ?", [leadId]);
+    await conn.query(
+      "UPDATE partner_leads SET status = 'completed', completed_at = NOW(), final_amount = ?, work_done = ? WHERE id = ?",
+      [amount, clean(details.work_done, 500) || null, leadId]
+    );
   });
+}
+
+/** Private note on any of the partner's own leads. */
+export async function saveLeadNote(partnerId, leadId, note) {
+  const [r] = await db.query("UPDATE partner_leads SET partner_note = ? WHERE id = ? AND partner_id = ?", [
+    clean(note, 1000) || null,
+    leadId,
+    partnerId,
+  ]);
+  if (!r.affectedRows) throw new HttpError(404, "not_found", "Lead not found.");
 }
 
 export async function reportLeadIssue(partnerId, leadId, note) {
@@ -268,17 +325,27 @@ let lastRun = 0;
 export async function processDueLeads({ force = false } = {}) {
   if (!force && Date.now() - lastRun < 60_000) return { skipped: true };
   lastRun = Date.now();
-  const [exp] = await db.query(
-    `UPDATE partner_leads SET status = 'expired', crm_status = 'pending'
-      WHERE status = 'new' AND expires_at <= NOW()
-      ORDER BY id LIMIT 100`
+  const [expiring] = await db.query(
+    "SELECT id, partner_id, service_name FROM partner_leads WHERE status = 'new' AND expires_at <= NOW() ORDER BY id LIMIT 100"
   );
+  let expired = 0;
+  for (const l of expiring) {
+    const [r] = await db.query("UPDATE partner_leads SET status = 'expired', crm_status = 'pending' WHERE id = ? AND status = 'new'", [l.id]);
+    if (!r.affectedRows) continue;
+    expired++;
+    await notifyPartner(l.partner_id, {
+      type: "lead_missed",
+      title: `Lead missed: ${l.service_name}`,
+      body: `Lead #${l.id} wasn't accepted within ${LEAD_WINDOW_MIN} minutes and went to our support team.`,
+      link: "/partner/dashboard?tab=leads",
+    });
+  }
   const [due] = await db.query(
     `SELECT id FROM partner_leads WHERE crm_status IN ('pending','failed') AND crm_attempts < ? ORDER BY id LIMIT 20`,
     [MAX_CRM_ATTEMPTS]
   );
   for (const d of due) await forwardOne(d.id);
-  return { expired: exp.affectedRows, forwarded: due.length };
+  return { expired, forwarded: due.length };
 }
 
 /* ── admin ────────────────────────────────────────────────────────────── */
@@ -299,7 +366,15 @@ export async function refundLead(admin, leadId, note) {
       actorId: admin.id,
     });
     await conn.query("UPDATE partner_leads SET refunded_at = NOW(), refunded_by = ? WHERE id = ?", [admin.id, leadId]);
-    return { balance };
+    return { balance, partnerId: l.partner_id, coins: Number(l.coin_cost) };
+  }).then(async (r) => {
+    await notifyPartner(r.partnerId, {
+      type: "refund",
+      title: `${r.coins} coins refunded`,
+      body: `Refund for lead #${leadId}. ${clean(note, 200)}`.trim(),
+      link: "/partner/dashboard?tab=wallet",
+    });
+    return { balance: r.balance };
   });
 }
 

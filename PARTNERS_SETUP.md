@@ -107,3 +107,20 @@ Expires 30-minute-old leads and forwards them (and rejected ones) to the CRM, re
 **Admin badge.** The sidebar shows counts for new applications + locality requests (Partners) and problem reports + failed CRM forwards (Partner Leads), refreshed every minute.
 
 **Rollback:** `scripts/migrations/rollback/2026_10_22_003_partner_leads_wallet_reviews.down.sql` (drops only these new tables).
+
+## 10. Partner dashboard (migration 004)
+
+`/partner/dashboard?tab=overview|leads|wallet|profile|reviews|settings` — sidebar on desktop, bottom nav on mobile.
+- **Overview:** today's leads, accepted / completed / missed this month, 30-day acceptance rate, coins, booked value, recorded earnings, rating, 6-month chart, profile-strength checklist.
+- **Leads:** New / Accepted / Completed / Missed / All, search, date range, Call / WhatsApp / Directions after accepting, private notes, completion record (final amount + work done), report a problem.
+- **Wallet:** balance, low-balance alert threshold, Easebuzz recharge, full payment history (success / failed / pending with method, UPI / masked card, bank ref, failure reason), printable receipt (`/partner/receipt/{id}` → Save as PDF), coin ledger with filters. Pending payments older than 10 min are re-checked with Easebuzz automatically; not found after 30 min → marked failed (abandoned).
+- **Profile:** instant edits (description, hours, experience, email, logo, shop photo, 8-photo gallery, address & service areas, documents); business name / type / GSTIN / categories / services / brands go through a **change request** — live profile unchanged until an admin approves (Admin → partner detail).
+- **Reviews:** rating distribution, public replies, remove.
+- **Settings:** Online/Offline (offline hides "Book now" and blocks bookings), browser push alerts per device, log out / log out of all devices, rules & support.
+- **Notifications:** bell with unread count — new / missed leads, refunds, payments, reviews, status and change-request decisions.
+
+**Web push env (production too):** `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT=https://www.mrserviceexpert.com` — generate once with `npx web-push generate-vapid-keys`; changing them invalidates existing subscriptions. Service worker: `public/partner-sw.js` (scope `/partner/`). Needs HTTPS (localhost works for testing). iPhone: only after "Add to Home Screen".
+
+**Admin:** Partner Payments page (all attempts + raw gateway response), change-request review on partner detail, sidebar badge includes pending change requests.
+
+**Payments are in TEST mode** (`NEXT_PUBLIC_EASEBUZZ_MODE=test`) until switched to `live`.

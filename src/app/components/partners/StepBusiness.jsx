@@ -130,7 +130,7 @@ export default function StepBusiness({ app, onSave, onBack, onAppUpdate, onError
 }
 
 /** Uploads immediately to S3 (partners/{id}/{kind}/) via our API. */
-function ImageField({ label, kind, url, onAppUpdate, onError }) {
+export function ImageField({ label, kind, url, onAppUpdate, onError }) {
   const input = useRef(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
@@ -193,7 +193,7 @@ const fmtSize = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` :
 const REVIEW = { pending: "Awaiting review", verified: "Verified", rejected: "Rejected" };
 
 /** Private documents → S3 partner-docs/ (never public). */
-function Documents({ app, individual, onAppUpdate, onError }) {
+export function Documents({ app, individual, onAppUpdate, onError }) {
   const [type, setType] = useState(individual ? "aadhaar" : "gst_certificate");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");

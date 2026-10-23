@@ -110,7 +110,7 @@ function initialCoverage(app) {
   return list;
 }
 
-export default function StepLocations({ app, onSave, onBack }) {
+export default function StepLocations({ app, onSave, onBack, submitLabel }) {
   const states = useCatalog("/api/partner-catalog/states");
   const [addr, setAddr] = useState({
     line: app.address.line || "",
@@ -263,7 +263,7 @@ export default function StepLocations({ app, onSave, onBack }) {
       </section>
 
       {err && !err.fields && <FieldError msg={err.message} />}
-      <StepNav onBack={onBack} busy={busy} />
+      <StepNav onBack={onBack} busy={busy} {...(submitLabel ? { continueLabel: submitLabel } : {})} />
     </form>
   );
 }

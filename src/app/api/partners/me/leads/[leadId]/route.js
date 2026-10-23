@@ -1,12 +1,16 @@
 import { ok, handle, readJson, assertSameOrigin, rateLimit, toInt, HttpError } from "@/lib/partners/http";
 import { requirePartner } from "@/lib/partners/auth";
-import { acceptLead, rejectLead, completeLead, reportLeadIssue, listPartnerLeads } from "@/lib/partners/leads";
+import { acceptLead, rejectLead, completeLead, reportLeadIssue, saveLeadNote } from "@/lib/partners/leads";
 import { getWallet } from "@/lib/partners/wallet";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/** { action: accept | reject | complete | report, reason?, note? } */
+/**
+ * { action: accept | reject | complete | report | note,
+ *   reason?, note?, final_amount?, work_done? }
+ * Returns the new wallet balance; the dashboard reloads its current list.
+ */
 export const POST = handle(async (req, ctx) => {
   assertSameOrigin(req);
   const p = await requirePartner(req);
@@ -23,14 +27,17 @@ export const POST = handle(async (req, ctx) => {
       await rejectLead(p.id, leadId, body.reason);
       break;
     case "complete":
-      await completeLead(p.id, leadId);
+      await completeLead(p.id, leadId, { final_amount: body.final_amount, work_done: body.work_done });
       break;
     case "report":
       await reportLeadIssue(p.id, leadId, body.note);
       break;
+    case "note":
+      await saveLeadNote(p.id, leadId, body.note);
+      break;
     default:
       throw new HttpError(400, "bad_action", "Unknown action.");
   }
-  const [leads, wallet] = await Promise.all([listPartnerLeads(p.id), getWallet(p.id, { limit: 1 })]);
-  return ok({ leads, balance: wallet.balance });
+  const wallet = await getWallet(p.id, { limit: 1 });
+  return ok({ balance: wallet.balance });
 });

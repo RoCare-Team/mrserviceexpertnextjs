@@ -66,7 +66,11 @@ export default function PartnerCard({ partner: p, bookingContext }) {
       )}
 
       <div className="mt-auto flex flex-wrap gap-2 pt-4">
-        <BookNowButton booking={bookingContext ? { ...bookingContext, partner: { slug: p.slug, name: p.business_name } } : null} />
+        {p.is_available === false ? (
+          <span className="inline-flex min-h-10 items-center rounded-xl bg-gray-100 px-3.5 text-sm font-medium text-gray-500">Currently unavailable</span>
+        ) : (
+          <BookNowButton booking={bookingContext ? { ...bookingContext, partner: { slug: p.slug, name: p.business_name } } : null} />
+        )}
         <Link
           href={`/partners/${p.slug}`}
           className="inline-flex min-h-10 items-center rounded-xl border border-[var(--line-strong)] px-3.5 text-sm font-semibold text-[var(--ink-soft)] hover:bg-purple-50"

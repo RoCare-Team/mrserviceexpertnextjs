@@ -1,6 +1,6 @@
 import db from "@/lib/db";
 import { ok, handle, requireAdmin, readJson, toInt, HttpError } from "@/lib/partners/http";
-import { getApplication } from "@/lib/partners/application";
+import { getApplication, getChangeRequests } from "@/lib/partners/application";
 import { getWallet } from "@/lib/partners/wallet";
 import { listReviewsForOwner } from "@/lib/partners/reviews";
 
@@ -18,8 +18,8 @@ export const GET = handle(async (req, ctx) => {
   const id = await partnerId(ctx);
   const app = await getApplication(id, { forAdmin: true });
   if (!app) throw new HttpError(404, "not_found", "Partner not found.");
-  const [wallet, reviews] = await Promise.all([getWallet(id, { limit: 20 }), listReviewsForOwner(id)]);
-  return ok({ ...app, wallet, reviews });
+  const [wallet, reviews, changeRequests] = await Promise.all([getWallet(id, { limit: 20 }), listReviewsForOwner(id), getChangeRequests(id)]);
+  return ok({ ...app, wallet, reviews, change_requests: changeRequests });
 });
 
 /** Internal note only — status changes go through /status. */

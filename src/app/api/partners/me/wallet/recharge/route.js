@@ -28,19 +28,31 @@ export const POST = handle(async (req) => {
 
   const mode = easebuzzMode();
   const txnid = `MSEW${p.id}T${Date.now()}${crypto.randomBytes(2).toString("hex")}`.slice(0, 40);
-  await db.query("INSERT INTO partner_payments (partner_id, txnid, amount, mode) VALUES (?, ?, ?, ?)", [p.id, txnid, amount, mode]);
+  await db.query("INSERT INTO partner_payments (partner_id, txnid, amount, email, mode) VALUES (?, ?, ?, ?, ?)", [
+    p.id, txnid, amount, email.value, mode,
+  ]);
 
   const back = `${siteOrigin(req)}/api/payments/easebuzz/return`;
-  const payUrl = await initiatePayment({
-    txnid,
-    amount,
-    firstname: (p.full_name || "Partner").replace(/[^\p{L} .]/gu, "").slice(0, 60) || "Partner",
-    email: email.value,
-    phone: p.mobile,
-    productinfo: "MSE Partner Wallet Recharge",
-    surl: back,
-    furl: back,
-    mode,
-  });
+  let payUrl;
+  try {
+    payUrl = await initiatePayment({
+      txnid,
+      amount,
+      firstname: (p.full_name || "Partner").replace(/[^\p{L} .]/gu, "").slice(0, 60) || "Partner",
+      email: email.value,
+      phone: p.mobile,
+      productinfo: "MSE Partner Wallet Recharge",
+      surl: back,
+      furl: back,
+      mode,
+    });
+  } catch (err) {
+    // Keep the attempt on record as failed so both sides can see it.
+    await db.query(
+      "UPDATE partner_payments SET status = 'failed', error_message = ?, gateway_msg = 'initiate_failed', completed_at = NOW() WHERE txnid = ?",
+      [String(err?.message || "Could not start payment").slice(0, 255), txnid]
+    );
+    throw err;
+  }
   return ok({ payUrl });
 });

@@ -77,5 +77,11 @@ export async function retrieveTransaction(txnid, mode = easebuzzMode()) {
   const json = await res.json().catch(() => null);
   const msg = Array.isArray(json?.msg) ? json.msg[0] : json?.msg;
   if (!json?.status || !msg || typeof msg !== "object") return null;
-  return { status: String(msg.status || ""), amount: Number(msg.amount), easepayid: String(msg.easepayid || ""), txnid: String(msg.txnid || "") };
+  return {
+    status: String(msg.status || ""),
+    amount: Number(msg.amount),
+    easepayid: String(msg.easepayid || ""),
+    txnid: String(msg.txnid || ""),
+    raw: msg,
+  };
 }

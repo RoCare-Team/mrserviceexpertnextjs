@@ -43,6 +43,53 @@ async function call(url, method = "GET", body) {
   return json.data;
 }
 
+/** Side-by-side current vs requested values for a partner change request. */
+function ChangeRequestReview({ req, app, saving, onDecide }) {
+  const [why, setWhy] = useState("");
+  const p = req.payload;
+  const d = req.display || {};
+  const curServices = (name) => {
+    const c = app.categories.find((x) => x.name === name);
+    return c ? (app.services[c.id] || []).map((x) => x.name).join(", ") : "—";
+  };
+  const curBrands = (name) => {
+    const c = app.categories.find((x) => x.name === name);
+    return c ? (app.brands[c.id] || []).map((x) => x.name).join(", ") : "—";
+  };
+  const rows = [
+    ["Business type", BUSINESS_TYPES[app.business.business_type], p.business_type !== undefined ? BUSINESS_TYPES[p.business_type] : null],
+    ["Name", app.business.business_name, p.business_name ?? null],
+    ["GSTIN", app.business.gstin, p.gstin ?? null],
+    ["Categories", app.categories.map((c) => c.name).join(", "), d.categories ? d.categories.join(", ") : null],
+    ...Object.entries(d.services || {}).map(([cat, list]) => [`Services · ${cat}`, curServices(cat), list.join(", ")]),
+    ...Object.entries(d.brands || {}).map(([cat, list]) => [`Brands · ${cat}`, curBrands(cat), list.join(", ") || "None"]),
+  ];
+  return (
+    <div>
+      <p className="col-muted" style={{ marginBottom: 8 }}>Sent {fmt(req.created_at)}. The live profile is unchanged until approved.</p>
+      <table className="adm-table" style={{ marginBottom: 10 }}>
+        <thead><tr><th>Field</th><th>Current</th><th>Requested</th></tr></thead>
+        <tbody>
+          {rows.map(([k, cur, next]) => (
+            <tr key={k}>
+              <td>{k}</td>
+              <td className="col-muted">{cur || "—"}</td>
+              <td style={{ fontWeight: next !== null && String(next ?? "") !== String(cur ?? "") ? 700 : 400 }}>{next === null ? "(no change)" : next || "—"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Field label="Reason (required to reject, shown to partner)">
+        <Textarea rows={2} value={why} onChange={(e) => setWhy(e.target.value)} maxLength={1000} />
+      </Field>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <Button variant="primary" disabled={saving} onClick={() => onDecide(true, why)}>Approve & apply</Button>
+        <Button variant="danger" disabled={saving || why.trim().length < 5} onClick={() => onDecide(false, why)}>Reject</Button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPartnerDetail({ params }) {
   const { id } = use(params);
   const [app, setApp] = useState(null);
@@ -333,6 +380,18 @@ export default function AdminPartnerDetail({ params }) {
           </p>
         )}
       </FormCard>
+
+      {(app.change_requests || []).some((r) => r.status === "pending") && (
+        <FormCard className="mt-4">
+          <SectionTitle>Profile change request (waiting for approval)</SectionTitle>
+          {app.change_requests.filter((r) => r.status === "pending").map((r) => (
+            <ChangeRequestReview key={r.id} req={r} app={app} saving={saving} onDecide={(approve, why) =>
+              run(() => call(`/api/admin/partners/change-requests/${r.id}`, "POST", { approve, reason: why }).then(() => call(`/api/admin/partners/${id}`)),
+                approve ? "Changes approved and live." : "Change request rejected.")
+            } />
+          ))}
+        </FormCard>
+      )}
 
       <div className="adm-formgrid mt-4" style={{ alignItems: "start" }}>
         <FormCard>

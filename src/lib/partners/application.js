@@ -5,6 +5,7 @@
 import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
 import { publicUrl } from "@/lib/partners/storage";
+import { notifyPartner } from "@/lib/partners/notify";
 import {
   validName,
   validateBusiness,
@@ -208,6 +209,10 @@ export async function getApplication(partnerId, { forAdmin = false } = {}) {
     updated_at: p.updated_at,
   };
   app.completion = completion(app);
+  app.is_available = !!p.is_available;
+  app.low_balance_alert = Number(p.low_balance_alert ?? 200);
+  const [photos] = await db.query("SELECT id, s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id", [partnerId]);
+  app.photos = photos.map((ph) => ({ id: ph.id, url: publicUrl(ph.s3_key) }));
 
   if (forAdmin) {
     app.admin_note = p.admin_note;
@@ -613,12 +618,30 @@ async function uniqueSlug(conn, p) {
   for (let i = 2; ; i++) if (!used.has(`${base}-${i}`)) return `${base}-${i}`;
 }
 
+const STATUS_MESSAGES = {
+  approve: "Your partner profile is approved.",
+  reactivate: "Your partner profile is active again.",
+  reject: "Your application was not approved.",
+  request_info: "We need a few more details for your application.",
+  suspend: "Your partner profile has been suspended.",
+};
+
 export async function adminChangeStatus(partnerId, admin, { action, reason, publish }) {
   const rule = ADMIN_ACTIONS[action];
   if (!rule) throw new HttpError(400, "bad_action", "Unknown action.");
   const why = String(reason ?? "").trim().slice(0, 2000);
   if (rule.reason && why.length < 5) throw bad("Please give a reason (at least 5 characters).", { reason: "Reason is required." });
 
+  const out = await adminChangeStatusTx(partnerId, admin, rule, action, why, publish);
+  await notifyPartner(
+    partnerId,
+    { type: "status", title: STATUS_MESSAGES[action], body: why, link: "/partner/dashboard" },
+    { push: true }
+  );
+  return out;
+}
+
+async function adminChangeStatusTx(partnerId, admin, rule, action, why, publish) {
   return withTransaction(async (conn) => {
     const p = await lockPartner(conn, partnerId);
     if (!rule.from.includes(p.status)) {
@@ -695,4 +718,172 @@ export async function adminSetVerification(partnerId, admin, field, verified, no
       actorId: admin.id,
     });
   });
+}
+
+
+/* ── live edits by approved partners (no re-review) ───────────────────── */
+
+async function lockLive(conn, partnerId) {
+  const p = await lockPartner(conn, partnerId);
+  if (!["approved", "suspended"].includes(p.status)) {
+    throw new HttpError(409, "not_live", "Use the application form to edit your details until your profile is approved.");
+  }
+  return p;
+}
+
+/** Description, hours, experience, email — public immediately. */
+export async function saveLiveDetails(partnerId, data) {
+  const { errors, value } = validateBusiness({ ...data, business_type: "individual", business_name: "placeholder" });
+  delete errors.business_type;
+  delete errors.business_name;
+  delete errors.gstin;
+  if (Object.keys(errors).length) throw bad("Please fix the highlighted fields.", errors);
+  await withTransaction(async (conn) => {
+    const p = await lockLive(conn, partnerId);
+    await conn.query(
+      "UPDATE partners SET description = ?, experience_years = ?, operating_hours = ?, business_email = ?, version = version + 1 WHERE id = ?",
+      [value.description, value.experience_years, value.operating_hours, value.business_email, p.id]
+    );
+  });
+}
+
+/** Address + service areas — listing pages update immediately. */
+export async function saveLiveLocations(partnerId, data) {
+  await withTransaction(async (conn) => {
+    const p = await lockLive(conn, partnerId);
+    await saveLocations(conn, p, data);
+    await conn.query("UPDATE partners SET version = version + 1 WHERE id = ?", [p.id]);
+    await logHistory(conn, { partnerId, action: "areas_updated", from: p.status, to: p.status, actorType: "partner", actorId: partnerId });
+  });
+}
+
+/* ── change requests (identity / catalogue; need admin approval) ──────── */
+
+/** Applies a change payload on `conn` (caller decides commit or rollback). */
+async function applyChangePayload(conn, p, payload) {
+  const merged = {
+    business_type: payload.business_type ?? p.business_type,
+    business_name: payload.business_name ?? p.business_name,
+    gstin: payload.gstin !== undefined ? payload.gstin : p.gstin,
+  };
+  const { errors, value } = validateBusiness(merged);
+  const fields = {};
+  for (const k of ["business_type", "business_name", "gstin"]) if (errors[k]) fields[k] = errors[k];
+  if (Object.keys(fields).length) throw bad("Please fix the highlighted fields.", fields);
+  await conn.query(
+    "UPDATE partners SET business_type = ?, business_name = ?, gstin = ?, gst_verified_at = IF(gstin <=> ?, gst_verified_at, NULL) WHERE id = ?",
+    [value.business_type, value.business_name, value.gstin, value.gstin, p.id]
+  );
+  if (payload.category_ids) await saveCategories(conn, p, { category_ids: payload.category_ids });
+  if (payload.services) await saveServices(conn, p, { services: payload.services });
+  if (payload.brands) await saveBrands(conn, p, { brands: payload.brands });
+}
+
+/** Validate by applying inside a transaction that is always rolled back. */
+async function dryRun(partnerId, payload) {
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+    const p = await lockLive(conn, partnerId);
+    await applyChangePayload(conn, p, payload);
+  } finally {
+    try {
+      await conn.rollback();
+    } catch {}
+    conn.release();
+  }
+}
+
+function cleanPayload(raw = {}) {
+  const out = {};
+  for (const k of ["business_type", "business_name", "gstin"]) if (raw[k] !== undefined) out[k] = raw[k];
+  if (raw.category_ids !== undefined) out.category_ids = raw.category_ids;
+  if (raw.services !== undefined) out.services = raw.services;
+  if (raw.brands !== undefined) out.brands = raw.brands;
+  if (!Object.keys(out).length) throw bad("Nothing to change.");
+  if (out.services && !out.category_ids) throw bad("Send categories together with services.");
+  if (out.brands && !out.category_ids) throw bad("Send categories together with brands.");
+  return out;
+}
+
+export async function submitChangeRequest(partnerId, raw) {
+  const payload = cleanPayload(raw);
+  await dryRun(partnerId, payload);
+  await withTransaction(async (conn) => {
+    await conn.query("UPDATE partner_change_requests SET status = 'superseded' WHERE partner_id = ? AND status = 'pending'", [partnerId]);
+    await conn.query("INSERT INTO partner_change_requests (partner_id, payload) VALUES (?, ?)", [partnerId, JSON.stringify(payload)]);
+    await logHistory(conn, { partnerId, action: "change_requested", actorType: "partner", actorId: partnerId });
+  });
+}
+
+export async function getChangeRequests(partnerId, { limit = 5 } = {}) {
+  const [rows] = await db.query(
+    `SELECT id, payload, status, reason, created_at, reviewed_at FROM partner_change_requests
+      WHERE partner_id = ? AND status <> 'superseded' ORDER BY id DESC LIMIT ${Number(limit) || 5}`,
+    [partnerId]
+  );
+  const list = rows.map((r) => ({ ...r, payload: JSON.parse(r.payload) }));
+
+  // Human-readable names for the admin review screen.
+  const catIds = new Set();
+  const svcIds = new Set();
+  const brandIds = new Set();
+  for (const r of list) {
+    (r.payload.category_ids || []).forEach((id) => catIds.add(Number(id)));
+    Object.values(r.payload.services || {}).flat().forEach((id) => svcIds.add(Number(id)));
+    Object.values(r.payload.brands || {}).forEach((b) => (b.brand_ids || []).forEach((id) => brandIds.add(Number(id))));
+  }
+  const names = async (sql, ids) => (ids.size ? (await db.query(sql, [[...ids]]))[0] : []);
+  const [cats, svcs, brands] = await Promise.all([
+    names("SELECT id, category_name AS name FROM category_tb WHERE id IN (?)", catIds),
+    names("SELECT id, name FROM partner_service_types WHERE id IN (?)", svcIds),
+    names("SELECT id, brand_name AS name FROM brand_tb WHERE id IN (?)", brandIds),
+  ]);
+  const nm = (rows2, id) => rows2.find((x) => x.id === Number(id))?.name || `#${id}`;
+  for (const r of list) {
+    const p = r.payload;
+    r.display = {
+      categories: p.category_ids ? p.category_ids.map((id) => nm(cats, id)) : null,
+      services: p.services ? Object.fromEntries(Object.entries(p.services).map(([cid, ids]) => [nm(cats, cid), ids.map((id) => nm(svcs, id))])) : null,
+      brands: p.brands ? Object.fromEntries(Object.entries(p.brands).map(([cid, b]) => [nm(cats, cid), (b.brand_ids || []).map((id) => nm(brands, id))])) : null,
+    };
+  }
+  return list;
+}
+
+export async function decideChangeRequest(admin, requestId, { approve, reason }) {
+  const why = String(reason ?? "").trim().slice(0, 1000);
+  if (!approve && why.length < 5) throw bad("Please give a reason (at least 5 characters).");
+  const r = await withTransaction(async (conn) => {
+    const [[req]] = await conn.query("SELECT * FROM partner_change_requests WHERE id = ? FOR UPDATE", [requestId]);
+    if (!req || req.status !== "pending") throw new HttpError(409, "not_pending", "This request was already handled.");
+    if (approve) {
+      const p = await lockPartner(conn, req.partner_id);
+      await applyChangePayload(conn, p, JSON.parse(req.payload));
+      await conn.query("UPDATE partners SET version = version + 1 WHERE id = ?", [p.id]);
+    }
+    await conn.query(
+      "UPDATE partner_change_requests SET status = ?, reason = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?",
+      [approve ? "approved" : "rejected", why || null, admin.id, requestId]
+    );
+    await logHistory(conn, {
+      partnerId: req.partner_id,
+      action: approve ? "change_approved" : "change_rejected",
+      reason: why || null,
+      actorType: "admin",
+      actorId: admin.id,
+    });
+    return req;
+  });
+  await notifyPartner(
+    r.partner_id,
+    {
+      type: "change_request",
+      title: approve ? "Your profile changes are live" : "Your profile changes were not approved",
+      body: why,
+      link: "/partner/dashboard?tab=profile",
+    },
+    { push: true }
+  );
+  return r.partner_id;
 }
