@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getBrandPageData } from "@/lib/brandPageData";
 import { getPublicAiContent } from "@/lib/aiContent";
 import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
+import PartnerListingSection from "@/app/components/partners/PartnerListingSection";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -105,6 +106,18 @@ export default async function Page({ params }) {
       pagedata={data}
       cat={cat}
       aiContent={aiContent}
+      partnerSection={
+        // Partners in this city/locality who service this brand.
+        <PartnerListingSection
+          cityUrl={city.toLowerCase()}
+          categoryUrl={cat.toLowerCase()}
+          brandUrl={brand.toLowerCase()}
+          brandName={data.brandname}
+          baseCategoryName={data.categoryname}
+          cityName={data.city_name}
+          categoryName={`${data.brandname} ${data.categoryname}`}
+        />
+      }
     />
   );
 }

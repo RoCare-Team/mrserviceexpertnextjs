@@ -24,6 +24,8 @@ import {
   LogOut,
   Inbox,
   Wrench,
+  Handshake,
+  Wallet,
 } from "lucide-react";
 
 const NAV = [
@@ -34,6 +36,15 @@ const NAV = [
   {
     label: "Leads",
     items: [{ href: "/admin/contact_us", icon: Inbox, name: "Contact Us" }],
+  },
+  {
+    label: "Partners",
+    items: [
+      { href: "/admin/partners", icon: Handshake, name: "Partners", exact: true, badge: "partners" },
+      { href: "/admin/partners/leads", icon: Inbox, name: "Partner Leads", badge: "leads" },
+      { href: "/admin/partners/locations", icon: MapPin, name: "Partner Localities", badge: "localities" },
+      { href: "/admin/partners/payments", icon: Wallet, name: "Partner Payments" },
+    ],
   },
   {
     label: "Catalogue",
@@ -88,6 +99,11 @@ const TITLES = {
   "/admin/ai_content": "AI Content",
   "/admin/ai_content/library": "Content Manager",
   "/admin/contact_us": "Contact Us Enquiries",
+  "/admin/partners": "Partners",
+  "/admin/partners/locations": "Partner Localities",
+  "/admin/partners/services": "Partner Service Catalogue",
+  "/admin/partners/leads": "Partner Leads",
+  "/admin/partners/payments": "Partner Payments",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",
 };
@@ -106,6 +122,7 @@ export default function AdminShell({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [alerts, setAlerts] = useState(null);
 
   // The login screen renders bare (no sidebar / topbar).
   const isLogin = pathname === "/admin/login";
@@ -122,12 +139,33 @@ export default function AdminShell({ children }) {
     };
   }, [isLogin]);
 
+  // Partner notification badge (new applications, locality requests,
+  // reported leads, failed CRM forwards) — refreshed every minute.
+  useEffect(() => {
+    if (isLogin) return;
+    let alive = true;
+    const load = () =>
+      fetch("/api/admin/partners/notifications")
+        .then((r) => r.json())
+        .then((d) => alive && d.success && setAlerts(d.data))
+        .catch(() => {});
+    load();
+    const t = setInterval(load, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [isLogin, pathname]);
+
+  const badgeCount = (key) =>
+    !alerts ? 0 : key === "partners" ? (alerts.pending_applications || 0) + (alerts.change_requests || 0) : key === "localities" ? alerts.locality_requests || 0 : key === "leads" ? (alerts.lead_issues || 0) + (alerts.crm_failed || 0) : 0;
+
   if (isLogin) return <>{children}</>;
 
   const isActive = (item) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
-  const title = TITLES[pathname] || "Admin";
+  const title = TITLES[pathname] || (pathname.startsWith("/admin/partners/") ? "Partner Review" : "Admin");
   const isSuper = user?.role === "super_admin";
 
   const logout = async () => {
@@ -174,8 +212,31 @@ export default function AdminShell({ children }) {
                         className={`adm-navitem ${isActive(item) ? "active" : ""}`}
                         title={item.name}
                       >
-                        <Icon strokeWidth={2} />
+                        <span style={{ position: "relative", display: "inline-flex" }}>
+                          <Icon strokeWidth={2} />
+                          {item.badge && badgeCount(item.badge) > 0 && collapsed && (
+                            <span
+                              aria-hidden="true"
+                              style={{ position: "absolute", top: -4, right: -6, width: 9, height: 9, borderRadius: 9, background: "#ef4444" }}
+                            />
+                          )}
+                        </span>
                         <span className="adm-navtxt">{item.name}</span>
+                        {item.badge && badgeCount(item.badge) > 0 && !collapsed && (
+                          <span
+                            title={
+                              item.badge === "partners"
+                                ? `${alerts.pending_applications} application(s), ${alerts.change_requests || 0} profile change(s) to review`
+                                : item.badge === "localities"
+                                ? `${alerts.locality_requests} locality request(s) from partners`
+                                : `${alerts.lead_issues} problem report(s), ${alerts.crm_failed} failed CRM forward(s)`
+                            }
+                            style={{ marginLeft: "auto", minWidth: 20, height: 20, padding: "0 6px", borderRadius: 10, background: "#ef4444", color: "#fff", fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                          >
+                            {badgeCount(item.badge)}
+                            <span className="sr-only"> notifications</span>
+                          </span>
+                        )}
                       </Link>
                     );
                   })}

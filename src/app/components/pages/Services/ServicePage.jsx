@@ -13,7 +13,7 @@ import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import { serviceGroupFor } from "@/lib/homeCare";
 
 
-export default function ServicePage({ pagedata, city, cat, aiContent }) {
+export default function ServicePage({ pagedata, city, cat, aiContent, partnerSection = null }) {
   const [openItem, setOpenItem] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   // const [pagedata, setData] = useState("");
@@ -527,6 +527,9 @@ export default function ServicePage({ pagedata, city, cat, aiContent }) {
             </div>
           </div>
         </div>
+
+        {/* Approved partners for this city/locality (server-rendered, passed in by the page). */}
+        {partnerSection}
 
         <div className=" bg-white common-spacing">
           <h2 className="text-4xl font-bold faqHeading mb-6">Frequently Asked Questions</h2>

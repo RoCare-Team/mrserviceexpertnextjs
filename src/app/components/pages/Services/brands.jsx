@@ -14,7 +14,7 @@ import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import PopularCities from "@/app/components/popularCities/PopularCities";
 
 
-export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
+export default function ServicePage({ city, brand, cat, pagedata, aiContent, partnerSection = null }) {
   const [openItem, setOpenItem] = useState(0)
 
   // The /{city}/{brand}/{cat} route hands these through unnormalized, so build
@@ -256,6 +256,9 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent }) {
           </div>
         </div>
       </div>
+
+      {/* Approved partners for this city/locality + brand (server-rendered, passed in by the page). */}
+      {partnerSection}
 
       <div className=" bg-white common-spacing">
         <h2 className="text-4xl font-bold faqHeading mb-6">Frequently Asked Questions</h2>
