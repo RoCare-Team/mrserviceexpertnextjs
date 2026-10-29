@@ -6,6 +6,7 @@ import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
 import { publicUrl } from "@/lib/partners/storage";
 import { notifyPartner } from "@/lib/partners/notify";
+import { queuePartnerSeo } from "@/lib/partners/seo";
 import {
   validName,
   validateBusiness,
@@ -200,6 +201,14 @@ export async function getApplication(partnerId, { forAdmin = false } = {}) {
       identity: !!p.identity_verified_at,
       business: !!p.business_verified_at,
       gst: !!p.gst_verified_at,
+    },
+    seo: {
+      content: p.seo_content,
+      meta_title: p.meta_title,
+      meta_description: p.meta_description,
+      meta_keywords: p.meta_keywords,
+      about_ai: !!p.about_ai,
+      generated_at: p.seo_generated_at,
     },
     review_reason: p.review_reason,
     submitted_at: p.submitted_at,
@@ -633,6 +642,8 @@ export async function adminChangeStatus(partnerId, admin, { action, reason, publ
   if (rule.reason && why.length < 5) throw bad("Please give a reason (at least 5 characters).", { reason: "Reason is required." });
 
   const out = await adminChangeStatusTx(partnerId, admin, rule, action, why, publish);
+  // Profile is (about to be) public: write / refresh its SEO copy in the background.
+  if (rule.to === "approved") queuePartnerSeo(partnerId);
   await notifyPartner(
     partnerId,
     { type: "status", title: STATUS_MESSAGES[action], body: why, link: "/partner/dashboard" },
@@ -740,9 +751,11 @@ export async function saveLiveDetails(partnerId, data) {
   if (Object.keys(errors).length) throw bad("Please fix the highlighted fields.", errors);
   await withTransaction(async (conn) => {
     const p = await lockLive(conn, partnerId);
+    // Once the partner changes the About text it is theirs — AI never overwrites it again.
     await conn.query(
-      "UPDATE partners SET description = ?, experience_years = ?, operating_hours = ?, business_email = ?, version = version + 1 WHERE id = ?",
-      [value.description, value.experience_years, value.operating_hours, value.business_email, p.id]
+      `UPDATE partners SET about_ai = IF(description <=> ?, about_ai, 0), description = ?, experience_years = ?,
+              operating_hours = ?, business_email = ?, version = version + 1 WHERE id = ?`,
+      [value.description, value.description, value.experience_years, value.operating_hours, value.business_email, p.id]
     );
   });
 }
@@ -755,6 +768,7 @@ export async function saveLiveLocations(partnerId, data) {
     await conn.query("UPDATE partners SET version = version + 1 WHERE id = ?", [p.id]);
     await logHistory(conn, { partnerId, action: "areas_updated", from: p.status, to: p.status, actorType: "partner", actorId: partnerId });
   });
+  queuePartnerSeo(partnerId); // cities changed → copy mentions them
 }
 
 /* ── change requests (identity / catalogue; need admin approval) ──────── */
@@ -875,6 +889,7 @@ export async function decideChangeRequest(admin, requestId, { approve, reason })
     });
     return req;
   });
+  if (approve) queuePartnerSeo(r.partner_id); // categories / brands / name may have changed
   await notifyPartner(
     r.partner_id,
     {

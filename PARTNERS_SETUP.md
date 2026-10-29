@@ -125,7 +125,21 @@ Expires 30-minute-old leads and forwards them (and rejected ones) to the CRM, re
 
 **Payments are in TEST mode** (`NEXT_PUBLIC_EASEBUZZ_MODE=test`) until switched to `live`.
 
-## 11. Payment safety rules (Easebuzz)
+## 11. Public profile SEO, sign-in, brands & work done (migration 006)
+
+**Sign in on /join-as-partner:** step 1 has two tabs — *New registration* (name + OTP) and *Already a partner? Sign in* (OTP only). An existing, already-submitted account goes straight to `/partner/dashboard`; an unfinished draft resumes the wizard.
+
+**AI search copy** (`src/lib/partners/seo.js`, columns on `partners`): `seo_content` (~750-char overview), `meta_title`, `meta_description`, `meta_keywords`, plus `description` seeded as the editable *About* (`about_ai = 1` until the partner edits it; after that AI never touches it). Written from partner name, shop name, categories + services, approved brands, cities/localities, experience and hours.
+- Uses `OPENAI_API_KEY` (`OPENAI_MODEL`, default gpt-4o-mini, JSON mode). No key / model failure → deterministic template, so an approved profile always has indexable copy.
+- Triggers (all background, never block the request): admin approve / reactivate, admin approves a change request, partner updates service areas, first public view of a profile without copy. `seo_attempted_at` stops concurrent runs; `seo_source_hash` skips rewrites when nothing changed.
+- Manual: partner dashboard → Profile → *Write with AI* (About) and *Refresh search text*; admin partner detail → *Regenerate SEO text*. APIs: `POST /api/partners/me/seo { about }`, `POST /api/admin/partners/{id}/seo { about }`.
+- `/partners/{slug}` is `index, follow` once it has copy (overview ≥ 200 chars or About ≥ 80) and a category with services; `/sitemap/partners.xml` (live route, listed in `public/sitemap.xml`) carries exactly those profiles.
+
+**Profile page:** hero (cover + logo + badges + stats), sticky section nav (Overview · About · Services & brands · Service areas · Photos · Reviews), brand chips per category and in the sidebar, LocalBusiness + BreadcrumbList JSON-LD. **Listing cards** now show brands for that category and the work-done count.
+
+**Work done:** `partner_leads` with `status = 'completed'`, shown rounded down to a multiple of 5 (`53 → 50+`, below 5 hidden) on the profile hero, sidebar and listing cards.
+
+## 12. Payment safety rules (Easebuzz)
 
 A payment changes state only from data signed by Easebuzz (hash verified with our salt) or from the Retrieve API (v2.1, entries hash-verified too):
 - **Return URL** (`/api/payments/easebuzz/return`): valid signed success → coins credited immediately; signed failure → failed with reason; unverifiable → asks the Retrieve API; anything uncertain → pending.

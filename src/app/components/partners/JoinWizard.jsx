@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, CircleAlert, RefreshCw, BadgeCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, CircleAlert, RefreshCw, BadgeCheck, UserPlus, LogIn } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import OtpSignIn from "./OtpSignIn";
 import { StepCategories, StepServices, StepBrands } from "./StepSelections";
@@ -20,10 +21,12 @@ const EDITABLE = ["draft", "rejected", "info_requested"];
  * kept in localStorage.
  */
 export default function JoinWizard({ initialApp = null }) {
+  const router = useRouter();
   const [app, setApp] = useState(initialApp);
   const [step, setStep] = useState(() => (initialApp ? Math.min(Math.max(initialApp.current_step, 1), 7) : 1));
   const [banner, setBanner] = useState(null); // { tone, text, reload? }
   const [submitted, setSubmitted] = useState(null);
+  const [mode, setMode] = useState("register"); // "register" | "signin" (step 1 only)
 
   const go = (n) => {
     setStep(n);
@@ -51,10 +54,15 @@ export default function JoinWizard({ initialApp = null }) {
     return null;
   };
 
-  const onVerified = async () => {
+  const onVerified = async (d) => {
     const r = await partnerApi("/api/partners/me");
     if (!r.ok) {
       setBanner({ tone: "warn", text: r.error.message });
+      return;
+    }
+    // "Sign in" with an existing, already-submitted account → straight to the dashboard.
+    if (mode === "signin" && !d?.created && !EDITABLE.includes(r.data.status)) {
+      router.replace("/partner/dashboard");
       return;
     }
     setApp(r.data);
@@ -103,10 +111,40 @@ export default function JoinWizard({ initialApp = null }) {
             <StepBasic app={app} onSave={(d) => save(1, d)} />
           ) : (
             <>
-              <p className="mb-5 text-sm text-[var(--muted)]">
-                Verify your mobile number to start. Already registered? Verifying signs you in and resumes your application.
-              </p>
-              <OtpSignIn onVerified={onVerified} />
+              <div role="tablist" aria-label="New or existing partner" className="mb-5 mt-3 grid grid-cols-2 gap-1 rounded-xl bg-purple-50 p-1">
+                {[
+                  { key: "register", label: "New registration", icon: UserPlus },
+                  { key: "signin", label: "Already a partner? Sign in", icon: LogIn },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={mode === t.key}
+                    onClick={() => setMode(t.key)}
+                    className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg px-2 text-sm font-semibold transition ${
+                      mode === t.key ? "bg-white text-purple-700 shadow-sm" : "text-[var(--ink-soft)] hover:bg-white/60"
+                    }`}
+                  >
+                    <t.icon className="h-4 w-4" aria-hidden="true" /> {t.label}
+                  </button>
+                ))}
+              </div>
+              {mode === "register" ? (
+                <>
+                  <p className="mb-5 text-sm text-[var(--muted)]">
+                    Verify your mobile number to start. Already registered? Switch to <b>Sign in</b> — only your mobile number is needed.
+                  </p>
+                  <OtpSignIn key="register" onVerified={onVerified} />
+                </>
+              ) : (
+                <>
+                  <p className="mb-5 text-sm text-[var(--muted)]">
+                    Enter the mobile number you registered with. We&apos;ll send an OTP and take you to your dashboard, or resume an unfinished application.
+                  </p>
+                  <OtpSignIn key="signin" askName={false} submitLabel="Verify & sign in" onVerified={onVerified} />
+                </>
+              )}
             </>
           ))}
         {step === 2 && <StepCategories app={app} onSave={(d) => save(2, d)} onBack={() => go(1)} />}

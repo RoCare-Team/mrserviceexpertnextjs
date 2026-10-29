@@ -194,6 +194,16 @@ export default function AdminPartnerDetail({ params }) {
                 {x.label}
               </Button>
             ))}
+            {["approved", "suspended"].includes(app.status) && (
+              <Button
+                variant="ghost"
+                disabled={saving}
+                title="Rewrite the profile overview, meta title/description/keywords (and the About, if the partner never edited it) from the current services, brands and areas."
+                onClick={() => run(() => call(`/api/admin/partners/${id}/seo`, "POST", { about: "auto" }), "SEO text regenerated.")}
+              >
+                Regenerate SEO text
+              </Button>
+            )}
             {app.status === "approved" && (
               <Button
                 onClick={() =>

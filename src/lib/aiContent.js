@@ -366,8 +366,11 @@ function buildUserPrompt(ctx, { url, version, avoidHeadings, words, instructions
   return lines.join("\n");
 }
 
-/** One chat completion. Retries once on 429 / 5xx. */
-async function callOpenAI(messages, maxTokens = 1800) {
+/**
+ * One chat completion. Retries once on 429 / 5xx. `extra` is merged into the
+ * request body (e.g. { response_format: { type: "json_object" } }).
+ */
+export async function callOpenAI(messages, maxTokens = 1800, extra = {}) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set in the environment");
 
@@ -387,6 +390,7 @@ async function callOpenAI(messages, maxTokens = 1800) {
           messages,
           temperature: 0.8,
           max_tokens: maxTokens,
+          ...extra,
         }),
         signal: controller.signal,
       });
