@@ -96,4 +96,7 @@
   <sitemap>
     <loc>https://www.mrserviceexpert.com/sitemap/blogs.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://www.mrserviceexpert.com/sitemap/partners.xml</loc>
+  </sitemap>
 </sitemapindex>

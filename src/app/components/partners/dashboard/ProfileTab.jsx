@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, Copy, Share2, Upload, Trash2, Loader2, Clock3, CheckCircle2, CircleAlert } from "lucide-react";
+import { ExternalLink, Copy, Share2, Upload, Trash2, Loader2, Clock3, CheckCircle2, CircleAlert, Sparkles, Search } from "lucide-react";
 import { partnerApi } from "../partnerApi";
 import { cardCls, inputCls, labelCls, btnPrimary, btnGhost, FieldError, CategoryIcon } from "../ui";
 import { ImageField, Documents } from "../StepBusiness";
@@ -28,6 +28,7 @@ function LiveDetails({ app, setApp }) {
     business_email: b.business_email || "",
   });
   const [busy, setBusy] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
 
@@ -43,12 +44,35 @@ function LiveDetails({ app, setApp }) {
     } else setMsg({ ok: false, text: r.error.message, fields: r.error.fields });
   };
 
+  // Writes a fresh About from name, shop, categories, brands and cities. The
+  // text lands in the box for editing; nothing is published until Save.
+  const writeWithAi = async () => {
+    if (f.description.trim() && !window.confirm("Replace the current About text with a new AI-written one? You can still edit it before saving.")) return;
+    setAiBusy(true);
+    setMsg(null);
+    const r = await partnerApi("/api/partners/me/seo", { method: "POST", body: { about: "always" } });
+    setAiBusy(false);
+    if (r.ok) {
+      setApp(r.data);
+      setF((s) => ({ ...s, description: r.data.business.description || "" }));
+      setMsg({ ok: true, text: "About text written — edit it if you like, then press Save details." });
+    } else setMsg({ ok: false, text: r.error.message });
+  };
+
   return (
     <form onSubmit={save} noValidate className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <label htmlFor="pf-desc" className={labelCls}>About your business</label>
-        <textarea id="pf-desc" rows={4} maxLength={1500} className={inputCls} value={f.description} onChange={set("description")} />
-        <p className="mt-1 text-right text-xs text-[var(--muted)]">{f.description.length}/1500</p>
+        <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+          <label htmlFor="pf-desc" className={`${labelCls} mb-0`}>About your business</label>
+          <button type="button" onClick={writeWithAi} disabled={aiBusy || busy} className="inline-flex items-center gap-1 rounded-lg bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-100 disabled:opacity-60">
+            {aiBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />} {f.description.trim() ? "Rewrite with AI" : "Write with AI"}
+          </button>
+        </div>
+        <textarea id="pf-desc" rows={5} maxLength={1500} className={inputCls} value={f.description} onChange={set("description")} placeholder="Tell customers who you are, what you fix and why they should book you." />
+        <p className="mt-1 flex justify-between text-xs text-[var(--muted)]">
+          <span>{app.seo?.about_ai && f.description === (b.description || "") ? "Written by AI from your profile — edit anytime." : ""}</span>
+          <span>{f.description.length}/1500</span>
+        </p>
         <FieldError msg={msg?.fields?.description} />
       </div>
       <div>
@@ -121,6 +145,51 @@ function Gallery({ app, setApp }) {
       </ul>
       <FieldError msg={msg} />
     </div>
+  );
+}
+
+/** How the profile shows up on Google — generated from the partner's own data. */
+function SeoPreview({ app, setApp }) {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const seo = app.seo || {};
+  const url = app.slug ? `mrserviceexpert.com › partners › ${app.slug}` : "";
+
+  const regenerate = async () => {
+    setBusy(true);
+    setMsg(null);
+    const r = await partnerApi("/api/partners/me/seo", { method: "POST", body: { about: "never" } });
+    setBusy(false);
+    if (r.ok) {
+      setApp(r.data);
+      setMsg({ ok: true, text: "Search snippet refreshed from your current services, brands and areas." });
+    } else setMsg({ ok: false, text: r.error.message });
+  };
+
+  return (
+    <Section title="How you appear in search" hint="Generated automatically from your name, shop, categories, brands and cities. Refresh after changing any of those.">
+      {seo.content ? (
+        <div className="rounded-2xl border border-[var(--line)] bg-[var(--surface-soft)] p-4">
+          <p className="text-xs text-[var(--muted)]">{url}</p>
+          <p className="mt-0.5 text-lg font-medium leading-snug text-[#1a0dab]">{seo.meta_title}</p>
+          <p className="mt-1 text-sm text-[var(--body-text)]">{seo.meta_description}</p>
+          <details className="mt-3 text-sm">
+            <summary className="cursor-pointer font-semibold text-[var(--ink-soft)]">Profile overview text</summary>
+            <p className="mt-2 whitespace-pre-line text-[var(--body-text)]">{seo.content}</p>
+            {seo.meta_keywords && <p className="mt-2 text-xs text-[var(--muted)]">Keywords: {seo.meta_keywords}</p>}
+          </details>
+        </div>
+      ) : (
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">Not generated yet — it is written automatically once your profile is approved, or press the button below.</p>
+      )}
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" className={btnGhost} onClick={regenerate} disabled={busy}>
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} {seo.content ? "Refresh search text" : "Generate now"}
+        </button>
+        {seo.generated_at && <span className="text-xs text-[var(--muted)]">Last generated {new Date(seo.generated_at).toLocaleDateString("en-IN")}</span>}
+        {msg && <span className={`text-sm ${msg.ok ? "text-emerald-700" : "text-red-600"}`}>{msg.text}</span>}
+      </div>
+    </Section>
   );
 }
 
@@ -200,6 +269,8 @@ export default function ProfileTab({ app, setApp }) {
       <Section title="Details (update instantly)" hint="These changes appear on your profile right away.">
         <LiveDetails app={app} setApp={setApp} />
       </Section>
+
+      <SeoPreview app={app} setApp={setApp} />
 
       <Section title="Photos" hint="Good photos get more bookings. JPG, PNG or WebP up to 5 MB each.">
         <div className="grid gap-4 sm:grid-cols-2">

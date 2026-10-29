@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, Clock, Briefcase, Store, Star } from "lucide-react";
+import { MapPin, Clock, Briefcase, Store, Star, Wrench } from "lucide-react";
 import BookNowButton from "./BookNowButton";
 import { TrustBadges } from "./ui";
 import { BUSINESS_TYPES } from "@/lib/partners/validation";
@@ -40,6 +40,11 @@ export default function PartnerCard({ partner: p, bookingContext }) {
                 <Briefcase className="h-3 w-3" aria-hidden="true" /> {p.experience_years}+ yrs
               </span>
             ) : null}
+            {p.work_done && (
+              <span className="inline-flex items-center gap-1 font-semibold text-purple-700" title="Jobs completed through Mr. Service Expert">
+                <Wrench className="h-3 w-3" aria-hidden="true" /> {p.work_done} jobs done
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -53,6 +58,14 @@ export default function PartnerCard({ partner: p, bookingContext }) {
           <span className="font-medium text-[var(--ink-soft)]">Services: </span>
           {p.services.join(", ")}
         </p>
+      )}
+      {p.brands?.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-1" aria-label="Brands serviced">
+          {p.brands.slice(0, 6).map((b) => (
+            <li key={b} className="rounded-full border border-[var(--line)] bg-[var(--surface-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--ink-soft)]">{b}</li>
+          ))}
+          {p.brands.length > 6 && <li className="px-1 py-0.5 text-[11px] text-[var(--muted)]">+{p.brands.length - 6} more</li>}
+        </ul>
       )}
       {p.areas.length > 0 && (
         <p className="mt-1.5 flex items-start gap-1 text-sm text-[var(--muted)]">

@@ -45,6 +45,10 @@ export function handle(fn) {
       if (err?.code === "ER_NO_SUCH_TABLE") {
         return fail(503, "not_configured", "Partner registration is not set up yet. Please try again later.");
       }
+      // A column from a newer migration is missing → say so instead of a bare 500.
+      if (err?.code === "ER_BAD_FIELD_ERROR") {
+        return fail(503, "not_configured", "A database update is pending for this feature (run scripts/run-migrations.mjs --commit).");
+      }
       return fail(500, "server_error", "Something went wrong. Please try again.");
     }
   };

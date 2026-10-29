@@ -12,6 +12,7 @@ import db from "@/lib/db";
 import { publicUrl } from "@/lib/partners/storage";
 import { getRatingSummaries } from "@/lib/partners/reviews";
 import { CRM_LEAD_TYPES } from "@/lib/partners/crm";
+import { getWorkDoneCounts, workDoneLabel } from "@/lib/partners/seo";
 
 const PUBLIC_WHERE = `p.status = 'approved' AND p.is_listed = 1
   AND p.mobile_verified_at IS NOT NULL AND p.deleted_at IS NULL`;
@@ -79,11 +80,19 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
 async function decorate(rows, categoryId) {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
-  const [[svcs], [areas], ratings] = await Promise.all([
+  const [[svcs], [brands], [areas], ratings, workDone] = await Promise.all([
     db.query(
       `SELECT ps.partner_id, t.name FROM partner_services ps
          JOIN partner_service_types t ON t.id = ps.service_type_id
         WHERE ps.partner_id IN (?) AND ps.category_id = ? ORDER BY t.sort_order`,
+      [ids, categoryId]
+    ),
+    db.query(
+      `SELECT pb.partner_id, COALESCE(b.brand_name, pb.custom_name) AS name
+         FROM partner_brands pb LEFT JOIN brand_tb b ON b.id = pb.brand_id
+        WHERE pb.partner_id IN (?) AND pb.category_id = ?
+          AND (pb.brand_id IS NOT NULL OR pb.custom_status = 'approved')
+        ORDER BY name`,
       [ids, categoryId]
     ),
     db.query(
@@ -95,6 +104,7 @@ async function decorate(rows, categoryId) {
       [ids]
     ),
     getRatingSummaries(ids),
+    getWorkDoneCounts(ids),
   ]);
   return rows.map((r) => ({
     slug: r.slug,
@@ -106,8 +116,10 @@ async function decorate(rows, categoryId) {
     identity_verified: !!r.identity_verified,
     gst_verified: !!r.gst_verified,
     services: svcs.filter((s) => s.partner_id === r.id).map((s) => s.name),
+    brands: brands.filter((b) => b.partner_id === r.id).map((b) => b.name),
     areas: areas.filter((a) => a.partner_id === r.id).map((a) => a.name).slice(0, 4),
     rating: ratings.get(r.id) || null,
+    work_done: workDoneLabel(workDone.get(r.id)),
     is_available: !!r.is_available,
   }));
 }
@@ -157,6 +169,7 @@ export async function getPublicProfile(slug) {
     ),
     db.query("SELECT s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id LIMIT 12", [p.id]),
   ]);
+  const workDone = (await getWorkDoneCounts([p.id])).get(p.id) || 0;
 
   // Group coverage by city: { city, cityWide, localities[] }.
   const coverage = [];
@@ -175,7 +188,15 @@ export async function getPublicProfile(slug) {
     slug: p.slug,
     business_name: p.business_name,
     business_type: p.business_type,
+    full_name: p.full_name,
     description: p.description,
+    seo_content: p.seo_content,
+    meta_title: p.meta_title,
+    meta_description: p.meta_description,
+    meta_keywords: p.meta_keywords,
+    seo_generated_at: p.seo_generated_at,
+    work_done_count: workDone,
+    work_done: workDoneLabel(workDone),
     experience_years: p.experience_years,
     operating_hours: p.operating_hours,
     logo_url: publicUrl(p.logo_key),
