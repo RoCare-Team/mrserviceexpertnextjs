@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Camera, Clock, MapPin, Phone, Mail, Home, CheckCircle2, ChevronDown, ChevronRight, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-toastify';
 import useServiceOverrides from '@/lib/useServiceOverrides';
@@ -217,7 +217,22 @@ export default function ServiceRequestForm() {
         }
     };
 
+    // Resend: 30 s between OTPs, at most 3 resends, never two requests at once.
+    const [resendCooldown, setResendCooldown] = useState(0);
+    const [resendsLeft, setResendsLeft] = useState(3);
+    const resendBusy = useRef(false);
+    useEffect(() => {
+        if (!resendCooldown) return;
+        const t = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+        return () => clearTimeout(t);
+    }, [resendCooldown]);
+    useEffect(() => {
+        if (currentStep === 'otp_section') setResendCooldown(30);
+    }, [currentStep]);
+
     const resendOtp = async () => {
+        if (resendBusy.current || resendCooldown > 0 || resendsLeft <= 0) return;
+        resendBusy.current = true;
         setIsLoading(true);
         try {
             const queryParams = new URLSearchParams({
@@ -243,6 +258,8 @@ export default function ServiceRequestForm() {
                 toast.success('OTP sent successfully!');
                 setOtpSent(true);
                 setOtpError('');
+                setResendCooldown(30);
+                setResendsLeft((n) => Math.max(0, n - 1));
             }
             else if (data.status === 2) {
                 toast.success('You have already booked service in this category.');
@@ -254,6 +271,7 @@ export default function ServiceRequestForm() {
             toast.error('Error sending OTP');
         } finally {
             setIsLoading(false);
+            resendBusy.current = false;
         }
     };
 
@@ -951,10 +969,14 @@ export default function ServiceRequestForm() {
                                     <div className="text-center">
                                         <button
                                             onClick={resendOtp}
-                                            disabled={isLoading}
-                                            className="text-blue-600 hover:text-blue-800 text-sm font-medium disabled:opacity-50"
+                                            disabled={isLoading || resendCooldown > 0 || resendsLeft <= 0}
+                                            className="text-purple-700 hover:text-purple-900 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Didn't receive OTP? Resend
+                                            {resendsLeft <= 0
+                                                ? 'Resend limit reached'
+                                                : resendCooldown > 0
+                                                    ? `Resend OTP in ${resendCooldown}s`
+                                                    : `Didn't receive OTP? Resend (${resendsLeft} left)`}
                                         </button>
                                     </div>
 

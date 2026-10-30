@@ -1,29 +1,16 @@
 import CityPage from "@/app/components/pages/city/City";
-import { faLocation } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { notFound, redirect } from "next/navigation";
-import {
-  getAllCities,
-  getAllCategories,
-  getPageByUrl,
-} from "@/lib/cityData";
+import { getAllCities, getAllCategories, getPageByUrl } from "@/lib/cityData";
 import PopularCities from "@/app/components/popularCities/PopularCities";
-
+import { Container, Section, LinkCloud } from "@/app/components/public/ui";
 
 export async function generateStaticParams() {
   try {
-    const [cities, categories] = await Promise.all([
-      getAllCities(),
-      getAllCategories(),
-    ]);
+    const [cities, categories] = await Promise.all([getAllCities(), getAllCategories()]);
 
-    const cityParams = (Array.isArray(cities) ? cities : [])
-      .filter((c) => c.city_url)
-      .map((c) => ({ city: c.city_url }));
+    const cityParams = (Array.isArray(cities) ? cities : []).filter((c) => c.city_url).map((c) => ({ city: c.city_url }));
 
-    const categoryParams = (Array.isArray(categories) ? categories : [])
-      .filter((c) => c.category_url)
-      .map((c) => ({ city: c.category_url })); // same [city] dynamic segment
+    const categoryParams = (Array.isArray(categories) ? categories : []).filter((c) => c.category_url).map((c) => ({ city: c.category_url })); // same [city] dynamic segment
 
     return [...cityParams, ...categoryParams];
   } catch (error) {
@@ -55,18 +42,9 @@ export const generateMetadata = async ({ params }) => {
     const categorydetail = data?.categorydetail;
 
     return {
-      title:
-        cityDetail?.meta_title ||
-        categorydetail?.meta_title ||
-        `Services in ${city}`,
-      description:
-        cityDetail?.meta_description ||
-        categorydetail?.meta_description ||
-        `Find services in ${city}`,
-      keywords:
-        cityDetail?.meta_keywords ||
-        categorydetail?.meta_keywords ||
-        `services, ${city}`,
+      title: cityDetail?.meta_title || categorydetail?.meta_title || `Services in ${city}`,
+      description: cityDetail?.meta_description || categorydetail?.meta_description || `Find services in ${city}`,
+      keywords: cityDetail?.meta_keywords || categorydetail?.meta_keywords || `services, ${city}`,
       robots: "index, follow",
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}`,
@@ -112,52 +90,29 @@ export default async function Page({ params }) {
     }));
   }
 
+  const nearby = (data.recent_cities || []).map((c) => ({ href: `/${c.city_url}`, label: c.city_name, title: `${c.city_name} services` }));
+
   // City handles BOTH layouts internally via cityData.status, so always pass
   // the resolved object as `cityData` whether it's a city or a category.
   return (
     <>
-      <CityPage cityData={data} />
+      <CityPage city={lowercaseCity} cityData={data} />
 
-      {/* recent_cities only has entries for city pages, so this self-hides for categories */}
-      {data.recent_cities?.length > 0 && (
-        <div className="bg-white px-8 py-6">
-          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
-            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-              <span>Popular Cities Near Me</span>
-              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">
-                ▼
-              </span>
-            </summary>
+      <Container>
+        <Section className="!pt-0 flex flex-col gap-4">
+          {/* recent_cities only has entries for city pages, so this self-hides for categories */}
+          {nearby.length > 0 && (
+            <LinkCloud id="nearby" title="Popular cities near you" subtitle={`Other cities in ${data.recent_cities?.[0]?.parent_city || "the state"} we serve`} items={nearby} />
+          )}
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {data.recent_cities.map((city) => (
-                <div className="brandsServices" key={city.id}>
-                  <a href={`/${city.city_url}`} title={`${city.city_name}  services`}>
-                    <li className=" text-gray-500 list-none">
-                      <FontAwesomeIcon icon={faLocation} /> {city.city_name},
-                      <span></span>
-                    </li>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
-      )}
+          {data.type === "category" && <PopularCities categoryUrl={data.category_url} categoryName={data.category_name} />}
 
-      {data.type === "category" && (
-        <PopularCities
-          categoryUrl={data.category_url}
-          categoryName={data.category_name}
-        />
-      )}
-
-      {/* A city alone in its state (near-me, state "India") has no
-          recent_cities, which would leave the page with no city links at all.
-          Fall back to the shared Popular Cities list in that case. */}
-      {data.type === "city" && !data.recent_cities?.length && (
-        <PopularCities excludeCity={lowercaseCity} />
-      )}
+          {/* A city alone in its state (near-me, state "India") has no
+              recent_cities, which would leave the page with no city links at all.
+              Fall back to the shared Popular Cities list in that case. */}
+          {data.type === "city" && !nearby.length && <PopularCities excludeCity={lowercaseCity} />}
+        </Section>
+      </Container>
     </>
   );
 }

@@ -1,996 +1,433 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  Box,
-  List,
-  ListItemButton,
-} from "@mui/material";
-
-import SearchBar from "../searchbar/index";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBook,
-  faCartShopping,
-  faHome,
-  faPhone,
-  faSignIn,
-  faSignOut,
-  faTools,
-  faUser,
-} from "@fortawesome/free-solid-svg-icons";
-
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import {
+  Phone,
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  ChevronDown,
+  Home,
+  LayoutGrid,
+  BookOpen,
+  MapPin,
+  Users,
+  LogIn,
+  LogOut,
+  CalendarCheck,
+  LifeBuoy,
+  Wrench,
+  Sparkles,
+  Hammer,
+  Search,
+} from "lucide-react";
+import SearchBar from "../searchbar/index";
 import PhoneVerification from "../PhoneVerification/PhoneVerification";
-import { useRouter } from "next/navigation";
+import { HOME_CARE_SERVICES, HANDYMAN_SERVICES } from "@/lib/homeCare";
 
+const PHONE = "+919311587715";
+const PHONE_DISPLAY = "+91 93115 87715";
 
+const APPLIANCES = [
+  { name: "RO Water Purifier", url: "ro-water-purifier" },
+  { name: "AC Repair", url: "ac" },
+  { name: "Washing Machine", url: "washing-machine-repair" },
+  { name: "Refrigerator", url: "refrigerator-repair" },
+  { name: "Geyser", url: "geyser-repair" },
+  { name: "Microwave", url: "microwav-repair" },
+  { name: "LED TV", url: "led-tv-repair" },
+  { name: "Kitchen Chimney", url: "kitchen-chimney-repair" },
+  { name: "Air Purifier", url: "air-purifier-repair" },
+  { name: "Vacuum Cleaner", url: "vacuum-cleaner-repair" },
+];
+
+const SERVICE_GROUPS = [
+  { label: "Appliance repair", icon: Wrench, items: APPLIANCES },
+  { label: "Home care", icon: Sparkles, items: HOME_CARE_SERVICES },
+  { label: "Handyman", icon: Hammer, items: HANDYMAN_SERVICES },
+];
+
+const NAV = [
+  { label: "Blogs", href: "/blogs", icon: BookOpen },
+  { label: "Store locator", href: "/store-locator", icon: MapPin },
+];
+
+const COMPLAINTS_API = "https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php";
+
+/**
+ * Site header: logo, Services menu, Blogs, Store locator, Join as partner,
+ * search, call button, cart and account. On phones: logo + call + menu
+ * drawer, plus the fixed bottom bar (Home / Services / Cart / Account).
+ */
 export default function Header() {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [cartCount, setCartCount] = useState("");
-  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [cartCount, setCartCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const navigate = useRouter();
-
-  // Profile popup states
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const popupRef = useRef(null);
-
-
-  useEffect(() => {
-    const token = localStorage.getItem("userToken");
-    setIsLoggedIn(!!token);
-  }, []);
-
-
-  const handlePopup = () => {
-    setShowModal(true);
-  };
-
-
-  // Function to read from localStorage
-  const updateCartCount = () => {
-    const cartItems =
-      JSON.parse(localStorage.getItem("cartItems")) || [];
-
-    const totalCount = cartItems.reduce(
-      (sum, item) => sum + (item.quantity || 1),
-      0
-    );
-
-    setCartCount(totalCount);
-  };
-
+  const [showModal, setShowModal] = useState(false);
+  const [drawer, setDrawer] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const servicesRef = useRef(null);
+  const accountRef = useRef(null);
 
   useEffect(() => {
-    // Initial load
-    updateCartCount();
+    setIsLoggedIn(!!localStorage.getItem("userToken"));
+  }, [showModal]);
 
-    const handleStorageChange = () => updateCartCount();
-
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener(
-      "cartItemsUpdated",
-      handleStorageChange
-    );
-
+  // Cart badge: count of distinct services in the local cart, kept in sync
+  // with the add/remove flows via the "cartItemsUpdated" event.
+  useEffect(() => {
+    const update = () => {
+      try {
+        const items = JSON.parse(localStorage.getItem("cartItems")) || [];
+        setCartCount(items.reduce((n, i) => n + (i?.quantity || 1), 0));
+      } catch {
+        setCartCount(0);
+      }
+    };
+    update();
+    window.addEventListener("storage", update);
+    window.addEventListener("cartItemsUpdated", update);
     return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
-
-      window.removeEventListener(
-        "cartItemsUpdated",
-        handleStorageChange
-      );
+      window.removeEventListener("storage", update);
+      window.removeEventListener("cartItemsUpdated", update);
     };
   }, []);
 
-
-  // For phone verification popup
-  const [isPhoneModalOpen, setPhoneModalOpen] = useState(false);
-
-
+  // Close menus on outside click / Escape / route change.
   useEffect(() => {
-    // Close popup when clicking outside
-    const handleClickOutside = (event) => {
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(event.target)
-      ) {
-        setIsPopupVisible(false);
-      }
+    const down = (e) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target)) setServicesOpen(false);
+      if (accountRef.current && !accountRef.current.contains(e.target)) setAccountOpen(false);
     };
-
-    document.addEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-
+    const key = (e) => {
+      if (e.key !== "Escape") return;
+      setServicesOpen(false);
+      setAccountOpen(false);
+      setDrawer(false);
+    };
+    document.addEventListener("mousedown", down);
+    document.addEventListener("keydown", key);
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleClickOutside
-      );
+      document.removeEventListener("mousedown", down);
+      document.removeEventListener("keydown", key);
     };
   }, []);
-
 
   useEffect(() => {
-    const data =
-      JSON.parse(localStorage.getItem("cartItems")) || [];
+    setDrawer(false);
+    setServicesOpen(false);
+    setAccountOpen(false);
+  }, [pathname]);
 
-    const totalQuantity = data.length;
-
-    setCartCount(totalQuantity);
-  }, []);
-
-
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-
-  const toggleDrawer = (open) => () => {
-    setDrawerOpen(open);
-  };
-
-
-  const handleNavigation = (path) => {
-    navigate.push(path);
-    handleMenuClose();
-    setDrawerOpen(false);
-    setIsPopupVisible(false);
-  };
-
-
-  const togglePopup = () => {
-    setIsPopupVisible(!isPopupVisible);
-  };
-
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setIsPopupVisible(false);
-    setPhoneModalOpen(false);
-  };
-
-
-  const getbookingdata = async () => {
-    setIsPopupVisible(false);
-
-    const user_no = localStorage.getItem("userPhone");
-
-    const payload = {
-      user_no: user_no,
+  useEffect(() => {
+    document.body.style.overflow = drawer ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
     };
+  }, [drawer]);
 
-    const res = await fetch(
-      "https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php",
-      {
+  const refreshBookings = async () => {
+    try {
+      const res = await fetch(COMPLAINTS_API, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const data = await res.json();
-
-    localStorage.setItem(
-      "all_cmpl",
-      JSON.stringify(data.complainDetails)
-    );
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_no: localStorage.getItem("userPhone") }),
+      });
+      const data = await res.json();
+      localStorage.setItem("all_cmpl", JSON.stringify(data.complainDetails));
+    } catch (err) {
+      console.error("bookings refresh failed", err);
+    }
   };
 
-
-  const handleRefresh = async () => {
-    const user_no = localStorage.getItem("userPhone");
-
-    const payload = {
-      user_no: user_no,
-    };
-
-    const res = await fetch(
-      "https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const data = await res.json();
-
-    localStorage.setItem(
-      "all_cmpl",
-      JSON.stringify(data.complainDetails)
-    );
+  const goBookings = async () => {
+    setAccountOpen(false);
+    setDrawer(false);
+    await refreshBookings();
+    router.push("/booking");
   };
 
-
-  const handleLogout = () => {
-    // Remove user data from localStorage
+  const logout = () => {
     localStorage.clear();
-
-    // Update state to reflect logged out status
     setIsLoggedIn(false);
-    setIsPopupVisible(false);
-
-    // Refresh page
+    setAccountOpen(false);
+    setDrawer(false);
     window.location.reload();
   };
 
+  const login = () => {
+    setAccountOpen(false);
+    setDrawer(false);
+    setShowModal(true);
+  };
+
+  const isActive = (href) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
+  const linkCls = (on) =>
+    `inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-[14px] font-semibold transition ${on ? "bg-purple-50 text-purple-800" : "text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800"}`;
+
+  const AccountItem = ({ href, onClick, icon: Icon, children, danger }) => {
+    const cls = `flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium ${danger ? "text-red-600 hover:bg-red-50" : "text-[var(--ink)] hover:bg-purple-50"}`;
+    return href ? (
+      <Link href={href} className={cls} onClick={() => setAccountOpen(false)}>
+        <Icon className="h-4 w-4" aria-hidden="true" /> {children}
+      </Link>
+    ) : (
+      <button type="button" className={cls} onClick={onClick}>
+        <Icon className="h-4 w-4" aria-hidden="true" /> {children}
+      </button>
+    );
+  };
 
   return (
     <>
-      <AppBar
-        position="sticky"
-        sx={{
-          top: "0px",
-          backgroundColor: "rgba(255, 255, 255, 0.86)",
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-          color: "var(--ink, #1A1240)",
-          borderBottom: "1px solid var(--line, #E8E3F5)",
-          boxShadow:
-            "0 1px 2px rgba(26, 18, 64, 0.05)",
-          padding: {
-            xs: "0 10px",
-            md: "0 50px",
-          },
-          zIndex: 10,
-        }}
-      >
-        <Toolbar
-          sx={{
-            justifyContent: "space-between",
-          }}
-        >
-
+      <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-white/90 backdrop-blur-md">
+        <div className="pub-container flex h-16 items-center gap-3">
           {/* Logo */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <div
-              onClick={() => handleNavigation("/")}
-              style={{
-                cursor: "pointer",
-              }}
-            >
-              <Link
-                href="/"
-                title="Home Services"
+          <Link href="/" title="Mr. Service Expert — Home" className="flex shrink-0 items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/images/serviceLogo.webp" alt="Mr. Service Expert" width={190} height={44} className="h-9 w-auto sm:h-10" />
+          </Link>
+
+          {/* Desktop nav */}
+          <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex">
+            <div ref={servicesRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setServicesOpen((v) => !v)}
+                aria-expanded={servicesOpen}
+                aria-haspopup="true"
+                className={linkCls(servicesOpen)}
               >
-                <img
-                  src="/assets/images/serviceLogo.webp"
-                  alt="service logo"
-                  title="Mr Service Expert"
-                  className="service_logo"
-                />
-              </Link>
-            </div>
-          </Box>
-
-
-          {/* ================================
-              Desktop Header
-              Logo → Search → Phone → Cart → Profile
-             ================================= */}
-          <Box
-            sx={{
-              display: {
-                xs: "none",
-                md: "flex",
-              },
-              alignItems: "center",
-              gap: 2,
-            }}
-          >
-
-            {/* Search */}
-            <SearchBar />
-
-
-            {/* Phone Number */}
-            <div className="flex items-center mobileNumber">
-
-              <span>
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  className="text-white mr-1.5"
-                />
-              </span>
-
-              <a
-                href="tel:+91-9311587715"
-                className="text-black"
-                title="For calling contact +91 9311587715"
-              >
-                <button
-                  className="text-white"
-                  title="Call for services"
-                >
-                  +91-9311587715
-                </button>
-              </a>
-
-            </div>
-
-
-            {/* Cart Icon */}
-            <div className="cartLink relative">
-
-              <a
-                href="/checkout"
-                title="Checkout"
-              >
-                <FontAwesomeIcon
-                  icon={faCartShopping}
-                  style={{
-                    fontSize: "24px",
-                    cursor: "pointer",
-                  }}
-                />
-              </a>
-
-              {cartCount > 0 ? (
-                <span className="cartCountStyle absolute">
-                  {cartCount}
-                </span>
-              ) : null}
-
-            </div>
-
-
-            {/* Profile Icon */}
-            <div
-              style={{
-                position: "relative",
-              }}
-              className="profileMenu"
-            >
-
-              <FontAwesomeIcon
-                icon={faUser}
-                style={{
-                  fontSize: "24px",
-                  cursor: "pointer",
-                }}
-                onClick={() =>
-                  setIsPopupVisible(
-                    !isPopupVisible
-                  )
-                }
-              />
-
-
-              {/* Profile Popup */}
-              {isPopupVisible && (
-                <div
-                  ref={popupRef}
-                  style={{
-                    position: "absolute",
-                    top: "42px",
-                    right: "0",
-                    backgroundColor: "white",
-                    border:
-                      "1px solid var(--line, #E8E3F5)",
-                    boxShadow:
-                      "var(--shadow-lg, 0 12px 32px rgba(26,18,64,0.14))",
-                    borderRadius: "14px",
-                    padding: "10px",
-                    zIndex: 10,
-                    minWidth: "150px",
-                  }}
-                >
-
-                  <ul
-                    style={{
-                      listStyle: "none",
-                      padding: 0,
-                      margin: 0,
-                    }}
-                  >
-
-                    {isLoggedIn ? (
-                      <>
-
-                        {/* Profile */}
-                        <Link
-                          href="/profile"
-                          title="profile section"
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
-                            fontSize: "12px",
-                          }}
-                          onClick={() =>
-                            setIsPopupVisible(false)
-                          }
-                        >
-                          <li
-                            style={{
-                              padding: "8px 4px",
-                            }}
-                          >
-                            <span>
-                              <FontAwesomeIcon
-                                icon={faUser}
-                                style={{
-                                  fontSize: "12px",
-                                  cursor: "pointer",
-                                  marginRight: "4px",
-                                }}
-                              />
-                            </span>
-
-                            Profile
-                          </li>
-                        </Link>
-
-
-                        {/* Help Center */}
-                        <Link
-                          href="/help-center"
-                          title="help center for any issue related to services"
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
-                            fontSize: "12px",
-                          }}
-                          onClick={() =>
-                            setIsPopupVisible(false)
-                          }
-                        >
-                          <li
-                            style={{
-                              padding: "8px 4px",
-                            }}
-                          >
-                            <span>
-                              <FontAwesomeIcon
-                                icon={faTools}
-                                style={{
-                                  fontSize: "12px",
-                                  cursor: "pointer",
-                                  marginRight: "3.5px",
-                                }}
-                              />
-                            </span>
-
-                            Help Center
-                          </li>
-                        </Link>
-
-
-                        {/* My Bookings */}
-                        <Link
-                          href="/booking"
-                          title="previous and upcoming services booking section"
-                          style={{
-                            textDecoration: "none",
-                            color: "black",
-                            fontSize: "12px",
-                          }}
-                          onClick={() =>
-                            getbookingdata()
-                          }
-                        >
-                          <li
-                            style={{
-                              padding: "8px 4px",
-                            }}
-                          >
-                            <span>
-                              <FontAwesomeIcon
-                                icon={faBook}
-                                style={{
-                                  fontSize: "12px",
-                                  cursor: "pointer",
-                                  marginRight: "3.5px",
-                                }}
-                              />
-                            </span>
-
-                            My Bookings
-                          </li>
-                        </Link>
-
-
-                        {/* Logout */}
-                        <li
-                          style={{
-                            padding: "8px 4px",
-                          }}
-                        >
-                          <button
-                            title="Logout"
-                            onClick={handleLogout}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              cursor: "pointer",
-                              padding: 0,
-                              color: "black",
-                              textAlign: "left",
-                              width: "100%",
-                              fontSize: "12px",
-                              display: "flex",
-                              gap: "5px",
-                            }}
-                          >
-                            <span>
-                              <FontAwesomeIcon
-                                icon={faSignOut}
-                                style={{
-                                  fontSize: "12px",
-                                  cursor: "pointer",
-                                }}
-                              />
-                            </span>
-
-                            Logout
-                          </button>
-                        </li>
-
-                      </>
-                    ) : (
-
-                      /* Login */
-                      <li
-                        style={{
-                          padding: "8px 4px",
-                        }}
-                      >
-                        <button
-                          title="login"
-                          onClick={handlePopup}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: 0,
-                            color: "black",
-                            textAlign: "left",
-                            width: "100%",
-                            display: "flex",
-                            gap: "4px",
-                          }}
-                        >
-                          <span>
-                            <FontAwesomeIcon
-                              icon={faSignIn}
-                              style={{
-                                fontSize: "12px",
-                                cursor: "pointer",
-                              }}
-                            />
-                          </span>
-
-                          Login
-                        </button>
-                      </li>
-
-                    )}
-
-                  </ul>
-
+                <LayoutGrid className="h-4 w-4" aria-hidden="true" /> Services
+                <ChevronDown className={`h-3.5 w-3.5 transition ${servicesOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+              </button>
+              {servicesOpen && (
+                <div className="absolute left-0 top-[calc(100%+8px)] z-40 w-[640px] rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-lg)]">
+                  <div className="grid grid-cols-3 gap-4">
+                    {SERVICE_GROUPS.map((g) => (
+                      <div key={g.label}>
+                        <p className="mb-1.5 flex items-center gap-1.5 px-2 text-[11px] font-bold uppercase tracking-wider text-purple-700">
+                          <g.icon className="h-3.5 w-3.5" aria-hidden="true" /> {g.label}
+                        </p>
+                        <ul>
+                          {g.items.map((s) => (
+                            <li key={s.url}>
+                              <Link href={`/${s.url}`} className="block rounded-lg px-2 py-1.5 text-[13.5px] font-medium text-[var(--ink)] hover:bg-purple-50 hover:text-purple-800">
+                                {s.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-
             </div>
+            {NAV.map((n) => (
+              <Link key={n.href} href={n.href} className={linkCls(isActive(n.href))}>
+                <n.icon className="h-4 w-4" aria-hidden="true" /> {n.label}
+              </Link>
+            ))}
+            <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} !text-purple-700`}>
+              <Users className="h-4 w-4" aria-hidden="true" /> Join as partner
+            </Link>
+          </nav>
 
-          </Box>
-
-
-          {/* ================================
-              Mobile Top Header
-             ================================= */}
-          <Box
-            sx={{
-              display: {
-                xs: "flex",
-                md: "none",
-              },
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 1,
-            }}
-          >
-
-            <div className="flex items-center mobileNumber">
-
-              <span>
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  className="text-white mr-1.5"
-                />
-              </span>
-
-              <a
-                href="tel:+91-9311587715"
-                className="text-black"
-                title="For calling contact +91 9311587715"
+          {/* Right cluster */}
+          <div className="ml-auto flex items-center gap-2">
+            <SearchBar className="hidden w-56 md:block xl:w-72" />
+            <a
+              href={`tel:${PHONE}`}
+              title={`Call ${PHONE_DISPLAY}`}
+              className="inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-full bg-[image:var(--grad-brand)] px-3 text-[13.5px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-110 sm:px-4"
+            >
+              <Phone className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">{PHONE_DISPLAY}</span>
+              <span className="sm:hidden">Call</span>
+            </a>
+            <Link href="/checkout" title="Cart" className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800 md:inline-flex">
+              <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+              {cartCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--amber)] px-1 text-[11px] font-bold text-white ring-2 ring-white">{cartCount}</span>
+              )}
+            </Link>
+            <div ref={accountRef} className="relative hidden md:block">
+              <button
+                type="button"
+                onClick={() => setAccountOpen((v) => !v)}
+                aria-expanded={accountOpen}
+                aria-haspopup="true"
+                title={isLoggedIn ? "Account" : "Login"}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-xl transition ${accountOpen ? "bg-purple-50 text-purple-800" : "text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800"}`}
               >
-                <button
-                  className="text-white"
-                  title="Call for services"
-                >
-                  +91-9311587715
-                </button>
-              </a>
-
+                <User className="h-5 w-5" aria-hidden="true" />
+              </button>
+              {accountOpen && (
+                <div className="absolute right-0 top-[calc(100%+8px)] z-40 w-56 rounded-2xl border border-[var(--line)] bg-white p-1.5 shadow-[var(--shadow-lg)]">
+                  {isLoggedIn ? (
+                    <>
+                      <AccountItem href="/profile" icon={User}>Profile</AccountItem>
+                      <AccountItem onClick={goBookings} icon={CalendarCheck}>My bookings</AccountItem>
+                      <AccountItem href="/help-center" icon={LifeBuoy}>Help center</AccountItem>
+                      <div className="my-1 border-t border-[var(--line)]" />
+                      <AccountItem onClick={logout} icon={LogOut} danger>Logout</AccountItem>
+                    </>
+                  ) : (
+                    <>
+                      <AccountItem onClick={login} icon={LogIn}>Login / Sign up</AccountItem>
+                      <AccountItem href="/help-center" icon={LifeBuoy}>Help center</AccountItem>
+                      <div className="my-1 border-t border-[var(--line)]" />
+                      <AccountItem href="/join-as-partner" icon={Users}>Join as partner</AccountItem>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-
-          </Box>
-
-        </Toolbar>
-      </AppBar>
-
-
-      {/* ================================
-          Mobile Bottom Navigation
-         ================================= */}
-      <Box
-        sx={{
-          width: "100%",
-          bgcolor: "#ffffff",
-          position: {
-            xs: "fixed",
-            sm: "fixed",
-            md: "static",
-          },
-          bottom: {
-            xs: 0,
-            sm: 0,
-          },
-          left: {
-            xs: 0,
-            sm: 0,
-          },
-          right: {
-            xs: 0,
-            sm: 0,
-          },
-          display: {
-            xs: "block",
-            sm: "block",
-            md: "none",
-          },
-          zIndex: 5,
-          borderTop: "1px solid #f0f0f0",
-          boxShadow:
-            "0 -4px 20px rgba(0, 0, 0, 0.1)",
-        }}
-        role="presentation"
-      >
-
-        <List
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            padding: "0px 0px",
-            justifyContent: "space-around",
-            alignItems: "center",
-            margin: 0,
-          }}
-        >
-
-          {/* Home */}
-          <ListItemButton
-            onClick={() =>
-              handleNavigation("/")
-            }
-            sx={{
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "6px 2px",
-              minWidth: "60px",
-              borderRadius: "16px",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                backgroundColor:
-                  "var(--brand-50, #F6F3FE)",
-                transform: "scale(1.05)",
-              },
-            }}
-          >
-            <Box
-              sx={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                backgroundColor:
-                  "var(--brand-600, #6D2AD8)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "2px",
-                color: "white",
-                fontSize: "16px",
-              }}
+            <button
+              type="button"
+              onClick={() => setDrawer(true)}
+              aria-label="Open menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-[var(--ink-soft)] hover:bg-purple-50 lg:hidden"
             >
-              <FontAwesomeIcon icon={faHome} />
-            </Box>
+              <Menu className="h-6 w-6" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </header>
 
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: "12px",
-                fontWeight: 600,
-                color:
-                  "var(--ink-soft, #3B3462)",
-                textAlign: "center",
-              }}
-            >
-              Home
-            </Typography>
-          </ListItemButton>
-
-
-          {/* Cart */}
-          <ListItemButton
-            onClick={() =>
-              handleNavigation("/checkout")
-            }
-            sx={{
-              flexDirection: "column",
-              alignItems: "center",
-              padding: "6px 2px",
-              minWidth: "60px",
-              borderRadius: "16px",
-              transition: "all 0.3s ease",
-              position: "relative",
-              "&:hover": {
-                backgroundColor:
-                  "var(--brand-50, #F6F3FE)",
-                transform: "scale(1.05)",
-              },
-            }}
-          >
-
-            <Box
-              sx={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "50%",
-                backgroundColor:
-                  "var(--brand-600, #6D2AD8)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "2px",
-                color: "white",
-                fontSize: "16px",
-              }}
-            >
-              <FontAwesomeIcon
-                icon={faCartShopping}
-              />
-            </Box>
-
-            <Typography
-              variant="caption"
-              sx={{
-                fontSize: "12px",
-                fontWeight: 600,
-                color:
-                  "var(--ink-soft, #3B3462)",
-                textAlign: "center",
-              }}
-            >
-              {cartCount > 0 ? (
-                <span className="cartCountStyle2 absolute top-0 right-[27px]">
-                  {cartCount}
+      {/* Mobile / tablet drawer */}
+      {drawer && (
+        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setDrawer(false)} />
+          <div className="absolute right-0 top-0 flex h-full w-[86%] max-w-sm flex-col bg-white shadow-2xl">
+            <div className="flex h-16 items-center justify-between border-b border-[var(--line)] px-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/assets/images/serviceLogo.webp" alt="Mr. Service Expert" width={160} height={36} className="h-8 w-auto" />
+              <button type="button" onClick={() => setDrawer(false)} aria-label="Close menu" className="inline-flex h-10 w-10 items-center justify-center rounded-xl hover:bg-purple-50">
+                <X className="h-6 w-6" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-4">
+              <SearchBar className="mb-4" onNavigate={() => setDrawer(false)} />
+              <Link href="/join-as-partner" className="mb-4 flex items-center gap-3 rounded-2xl bg-[image:var(--grad-brand-deep)] p-3.5 text-white shadow-[var(--shadow-md)]">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                  <Users className="h-5 w-5" aria-hidden="true" />
                 </span>
-              ) : null}
+                <span className="leading-tight">
+                  <b className="block text-[15px]">Join as a partner</b>
+                  <span className="text-xs text-white/80">Technicians and service shops — get bookings</span>
+                </span>
+              </Link>
+              <ul className="mb-4 flex flex-col">
+                <li>
+                  <Link href="/" className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
+                    <Home className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> Home
+                  </Link>
+                </li>
+                {NAV.map((n) => (
+                  <li key={n.href}>
+                    <Link href={n.href} className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
+                      <n.icon className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> {n.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              {SERVICE_GROUPS.map((g) => (
+                <details key={g.label} className="pub-details group border-t border-[var(--line)]" open={g.label === "Appliance repair"}>
+                  <summary className="flex items-center gap-3 px-2 py-3 text-[15px] font-semibold text-[var(--ink)]">
+                    <g.icon className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" />
+                    <span className="flex-1">{g.label}</span>
+                    <ChevronDown className="pub-chevron h-4 w-4 text-[var(--muted)] transition-transform" aria-hidden="true" />
+                  </summary>
+                  <ul className="pub-details-body grid grid-cols-2 gap-1 pb-3 pl-2">
+                    {g.items.map((s) => (
+                      <li key={s.url}>
+                        <Link href={`/${s.url}`} className="block rounded-lg px-2 py-1.5 text-[13.5px] font-medium text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800">
+                          {s.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ))}
+              <div className="mt-2 border-t border-[var(--line)] pt-3">
+                {isLoggedIn ? (
+                  <ul className="flex flex-col">
+                    <li><AccountItem href="/profile" icon={User}>Profile</AccountItem></li>
+                    <li><AccountItem onClick={goBookings} icon={CalendarCheck}>My bookings</AccountItem></li>
+                    <li><AccountItem href="/help-center" icon={LifeBuoy}>Help center</AccountItem></li>
+                    <li><AccountItem onClick={logout} icon={LogOut} danger>Logout</AccountItem></li>
+                  </ul>
+                ) : (
+                  <ul className="flex flex-col">
+                    <li><AccountItem onClick={login} icon={LogIn}>Login / Sign up</AccountItem></li>
+                    <li><AccountItem href="/help-center" icon={LifeBuoy}>Help center</AccountItem></li>
+                  </ul>
+                )}
+              </div>
+            </div>
+            <div className="border-t border-[var(--line)] p-4">
+              <a href={`tel:${PHONE}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[15px] font-semibold text-white shadow-[var(--shadow-cta)]">
+                <Phone className="h-4 w-4" aria-hidden="true" /> {PHONE_DISPLAY}
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
 
-              Cart
-            </Typography>
-
-          </ListItemButton>
-
-
-          {/* Conditional Items */}
-          {isLoggedIn ? (
-            <>
-
-              {/* Booking */}
-              <ListItemButton
-                onClick={() => {
-                  handleNavigation("/booking");
-                  handleRefresh();
-                }}
-                sx={{
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: "6px 2px",
-                  minWidth: "60px",
-                  borderRadius: "16px",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor:
-                      "var(--brand-50, #F6F3FE)",
-                    transform: "scale(1.05)",
-                  },
-                }}
-              >
-
-                <Box
-                  sx={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    backgroundColor:
-                      "var(--brand-600, #6D2AD8)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "2px",
-                    color: "white",
-                    fontSize: "16px",
-                  }}
-                >
-                  <FontAwesomeIcon icon={faBook} />
-                </Box>
-
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color:
-                      "var(--ink-soft, #3B3462)",
-                    textAlign: "center",
-                  }}
-                >
-                  Booking
-                </Typography>
-
-              </ListItemButton>
-
-
-              {/* Profile */}
-              <ListItemButton
-                onClick={() =>
-                  handleNavigation("/profile")
-                }
-                sx={{
-                  flexDirection: "column",
-                  alignItems: "center",
-                  padding: "6px 2px",
-                  minWidth: "60px",
-                  borderRadius: "16px",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor:
-                      "var(--brand-50, #F6F3FE)",
-                    transform: "scale(1.05)",
-                  },
-                }}
-              >
-
-                <Box
-                  sx={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    backgroundColor:
-                      "var(--brand-600, #6D2AD8)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginBottom: "2px",
-                    color: "white",
-                    fontSize: "16px",
-                  }}
-                >
-                  <FontAwesomeIcon icon={faUser} />
-                </Box>
-
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    color:
-                      "var(--ink-soft, #3B3462)",
-                    textAlign: "center",
-                  }}
-                >
-                  Profile
-                </Typography>
-
-              </ListItemButton>
-
-            </>
-          ) : (
-
-            /* Login */
-            <ListItemButton
-              onClick={() =>
-                setShowModal(true)
-              }
-              sx={{
-                flexDirection: "column",
-                alignItems: "center",
-                padding: "6px 2px",
-                minWidth: "60px",
-                borderRadius: "16px",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor:
-                    "var(--brand-50, #F6F3FE)",
-                  transform: "scale(1.05)",
-                },
-              }}
-            >
-
-              <Box
-                sx={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  backgroundColor:
-                    "var(--brand-600, #6D2AD8)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "2px",
-                  color: "white",
-                  fontSize: "16px",
-                }}
-              >
-                <FontAwesomeIcon icon={faSignIn} />
-              </Box>
-
-              <Typography
-                variant="caption"
-                sx={{
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  color:
-                    "var(--ink-soft, #3B3462)",
-                  textAlign: "center",
-                }}
-              >
-                Login
-              </Typography>
-
-            </ListItemButton>
-
-          )}
-
-        </List>
-
-      </Box>
-
-
-      {/* Phone Verification Modal */}
-      <PhoneVerification
-        setShowModal={setShowModal}
-        showModal={showModal}
-      />
-
+      {/* Mobile bottom bar: floating pill, raised Call button in the middle. */}
+      <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(10px,env(safe-area-inset-bottom))] md:hidden">
+        <ul className="relative grid grid-cols-5 items-end rounded-[22px] border border-white/60 bg-white/90 shadow-[0_10px_30px_-8px_rgba(26,18,64,0.35)] ring-1 ring-[var(--line)] backdrop-blur-xl">
+          {[
+            { label: "Home", icon: Home, href: "/", on: pathname === "/" },
+            { label: "Services", icon: LayoutGrid, onClick: () => setDrawer(true), on: drawer },
+            { label: "Call", icon: Phone, href: `tel:${PHONE}`, raised: true },
+            { label: "Cart", icon: ShoppingCart, href: "/checkout", on: pathname === "/checkout", badge: cartCount },
+            isLoggedIn ? { label: "Account", icon: User, href: "/profile", on: pathname === "/profile" } : { label: "Login", icon: LogIn, onClick: login },
+          ].map((it) => {
+            if (it.raised) {
+              return (
+                <li key={it.label} className="flex justify-center">
+                  <a href={it.href} title={`Call ${PHONE_DISPLAY}`} className="-mt-6 flex flex-col items-center gap-1">
+                    <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-[image:var(--grad-brand)] text-white shadow-[0_12px_24px_-8px_rgba(98,41,205,0.8)] ring-4 ring-white transition active:scale-95">
+                      <it.icon className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <span className="pb-2 text-[11px] font-bold text-purple-800">{it.label}</span>
+                  </a>
+                </li>
+              );
+            }
+            const inner = (
+              <>
+                <span className={`relative inline-flex h-9 w-12 items-center justify-center rounded-2xl transition ${it.on ? "bg-purple-100 text-purple-800" : "text-[var(--muted)]"}`}>
+                  <it.icon className={`h-[21px] w-[21px] ${it.on ? "stroke-[2.4]" : ""}`} aria-hidden="true" />
+                  {it.badge > 0 && (
+                    <span className="absolute -right-0.5 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--amber)] px-1 text-[10px] font-bold text-white ring-2 ring-white">{it.badge}</span>
+                  )}
+                </span>
+                <span className={`text-[11px] font-semibold ${it.on ? "text-purple-800" : "text-[var(--muted)]"}`}>{it.label}</span>
+              </>
+            );
+            const cls = "flex h-[62px] w-full flex-col items-center justify-center gap-0.5 active:scale-95 transition";
+            return (
+              <li key={it.label}>
+                {it.href ? (
+                  <Link href={it.href} className={cls} aria-current={it.on ? "page" : undefined}>{inner}</Link>
+                ) : (
+                  <button type="button" onClick={it.onClick} className={cls}>{inner}</button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
     </>
   );
 }

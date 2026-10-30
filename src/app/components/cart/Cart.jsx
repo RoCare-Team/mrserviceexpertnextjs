@@ -1,350 +1,221 @@
-"use client"
-import React, { useEffect, useState } from "react";
+"use client";
 
-import { IconButton } from "@mui/material";
-// import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "react-toastify";
-import { faShoppingCart } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { ShoppingCart, Minus, Plus, Trash2, ArrowRight } from "lucide-react";
 import useServiceOverrides from "@/lib/useServiceOverrides";
 
+const CART_API = "https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php";
 
-
-
-const Cart = ({ cartLoaded, cartLoadedToggle }) => {
-
+/** The CRM cart for the signed-in customer, shown in the sticky column. */
+const Cart = ({ cartLoaded, cartLoadedToggle, hideWhenEmpty = false }) => {
   const [cartDataArray, setCartDataArray] = useState([]);
   const [finalTotal, setFinalTotal] = useState(0);
   const [cartItems, setCartItems] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Admin title / description / image (prices stay from the cart API).
-  const withOverride = useServiceOverrides(
-    cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id))
-  );
-
-
-
-
+  const withOverride = useServiceOverrides(cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id)));
 
   const displayCartData = () => {
-    const cartdata = localStorage.getItem('checkoutState');
-
-
-    const cartDataArray = cartdata ? JSON.parse(cartdata) || [] : [];
-
-
-
-
-    setFinalTotal(localStorage.getItem('cart_total_price'));
-
-
-
-    const getPrice = localStorage.getItem('cart_total_price');
-
-    const finalTotal = cartDataArray
-      .map(item => Number(item.total_main || getPrice || 0)) // Handle total_main or price or default to 0
-      .reduce((acc, price) => acc + price, 0);
-
-
-    setFinalTotal(finalTotal);
-
-    // console.log(finalTotal + "after making the actuall sum of all the things");
-
-
-
-
-    setCartDataArray(cartDataArray);
-  }
+    const cartdata = localStorage.getItem("checkoutState");
+    const arr = cartdata ? JSON.parse(cartdata) || [] : [];
+    const getPrice = localStorage.getItem("cart_total_price");
+    const total = arr.map((item) => Number(item.total_main || getPrice || 0)).reduce((acc, p) => acc + p, 0);
+    setFinalTotal(total);
+    setCartDataArray(arr);
+  };
 
   useEffect(() => {
+    displayCartData();
+  }, [cartLoaded]);
 
-    displayCartData(cartLoaded);
-  }, [cartLoaded])
-
-
+  const post = async (payload) => {
+    const res = await fetch(CART_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    return res.json();
+  };
 
   const onIncrement = async (service_id, type, qunt) => {
     const cid = localStorage.getItem("customer_id");
-    const num = Number(qunt);
-    const quantity = num + 1;
-
-    if (quantity <= 5) {
-      const payload = { service_id, type, cid, quantity };
-      console.log(JSON.stringify(payload));
-
-      const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-      localStorage.setItem('cart_total_price', data.total_price);
-      console.log(data.total_main + 'on increase');
-
-      displayCartData();
-      window.dispatchEvent(new Event('cartItemsUpdated'));
-
-
-    } else {
-      toast.error("You can't add more than 5 items", {
-        autoClose: 3000,
-      });
-    }
-
-  };
-  const onDecrement = async (service_id, type, qunt) => {
-    const cid = localStorage.getItem("customer_id");
-    const num = Number(qunt);
-    const quantity = num - 1;
-
-    if (quantity <= 5) {
-      const payload = { service_id, type, cid, quantity };
-      console.log(JSON.stringify(payload));
-
-      const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
-      localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
-      localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
-      if (quantity === 0) {
-        const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
-        const updatedCartItems = oldCartItems.filter(id => id !== service_id);
-        localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-
-        // trigger parent update
-        if (typeof cartLoadedToggle === 'function') {
-          cartLoadedToggle();
-        }
-      }
-
-      displayCartData();
-      window.dispatchEvent(new Event('cartItemsUpdated'));
-      // toast.success(data.msg);
-
-
-    } else {
-      toast.success('hey hey hey ', {
-        autoClose: 3000,
-      })
-    }
-
-  };
-
-
-  const handleRemoveFromCart = async (service_id, type, qunt) => {
-    const cid = localStorage.getItem("customer_id");
-    // const num = Number(qunt);
-    const quantity = 0;
-    const payload = { service_id, type, cid, quantity };
-
-    // console.log(JSON.stringify(payload) + 'remove thing will work here');
-
-    const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    // localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails, data.total_cart_price, data.cart_id));
-
-    localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
-    localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
-    const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
-    const updatedCartItems = oldCartItems.filter(id => id !== service_id);
-    console.log("cart remove" + updatedCartItems);
-
-    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-
-    // trigger parent update
-    if (typeof cartLoadedToggle === 'function') {
-      cartLoadedToggle();
-    }
-    displayCartData();
-    window.dispatchEvent(new Event('cartItemsUpdated'));
-  };
-
-
-
-useEffect(() => {
-  const getcartdata = async () => {
-    setLoading(true);
-
-    const cid = localStorage.getItem("customer_id");
-
-    // Agar customer id hi nahi hai
-    if (!cid) {
-      setCartDataArray([]);
-      setCartItems([]);
-      setFinalTotal(0);
-      setLoading(false);
+    const quantity = Number(qunt) + 1;
+    if (quantity > 5) {
+      toast.error("You can't add more than 5 of one service", { autoClose: 3000 });
       return;
     }
+    const data = await post({ service_id, type, cid, quantity });
+    localStorage.setItem("checkoutState", JSON.stringify(data.AllCartDetails));
+    localStorage.setItem("cart_total_price", data.total_price);
+    displayCartData();
+    window.dispatchEvent(new Event("cartItemsUpdated"));
+  };
 
-    try {
-      const res = await fetch(
-        "https://waterpurifierservicecenter.in/customer/ro_customer/view_cart_details.php",
-        {
+  const onDecrement = async (service_id, type, qunt) => {
+    const cid = localStorage.getItem("customer_id");
+    const quantity = Number(qunt) - 1;
+    const data = await post({ service_id, type, cid, quantity });
+    localStorage.setItem("checkoutState", JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+    localStorage.setItem("cart_total_price", data.total_main == null ? 0 : data.total_main);
+    if (quantity === 0) {
+      const old = JSON.parse(localStorage.getItem("cartItems") || "[]");
+      localStorage.setItem("cartItems", JSON.stringify(old.filter((id) => id !== service_id)));
+      if (typeof cartLoadedToggle === "function") cartLoadedToggle();
+    }
+    displayCartData();
+    window.dispatchEvent(new Event("cartItemsUpdated"));
+  };
+
+  const handleRemoveFromCart = async (service_id, type) => {
+    const cid = localStorage.getItem("customer_id");
+    const data = await post({ service_id, type, cid, quantity: 0 });
+    localStorage.setItem("checkoutState", JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+    localStorage.setItem("cart_total_price", data.total_main == null ? 0 : data.total_main);
+    const old = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    localStorage.setItem("cartItems", JSON.stringify(old.filter((id) => id !== service_id)));
+    if (typeof cartLoadedToggle === "function") cartLoadedToggle();
+    displayCartData();
+    window.dispatchEvent(new Event("cartItemsUpdated"));
+  };
+
+  useEffect(() => {
+    const getcartdata = async () => {
+      setLoading(true);
+      const cid = localStorage.getItem("customer_id");
+      if (!cid) {
+        setCartDataArray([]);
+        setCartItems([]);
+        setFinalTotal(0);
+        setLoading(false);
+        return;
+      }
+      try {
+        const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/view_cart_details.php", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cid }),
-        }
-      );
-
-      const data = await res.json();
-
-      const cart_details = data?.AllCartDetails || [];
-
-      setCartDataArray(cart_details);
-      setFinalTotal(Number(data?.total_price) || 0);
-
-      localStorage.setItem(
-        "checkoutState",
-        JSON.stringify(cart_details)
-      );
-
-      localStorage.setItem(
-        "cart_total_price",
-        data?.total_price || 0
-      );
-
-      // 🔥 Safe flatMap (cart_dtls bhi check karenge)
-      const serviceIds = cart_details.flatMap(item =>
-        (item.cart_dtls || [])
-          .filter(service => Number(service.quantity) > 0)
-          .map(service => service.service_id)
-      );
-
-      localStorage.setItem("cartItems", JSON.stringify(serviceIds));
-      setCartItems(serviceIds);
-
-      if (typeof cartLoadedToggle === "function") {
-        cartLoadedToggle();
+        });
+        const data = await res.json();
+        const cart_details = data?.AllCartDetails || [];
+        setCartDataArray(cart_details);
+        setFinalTotal(Number(data?.total_price) || 0);
+        localStorage.setItem("checkoutState", JSON.stringify(cart_details));
+        localStorage.setItem("cart_total_price", data?.total_price || 0);
+        const serviceIds = cart_details.flatMap((item) => (item.cart_dtls || []).filter((s) => Number(s.quantity) > 0).map((s) => s.service_id));
+        localStorage.setItem("cartItems", JSON.stringify(serviceIds));
+        setCartItems(serviceIds);
+        if (typeof cartLoadedToggle === "function") cartLoadedToggle();
+      } catch (err) {
+        console.error("Error fetching cart data:", err);
+        setCartDataArray([]);
+        setCartItems([]);
+        setFinalTotal(0);
+      } finally {
+        setLoading(false);
       }
+    };
+    getcartdata();
+  }, []);
 
-    } catch (err) {
-      console.error("Error fetching cart data:", err);
-      setCartDataArray([]);
-      setCartItems([]);
-      setFinalTotal(0);
-    } finally {
-      setLoading(false); // ✅ Always stop loading
-    }
-  };
-
-  getcartdata();
-}, []);
-  
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    if (typeof cartLoadedToggle === 'function') {
-      cartLoadedToggle();
-    }
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
+    if (typeof cartLoadedToggle === "function") cartLoadedToggle();
   }, [cartItems]);
 
-  // console.log(finalTotal);
+  const count = cartDataArray.reduce((n, c) => n + (c.cart_dtls || []).reduce((m, d) => m + (Number(d.quantity) || 1), 0), 0);
 
-  console.log('cart data', cartDataArray);
-
-
-if (loading) {
-  return (
-    <div className="flex justify-center items-center h-40">
-      <p className="text-lg font-semibold">Loading...</p>
-    </div>
-  );
-}
-  
-
+  // Service pages show the partners first and the cart only once something
+  // has been added.
+  if (hideWhenEmpty && !loading && cartDataArray.length === 0) return null;
 
   return (
-    <div className="cart">
+    <section aria-labelledby="cart-h" className="rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow-sm)]">
+      <div className="flex items-center gap-3 border-b border-[var(--line)] px-4 py-3.5">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-[0_6px_14px_-6px_rgba(98,41,205,.6)]">
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <h2 id="cart-h" className="flex-1 text-[15px] font-bold text-[var(--ink)]">
+          Your cart
+        </h2>
+        {count > 0 && <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-800">{count}</span>}
+      </div>
 
-      <h2>Cart</h2>
-
-
-      {cartDataArray?.length === 0 ? (
-        <div className="emptyStyle">
-          <img src="/assets/images/emptyCart.webp" alt="Empty Cart" className="emptyImg" height="auto" width={72} />
-          <p className="text-center">No services added.</p>
+      {loading ? (
+        <div className="space-y-2.5 p-4" aria-busy="true">
+          <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+          <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+          <div className="h-9 w-full animate-pulse rounded-xl bg-gray-200" />
+        </div>
+      ) : cartDataArray.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 px-4 py-7 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/images/emptyCart.webp" alt="" width={64} height={64} className="h-16 w-16 opacity-80" />
+          <p className="text-sm font-semibold text-[var(--ink-soft)]">No services added yet</p>
+          <p className="text-xs text-[var(--muted)]">Tap “Add” on a service to start your booking.</p>
         </div>
       ) : (
         <>
-          {cartDataArray?.map((service) => (
-            // key={service.cart_id}
-            <div key={service.category_cart_id} className="max-h-90 overflow-x-auto">
-              <p className="ml-2.5">{service.leadtype_name}</p>
-
-              {/* Assuming service.innerArray is the nested array */}
-              {service.cart_dtls?.map((d) => withOverride(d)).map((item, index) => (
-                <div className="cart-item-body" key={item.service_id}>
-                  <div className="cart-item">
-                    <div className="service-details flex items-start flex-col">
-                      <div className="flex items-center gap-4 ">
-                        <span>{item.service_name}</span>
-
-                        <div className="quantity-control">
-                          <button className="IncrementDcrementBtn" onClick={() => onDecrement(item.service_id, 'delete', item.quantity)}>
-                            -
-                          </button>
-                          <span>{item.quantity || 1}</span>
+          <div className="max-h-[22rem] overflow-y-auto">
+            {cartDataArray.map((group) => (
+              <div key={group.category_cart_id} className="border-b border-[var(--line)] last:border-b-0">
+                <p className="bg-[var(--surface-soft)] px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">{group.leadtype_name}</p>
+                <ul className="divide-y divide-[var(--line)]">
+                  {group.cart_dtls?.map((d) => withOverride(d)).map((item) => (
+                    <li key={item.service_id} className="flex items-start gap-3 px-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13.5px] font-semibold leading-snug text-[var(--ink)]">{item.service_name}</p>
+                        <div className="mt-2 inline-flex items-center rounded-lg border border-[var(--line-strong)] bg-white">
                           <button
-                            className="IncrementDcrementBtn"
-                            onClick={() => onIncrement(item.service_id, 'add', item.quantity)}
-                            disabled={(item.quantity || 1) >= 5}
-                            style={{
-                              opacity: (item.quantity || 1) >= 5 ? 0.5 : 1,
-                              cursor: (item.quantity || 1) >= 5 ? 'not-allowed' : 'pointer'
-                            }}
+                            type="button"
+                            aria-label="Decrease quantity"
+                            onClick={() => onDecrement(item.service_id, "delete", item.quantity)}
+                            className="inline-flex h-7 w-7 items-center justify-center text-purple-700 hover:bg-purple-50"
                           >
-                            +
+                            <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+                          </button>
+                          <span className="min-w-[1.75rem] text-center text-[13px] font-bold text-[var(--ink)]">{item.quantity || 1}</span>
+                          <button
+                            type="button"
+                            aria-label="Increase quantity"
+                            onClick={() => onIncrement(item.service_id, "add", item.quantity)}
+                            disabled={(item.quantity || 1) >= 5}
+                            className="inline-flex h-7 w-7 items-center justify-center text-purple-700 hover:bg-purple-50 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
-
-                      <div className="text-xs text-gray-400">
-                        <div dangerouslySetInnerHTML={{ __html: item.description }} />
+                      <div className="flex shrink-0 flex-col items-end gap-1.5">
+                        <span className="text-[14px] font-bold text-[var(--ink)]">₹{item.price}</span>
+                        <button
+                          type="button"
+                          aria-label={`Remove ${item.service_name}`}
+                          onClick={() => handleRemoveFromCart(item.service_id, "delete")}
+                          className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-[var(--muted)] hover:bg-red-50 hover:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                        </button>
                       </div>
-
-                    </div>
-                    <div className="flex flex-col px-1">
-                      ₹{item.price}
-                      <IconButton onClick={() => handleRemoveFromCart(item.service_id, 'delete', 0)} color="error" className="p-0">
-                        <img src="/assets/images/Remove.png" alt="Remove" style={{ width: 24, height: 24 }} />
-                      </IconButton>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-[var(--line)] p-4">
+            <div className="mb-3 flex items-center justify-between text-sm">
+              <span className="text-[var(--muted)]">Total</span>
+              <span className="text-lg font-extrabold tracking-tight text-[var(--ink)]">₹{finalTotal}</span>
             </div>
-          ))}
-
-          <div className="cart-footer">
-
-
-
-            <div className="totalSection">
-              <Link href={'/checkout'}><div className="cart-total forMb" style={{ cursor: 'pointer' }}>
-                <strong>Total: ₹{finalTotal}</strong>
-                <button> <FontAwesomeIcon icon={faShoppingCart} className="mr-1" />View Cart</button>
-              </div></Link>
-            </div>
+            <Link
+              href="/checkout"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[15px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-110"
+            >
+              Proceed to checkout <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 };
 

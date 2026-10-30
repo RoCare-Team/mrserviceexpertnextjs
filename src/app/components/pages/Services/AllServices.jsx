@@ -1,208 +1,118 @@
-// import React from 'react';
-"use client"
-import { useParams } from 'next/navigation';
-import React, { useState, useEffect, useCallback } from "react";
+"use client";
+
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { filterHiddenServices } from "@/lib/hiddenServices";
+import { leadTypeFor } from "@/lib/serviceLeadType";
 
-
-const serviceL = [
-  //   { id: "ro-service", name: "RO Service", image: RoService },
-
-  // RO Water Purifier, Air Conditioner, Washing Machine, then Other Services (Geyser, Microwave, Refrigerator, LED TV )
-  { id: "water-purifier", service_name: "Ro Water Purifier", image: "/assets/serviceTabIcons/ro installation.webp", link: "" },
-  { id: "ac", service_name: "Air Conditioner", image: "/assets/serviceTabIcons/ac uninstalltion.webp", link: "ac" },
-  { id: "washing-machine", service_name: "Washing Machine", image: "/assets/serviceTabIcons/washing machine installation.webp", link: "washing-machine-repair" },
-  { id: "microwav-repair", service_name: "Microwave", image: "/assets/serviceTabIcons/microwave installation.webp", link: "microwav-repair" },
-  { id: "gyeser", service_name: "Gyeser", image: "/assets/serviceTabIcons/geyser uninstallation.webp", link: "geyser-repair" },
-  { id: "refrigerator", service_name: 'Refrigerator', image: "/assets/serviceTabIcons/refrigerator installation.webp", link: "refrigerator-repair" },
-  { id: "led-tv-repair", service_name: "Led", image: "/assets/serviceTabIcons/led tv reapair.webp", link: "led-tv-repair" },
-  { id: "vaccum-cleaner", service_name: "Vaccum Cleaner", image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp", link: "vacuum-cleaner-repair" },
-  { id: "kitchen-chimney", service_name: "Kitchen Chimney", image: "/assets/serviceTabIcons/kitchen chimney repair and service.webp", link: "kitchen-chimney-repair" },
-  { id: "air-purifier", service_name: "Air Purifier", image: "/assets/serviceTabIcons/air purifier repair service.webp", link: "air-purifier-repair" }
-
+// Fallback when the API has no list for this page (city landing pages):
+// the ids match the section ids rendered by pages/Services/Services.jsx.
+const FALLBACK = [
+  { id: "water-purifier", service_name: "RO Water Purifier", image: "/assets/serviceTabIcons/ro installation.webp" },
+  { id: "ac", service_name: "Air Conditioner", image: "/assets/serviceTabIcons/ac uninstalltion.webp" },
+  { id: "washing-machine", service_name: "Washing Machine", image: "/assets/serviceTabIcons/washing machine installation.webp" },
+  { id: "microwav-repair", service_name: "Microwave", image: "/assets/serviceTabIcons/microwave installation.webp" },
+  { id: "gyeser", service_name: "Geyser", image: "/assets/serviceTabIcons/geyser uninstallation.webp" },
+  { id: "refrigerator", service_name: "Refrigerator", image: "/assets/serviceTabIcons/refrigerator installation.webp" },
+  { id: "led-tv-repair", service_name: "LED TV", image: "/assets/serviceTabIcons/led tv reapair.webp" },
+  { id: "vaccum-cleaner", service_name: "Vacuum Cleaner", image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp" },
+  { id: "kitchen-chimney", service_name: "Kitchen Chimney", image: "/assets/serviceTabIcons/kitchen chimney repair and service.webp" },
+  { id: "air-purifier", service_name: "Air Purifier", image: "/assets/serviceTabIcons/air purifier repair service.webp" },
 ];
 
-const AllServices = (cater) => {
-  const { city, brand, cat } = useParams();
-  const [serviceList, setserviceList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+// Header (56/64px) + the sticky chip bar + a little breathing room.
+const SCROLL_OFFSET = 150;
 
-  const scrollToSection = (id) => {
-    console.log(document.getElementById(id));
-
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-
-  };
-
-  const cate = cater.cater;
+/**
+ * Horizontal "jump to" chips for the service list: one chip per service
+ * family (AMC, Installation, Repair…) that scrolls to that row. Sticky under
+ * the site header inside the 2/3 column.
+ */
+export default function ServiceTabs({ cater, cat: catProp }) {
+  const { city, cat } = useParams();
+  const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [active, setActive] = useState(null);
 
   useEffect(() => {
-    let lead_type = null;
-    setIsLoading(true);
+    let alive = true;
+    setLoading(true);
+    const lead_type = leadTypeFor(cat, city, cater, catProp);
+    const cid = localStorage.getItem("customer_id");
 
-    //   const cat=category;
-
-    if (cat === "washing-machine-repair" || city === "washing-machine-repair" || cate === "washing-machine-repair") {
-      lead_type = 4;
-    } else if (cat === "ac" || city === "ac" || cate === "ac") {
-      lead_type = 2;
-    } else if (cat === "ro-water-purifier" || city === "ro-water-purifier" || cate === "ro-water-purifier") {
-      lead_type = 1;
-    } else if (cat === "microwav-repair" || city === "microwav-repair" || cate === "microwav-repair") {
-      lead_type = 9;
-    } else if (cat === "vacuum-cleaner-repair" || city === "vacuum-cleaner-repair" || cate === "vacuum-cleaner-repair") {
-      lead_type = 11;
-    } else if (cat === "geyser-repair" || city === "geyser-repair" || cate === "geyser-repair") {
-      lead_type = 5;
-    } else if (cat === "kitchen-chimney-repair" || city === "kitchen-chimney-repair" || cate === "kitchen-chimney-repair") {
-      lead_type = 10;
-    } else if (cat === "refrigerator-repair" || city === "refrigerator-repair" || cate === "refrigerator-repair") {
-      lead_type = 6;
-    } else if (cat === "led-tv-repair" || city === "led-tv-repair" || cate === "led-tv-repair") {
-      lead_type = 8;
-    } else if (cat === "air-purifier-repair" || city === "air-purifier-repair" || cate === "air-purifier-repair") {
-      lead_type = 18;
-    } else if (cat === "kitchen-cleaning-service" || city === "kitchen-cleaning-service" || cate === "kitchen-cleaning-service") {
-      lead_type = 32;
-    } else if (cat === "sofa-cleaning-service" || city === "sofa-cleaning-service" || cate === "sofa-cleaning-service") {
-      lead_type = 29;
-    } else if (cat === "pest-control" || city === "pest-control" || cate === "pest-control") {
-      lead_type = 33;
-    } else if (cat === "tank-cleaning" || city === "tank-cleaning" || cate === "tank-cleaning") {
-      lead_type = 34;
-    } else if (cat === "mason-service" || city === "mason-service" || cate === "mason-service") {
-      lead_type = 39;
-    } else if (cat === "house-painting" || city === "house-painting" || cate === "house-painting") {
-      lead_type = 35;
-    } else if (cat === "plumber" || city === "plumber" || cate === "plumber") {
-      lead_type = 36;
-    } else if (cat === "carpenter" || city === "carpenter" || cate === "carpenter") {
-      lead_type = 37;
-    } else if (cat === "electrician" || city === "electrician" || cate === "electrician") {
-      lead_type = 38;
-    } else if (cat === "bathroom-cleaning-service" || city === "bathroom-cleaning-service" || cate === "bathroom-cleaning-service") {
-      lead_type = 30;
-    } else if (cat === "home-deep-cleaning-service" || city === "home-deep-cleaning-service" || cate === "home-deep-cleaning-service") {
-      lead_type = 31;
-    }
-
-
-
-    const cid = localStorage.getItem('customer_id');
-
-    fetch('/api/services', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ cid: cid, lead_type: lead_type })
-
+    fetch("/api/services", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cid, lead_type }),
     })
-      .then(res => res.json())
-      .then(data => {
-        // console.log(data.error);
-
-        if (data.error == 'false') {
+      .then((r) => r.json())
+      .then((data) => {
+        if (!alive) return;
+        if (data.error == "false") {
           const grouped = {};
-          filterHiddenServices(data.service_details).forEach(item => {
-            let baseName = item.service_name;
-            if (/^AMC Plan/i.test(baseName)) {
-              baseName = "AMC";
-            } else {
-              // Remove anything inside parentheses
-              baseName = baseName.replace(/\s*\(.*?\)/g, '').trim();
-            }
-            if (!grouped[baseName]) {
-              grouped[baseName] = {
-                id: item.id,
-                service_name: baseName,
-                image: item.image
-              };
-            }
+          filterHiddenServices(data.service_details).forEach((item) => {
+            let base = item.service_name;
+            if (/^AMC Plan/i.test(base)) base = "AMC";
+            else base = base.replace(/\s*\(.*?\)/g, "").trim();
+            if (!grouped[base]) grouped[base] = { id: item.id, service_name: base, image: item.image };
           });
-
-          const result = Object.values(grouped);
-          const unique = [...new Set(result)];
-          setserviceList(unique);
-
+          setList(Object.values(grouped));
         } else {
-          setserviceList(serviceL)
+          setList(FALLBACK);
         }
+      })
+      .catch(() => alive && setList(FALLBACK))
+      .finally(() => alive && setLoading(false));
 
+    return () => {
+      alive = false;
+    };
+  }, [cat, city, cater, catProp]);
 
-        setIsLoading(false)
-
-      }, [])
-
-
-  }, [cat])
-
-  //   const handleTabService = serviceList;
-  // const names = handleTabService.map(service => 
-  //   service.service_name.split(" ").slice(0, 2).join(" ") + "....."
-  // );
-
-  // console.log(names);
+  const go = (id) => {
+    const el = document.getElementById(String(id));
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET;
+    window.scrollTo({ top: y, behavior: "smooth" });
+    setActive(id);
+  };
 
   return (
-    <div className="w-full max-w-4xl mx-auto  ">
-      <div className="bg-white rounded-lg shadow-md p-4 sticky min-h-[290px] top-10 servicePortion gap-4 ">
-        <div className='flex gap-6 serviceHeading'>
-          <h3 className=" font-semibold mb-0 text-center">Select a Service</h3>
-          <span className='serviceHorizontal'></span>
-        </div>
-        {isLoading ? (<div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex flex-col p-1 h-[100px] items-center justify-center bg-gray-100 rounded-lg animate-pulse">
-              <div className="w-11 h-11 bg-gray-200 rounded-full mb-2"></div>
-              <div className="w-16 h-4 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>) : (
-
-          <div className="grid grid-cols-3  gap-4">
-            {serviceList.map((service) => (
-              //  <Link href={`/${service.id}`} >
-              <button
-                title={service.service_name}
-                key={service.id}
-                onClick={() => scrollToSection(service.id)}
-                className="flex flex-col items-center justify-center  tabCards sm:w-xs bg-gray-100 rounded-lg hover:bg-white transition-all shadow-md hover:shadow-lg border border-gray-300 hover:ring-2 hover:ring-purple-300 p-1"
-              >
-
-                <div>
-                  <img
-                    src={service.image}
-                    alt={service.service_name}
-                    className="w-11 h-auto object-contain mb-2"
-                    width={44}
-                    height="auto"
-                    title={service.service_name}
-                  />
-                </div>
-                {/* first convert the strings to arrays using splits then length hii to make it ... if more than 2  */}
-
-                {/* Desktop version: Truncated */}
-                <span className="inline text-xs font-medium text-gray-700 text-center text-wrap">
-                  {service?.service_name?.split(" ").length > 2
-                    ? service.service_name.split(" ").slice(0, 2).join(" ") + "....."
-                    : service.service_name}
-                </span>
-
-                {/* Mobile version: Full name */}
-                {/* <span className="inline md:hidden text-xs font-medium text-gray-700 text-center text-wrap">
-                  {service.service_name}
-                </span> */}
-              </button>
-
+    <nav
+      aria-label="Jump to a service"
+      className="sticky top-[64px] z-10 -mx-4 border-y border-[var(--line)] bg-white/95 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:shadow-[var(--shadow-sm)]"
+    >
+      <ul className="no-scrollbar flex gap-1.5 overflow-x-auto px-3 py-2">
+        {loading
+          ? [1, 2, 3, 4, 5].map((i) => <li key={i} className="h-10 w-28 shrink-0 animate-pulse rounded-xl bg-gray-100" aria-hidden="true" />)
+          : list.map((s) => (
+              <li key={s.id} className="shrink-0">
+                <button
+                  type="button"
+                  title={s.service_name}
+                  onClick={() => go(s.id)}
+                  className={`inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-[13px] font-semibold transition ${
+                    active === s.id
+                      ? "border-purple-600 bg-purple-600 text-white shadow-sm"
+                      : "border-[var(--line)] bg-white text-[var(--ink-soft)] hover:border-purple-300 hover:bg-purple-50"
+                  }`}
+                >
+                  {s.image && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.image}
+                      alt=""
+                      width={22}
+                      height={22}
+                      loading="lazy"
+                      className={`h-[22px] w-[22px] rounded-md object-contain ${active === s.id ? "bg-white/90 p-px" : ""}`}
+                    />
+                  )}
+                  <span className="max-w-[9.5rem] truncate">{s.service_name}</span>
+                </button>
+              </li>
             ))}
-          </div>
-        )}
-      </div>
-
-    </div>
-
+      </ul>
+    </nav>
   );
-};
-
-export default AllServices;
+}

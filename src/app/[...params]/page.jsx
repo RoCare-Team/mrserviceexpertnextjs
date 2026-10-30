@@ -1,11 +1,11 @@
-
-
 import ServicePage from "@/app/components/pages/Services/brands";
 import { notFound } from "next/navigation";
 import { getBrandPageData } from "@/lib/brandPageData";
 import { getPublicAiContent } from "@/lib/aiContent";
 import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
 import PartnerListingSection from "@/app/components/partners/PartnerListingSection";
+import PartnerSidebar, { SIDEBAR_MAX } from "@/app/components/partners/PartnerSidebar";
+import { getPagePartners } from "@/app/components/partners/pagePartners";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -46,17 +46,9 @@ export async function generateMetadata({ params }) {
       : null;
 
     return {
-      title:
-        appliance?.title ||
-        data?.content?.meta_title ||
-        `Service in ${city} | Your Brand`,
-      description:
-        appliance?.description ||
-        data?.content?.meta_description ||
-        `Find the best services in ${city}. Book now!`,
-      keywords:
-        data?.content?.meta_keywords ||
-        `services in ${city}, ${city} services`,
+      title: appliance?.title || data?.content?.meta_title || `Service in ${city} | Your Brand`,
+      description: appliance?.description || data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
+      keywords: data?.content?.meta_keywords || `services in ${city}, ${city} services`,
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}/${brand}/${cat}`,
       },
@@ -99,6 +91,19 @@ export default async function Page({ params }) {
   // so the page renders no AI block at all.
   const aiContent = await getPublicAiContent(`${city}/${brand}/${cat}`);
 
+  // Partners in this city/locality who service this brand — one query shared
+  // by the sticky column and (when there are many) the full grid below.
+  const partners = await getPagePartners({
+    cityUrl: city.toLowerCase(),
+    categoryUrl: cat.toLowerCase(),
+    brandUrl: brand.toLowerCase(),
+    brandName: data.brandname,
+    baseCategoryName: data.categoryname,
+    cityName: data.city_name,
+    categoryName: `${data.brandname} ${data.categoryname}`,
+  });
+  const showGrid = partners && partners.first.total > SIDEBAR_MAX;
+
   return (
     <ServicePage
       city={city}
@@ -106,18 +111,8 @@ export default async function Page({ params }) {
       pagedata={data}
       cat={cat}
       aiContent={aiContent}
-      partnerSection={
-        // Partners in this city/locality who service this brand.
-        <PartnerListingSection
-          cityUrl={city.toLowerCase()}
-          categoryUrl={cat.toLowerCase()}
-          brandUrl={brand.toLowerCase()}
-          brandName={data.brandname}
-          baseCategoryName={data.categoryname}
-          cityName={data.city_name}
-          categoryName={`${data.brandname} ${data.categoryname}`}
-        />
-      }
+      partnerSidebar={<PartnerSidebar data={partners} />}
+      partnerSection={showGrid ? <PartnerListingSection data={partners} /> : null}
     />
   );
 }

@@ -61,14 +61,21 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
   const [[{ total }]] = await db.query(`SELECT COUNT(*) AS total FROM partners p WHERE ${where}`, params);
   if (!total) return { items: [], total: 0, page: 1, pageSize: size, hasMore: false };
 
+  // Best-rated first. The score is a Bayesian average (prior 4.0 with the
+  // weight of 2 reviews) so a single 5★ review does not outrank 40 reviews at
+  // 4.8; ties go to the most-reviewed, then ID-verified, then oldest partner.
   const [rows] = await db.query(
     `SELECT p.id, p.slug, p.business_name, p.business_type, p.experience_years, p.logo_key,
             p.operating_hours, p.is_available,
             p.identity_verified_at IS NOT NULL AS identity_verified,
             p.gst_verified_at IS NOT NULL AS gst_verified
        FROM partners p
+       LEFT JOIN (SELECT partner_id, AVG(rating) AS avg_rating, COUNT(*) AS review_count
+                    FROM partner_reviews WHERE status = 'published' GROUP BY partner_id) rv ON rv.partner_id = p.id
       WHERE ${where}
-      ORDER BY (p.identity_verified_at IS NOT NULL) DESC, p.approved_at ASC, p.id ASC
+      ORDER BY (COALESCE(rv.avg_rating, 0) * COALESCE(rv.review_count, 0) + 4.0 * 2) / (COALESCE(rv.review_count, 0) + 2) DESC,
+               COALESCE(rv.review_count, 0) DESC,
+               (p.identity_verified_at IS NOT NULL) DESC, p.approved_at ASC, p.id ASC
       LIMIT ${size} OFFSET ${offset}`,
     params
   );

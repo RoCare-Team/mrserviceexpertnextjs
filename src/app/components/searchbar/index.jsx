@@ -1,215 +1,134 @@
-import React, { useState } from 'react';
-import { TextField, InputAdornment, Box, Typography, List, ListItem } from '@mui/material';
-import { styled } from '@mui/system';
-import { useRouter } from 'next/navigation';
+"use client";
 
-const SearchBarWrapper = styled('div')({
-  position: 'relative',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  padding: '10px',
-  borderRadius: '50px',
-  border: '1px solid var(--line-strong, #D8CFF0)',
-  backgroundColor: '#fff',
-  width: 'fit-content',
-  '&:hover': {
-    borderColor: 'var(--brand-500, #8455E1)',
-  },
-  '& .Mui-focused': {
-    borderColor: 'var(--brand-500, #8455E1)',
-  },
-});
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Search, Wrench, Sparkles, Hammer, ArrowRight } from "lucide-react";
+import { HOME_CARE_SERVICES, HANDYMAN_SERVICES } from "@/lib/homeCare";
 
-const CustomTextField = styled(TextField)({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '30px',
-    '& fieldset': {
-      borderColor: 'transparent',
-    },
-    '&:hover fieldset': {
-      borderColor: 'transparent',
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: 'transparent',
-    },
-    '& .MuiOutlinedInput-input': {
-      padding: 0,
-    },
-  },
-});
+const APPLIANCES = [
+  { name: "RO Water Purifier", url: "ro-water-purifier" },
+  { name: "AC Repair & Service", url: "ac" },
+  { name: "Washing Machine Repair", url: "washing-machine-repair" },
+  { name: "Refrigerator Repair", url: "refrigerator-repair" },
+  { name: "Geyser Repair", url: "geyser-repair" },
+  { name: "Microwave Repair", url: "microwav-repair" },
+  { name: "LED TV Repair", url: "led-tv-repair" },
+  { name: "Kitchen Chimney Repair", url: "kitchen-chimney-repair" },
+  { name: "Air Purifier Repair", url: "air-purifier-repair" },
+  { name: "Vacuum Cleaner Repair", url: "vacuum-cleaner-repair" },
+];
 
-const SuggestionsContainer = styled(Box)({
-  position: 'absolute',
-  top: 'calc(100% + 5px)',
-  left: 0,
-  width: '100%',
-  backgroundColor: '#fff',
-  borderRadius: '10px',
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  zIndex: 10,
-  maxHeight: '300px',
-  overflowY: 'auto',
-});
+const GROUPS = [
+  { label: "Appliance repair", icon: Wrench, items: APPLIANCES },
+  { label: "Home care", icon: Sparkles, items: HOME_CARE_SERVICES },
+  { label: "Handyman", icon: Hammer, items: HANDYMAN_SERVICES },
+];
 
-const CategoryHeading = styled(Typography)({
-  padding: '8px 16px',
-  fontWeight: 600,
-  color: 'var(--muted, #6F6A8E)',
-  fontSize: '14px',
-});
+/**
+ * Header search: type to filter every service, Enter / click to open its
+ * page. With an empty box it lists the popular appliance services.
+ */
+export default function SearchBar({ autoFocus = false, onNavigate, className = "" }) {
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const router = useRouter();
+  const rootRef = useRef(null);
 
-const SuggestionItem = styled(ListItem)({
-  padding: '10px 16px',
-  cursor: 'pointer',
-  '&:hover': {
-    backgroundColor: '#f5f5f5',
-  },
-  display: 'flex',
-  alignItems: 'center',
-  gap: '10px',
-});
+  const results = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return GROUPS.map((g) => ({ ...g, items: g.items.slice(0, g.label === "Appliance repair" ? 5 : 3) }));
+    return GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => i.name.toLowerCase().includes(s)) })).filter((g) => g.items.length);
+  }, [q]);
+  const flat = results.flatMap((g) => g.items);
 
-const ServiceIcon = styled('div')({
-  width: '36px',
-  height: '36px',
-  borderRadius: '50%',
-  backgroundColor: '#f0f0f0',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-});
+  useEffect(() => {
+    const onDown = (e) => rootRef.current && !rootRef.current.contains(e.target) && setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
 
-const SearchBar = () => {
-  const [searchValue, setSearchValue] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  useEffect(() => setActive(0), [q]);
 
-  const navigate=useRouter();
-
-
-
-  // Mock data for services and popular searches
-  const popularServices = [
-    { name: 'RO Service', icon: '🔧',URL:'/ro-water-purifier' },
-    // { name: 'Vaccum Cleaner', icon: '',URL:'/service/ro-service?category=ro-repair' },
-    // { name: 'Ro Installation', icon: '🧹',URL:'/service/ro-service?category=ro-installation' },
-    {name:'Geyser',icon:'🔧',URL:'/geyser-repair'},
-    { name: 'AC Repair', icon: '❄️',URL:'/ac' },
-    { name: 'Washing Service', icon: '❄️',URL:'/washing-machine-repair' },
-  ];
-
-  // new page become vendor ,job,blog,contact
-  const topSearches = [
-    { name: 'Plumbing Services', icon: '🚿' },
-    { name: 'Electrician', icon: '⚡' },
-    { name: 'Home Cleaning', icon: '🧹' },
-    { name: 'Pest Control', icon: '🐜' },
-  ];
-
-  // Filter suggestions based on search input
-  const filteredServices = searchValue.length > 0
-    ? popularServices.filter(service => 
-        service.name.toLowerCase().includes(searchValue.toLowerCase())
-      )
-    : popularServices;
-
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    setShowSuggestions(true);
+  const go = (item) => {
+    setOpen(false);
+    setQ("");
+    onNavigate?.();
+    router.push(`/${item.url}`);
   };
 
-  const handleSuggestionClick = (suggestion) => {
-    setSearchValue(suggestion.name);
-    setShowSuggestions(false);
-
-    if(suggestion.URL){
-      navigate.push(suggestion.URL);
+  const onKey = (e) => {
+    if (!open) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActive((i) => Math.min(i + 1, flat.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActive((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter" && flat[active]) {
+      e.preventDefault();
+      go(flat[active]);
+    } else if (e.key === "Escape") {
+      setOpen(false);
     }
-    // console.log(suggestion.URL);
-    
   };
 
-  const handleBlur = () => {
-    // Delay hiding suggestions to allow for clicking on them
-    // setTimeout(() => setShowSuggestions(false), 200);
-    // if (!isNavigating) {
-    //   setTimeout(() => setShowSuggestions(false), 200);
-    // }
-    if(!isNavigating){
-      setTimeout(()=> setShowSuggestions(false),200);
-    }
-    // // Reset the navigating state
-    setIsNavigating(false);
-  };
-
+  let idx = -1;
   return (
-    <SearchBarWrapper>
-      <CustomTextField
-        variant="outlined"
-        placeholder="Search for services..."
-        fullWidth
-        value={searchValue}
-        onChange={handleSearchChange}
-        onFocus={() => setShowSuggestions(true)}
-        onBlur={handleBlur}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <img src="/assets/images/search_normal.svg" alt="Search Icon" title='Search all home appliances services' style={{ width: '24px', height: '24px' }} />
-            </InputAdornment>
-          ),
-        }}
-      />
+    <div ref={rootRef} className={`relative ${className}`}>
+      <label className="flex h-10 items-center gap-2 rounded-full border border-[var(--line-strong)] bg-white px-3.5 transition focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-100">
+        <Search className="h-4 w-4 shrink-0 text-[var(--muted)]" aria-hidden="true" />
+        <input
+          type="search"
+          value={q}
+          autoFocus={autoFocus}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKey}
+          placeholder="Search for services…"
+          aria-label="Search for services"
+          aria-expanded={open}
+          className="w-full min-w-0 bg-transparent text-[14px] text-[var(--ink)] outline-none placeholder:text-[var(--muted)] [&::-webkit-search-cancel-button]:hidden"
+        />
+      </label>
 
-      {showSuggestions && (
-        <SuggestionsContainer>
-          {searchValue.length === 0 && (
-            <>
-              <CategoryHeading>Popular Services</CategoryHeading>
-              <List disablePadding>
-                {popularServices.map((service, index) => (
-                  <SuggestionItem key={`popular-${index}`} onClick={() => handleSuggestionClick(service)}>
-                    <ServiceIcon>{service.icon}</ServiceIcon>
-                    <Typography>{service.name}</Typography>
-                  </SuggestionItem>
-                ))}
-              </List>
-              
-              <CategoryHeading>Top Searches</CategoryHeading>
-              <List disablePadding>
-                {topSearches.map((search, index) => (
-                  <SuggestionItem key={`top-${index}`} onClick={() => handleSuggestionClick(search)}>
-                    <ServiceIcon>{search.icon}</ServiceIcon>
-                    <Typography>{search.name}</Typography>
-                  </SuggestionItem>
-                ))}
-              </List>
-            </>
+      {open && (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-40 max-h-[70vh] overflow-y-auto rounded-2xl border border-[var(--line)] bg-white p-1.5 shadow-[var(--shadow-lg)]">
+          {flat.length === 0 ? (
+            <p className="px-3 py-4 text-center text-sm text-[var(--muted)]">No services found for “{q}”. Try “AC” or “cleaning”.</p>
+          ) : (
+            results.map((g) => (
+              <div key={g.label} className="py-1">
+                <p className="flex items-center gap-1.5 px-3 pb-1 pt-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--muted)]">
+                  <g.icon className="h-3 w-3" aria-hidden="true" /> {g.label}
+                </p>
+                <ul>
+                  {g.items.map((item) => {
+                    idx += 1;
+                    const i = idx;
+                    return (
+                      <li key={item.url}>
+                        <button
+                          type="button"
+                          onMouseEnter={() => setActive(i)}
+                          onClick={() => go(item)}
+                          className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-[14px] font-medium text-[var(--ink)] ${i === active ? "bg-purple-50 text-purple-800" : ""}`}
+                        >
+                          {item.name}
+                          <ArrowRight className={`h-3.5 w-3.5 ${i === active ? "text-purple-600" : "text-transparent"}`} aria-hidden="true" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))
           )}
-
-          {searchValue.length > 0 && filteredServices.length > 0 && (
-            <>
-              <CategoryHeading>Services</CategoryHeading>
-              <List disablePadding>
-                {filteredServices.map((service, index) => (
-                  <SuggestionItem key={`filtered-${index}`} onClick={() => handleSuggestionClick(service)}>
-                    <ServiceIcon>{service.icon}</ServiceIcon>
-                    <Typography>{service.name}</Typography>
-                  </SuggestionItem>
-                ))}
-              </List>
-            </>
-          )}
-
-          {searchValue.length > 0 && filteredServices.length === 0 && (
-            <Box p={2} textAlign="center">
-              <Typography color="textSecondary">No services found for "{searchValue}"</Typography>
-            </Box>
-          )}
-        </SuggestionsContainer>
+        </div>
       )}
-    </SearchBarWrapper>
+    </div>
   );
-};
-
-export default SearchBar;
+}

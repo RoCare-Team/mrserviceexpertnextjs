@@ -1,231 +1,172 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Modal, Box } from '@mui/material';
-import CongratsModal from '@/app/components/modals/CongratsModal';
-import BasicDetails from '@/app/components/modals/BasicDetails';
-import { toast, ToastContainer } from 'react-toastify';
+import React, { useEffect, useRef, useState } from "react";
+import { Smartphone, ShieldCheck, X, Loader2, RotateCw } from "lucide-react";
+import CongratsModal from "@/app/components/modals/CongratsModal";
+import BasicDetails from "@/app/components/modals/BasicDetails";
+import { toast, ToastContainer } from "react-toastify";
 
+const RESEND_COOLDOWN = 30; // seconds between OTPs
+const MAX_RESENDS = 3; // after the first OTP
+
+/**
+ * Customer login: mobile → OTP → session hints in localStorage, then the
+ * basic-details / congrats modals. Also adds the pending service to the cart
+ * when login was triggered by an "Add" click.
+ */
 const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpLoader, setOtpLoader] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpDigits, setOtpDigits] = useState(['', '', '', '']);
-  const [activeButton, setActiveButton] = useState(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('');
-  const [phoneError, setPhoneError] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", ""]);
+  const [phoneError, setPhoneError] = useState("");
   const [openBasic, setOpenBasic] = useState(false);
   const [showCongrats, setShowCongrats] = useState(false);
-
+  const [cooldown, setCooldown] = useState(0);
+  const [resendsLeft, setResendsLeft] = useState(MAX_RESENDS);
+  const sendingRef = useRef(false);
   const otpInputRefs = useRef([]);
 
-  if (otpInputRefs.current.length === 0) {
-    otpInputRefs.current = Array(4).fill().map(() => React.createRef());
-  }
+  useEffect(() => {
+    if (!cooldown) return;
+    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  useEffect(() => {
+    if (!(showModal || showOtpModal)) return;
+    const onKey = (e) => e.key === "Escape" && handleCloseModal();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const handleCloseModal = () => {
     setShowModal(false);
     setShowOtpModal(false);
-    setPhoneNumber('');
-    setOtpDigits(['', '', '', '']);
-    setActiveButton(null);
+    setPhoneNumber("");
+    setOtpDigits(["", "", "", ""]);
     setShowCongrats(false);
-    setPhoneError('');
+    setPhoneError("");
+    setCooldown(0);
+    setResendsLeft(MAX_RESENDS);
   };
-
 
   const syncCartItemsFromCheckoutState = () => {
     try {
-      const checkoutState = localStorage.getItem('checkoutState');
+      const checkoutState = localStorage.getItem("checkoutState");
       if (checkoutState) {
         const cartData = JSON.parse(checkoutState);
         const serviceIds = [];
-
-        cartData.forEach(category => {
-          if (category.cart_dtls && Array.isArray(category.cart_dtls)) {
-            category.cart_dtls.forEach(item => {
-              if (item.service_id) {
-                serviceIds.push(item.service_id);
-              }
-            });
+        cartData.forEach((category) => {
+          if (Array.isArray(category.cart_dtls)) {
+            category.cart_dtls.forEach((item) => item.service_id && serviceIds.push(item.service_id));
           }
         });
-
-        // Get existing cartItems and merge
-        const existingCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        const mergedCartItems = [...new Set([...existingCartItems, ...serviceIds])];
-
-        localStorage.setItem('cartItems', JSON.stringify(mergedCartItems));
-        return mergedCartItems;
+        const existing = JSON.parse(localStorage.getItem("cartItems")) || [];
+        const merged = [...new Set([...existing, ...serviceIds])];
+        localStorage.setItem("cartItems", JSON.stringify(merged));
+        return merged;
       }
     } catch (error) {
-      console.error('Error syncing cart items:', error);
+      console.error("Error syncing cart items:", error);
     }
     return [];
   };
-  const handleVerification = async () => {
-    try {
-      const newOtp = otpDigits.join('');
-      const payload = { phoneNumber, newOtp };
 
+  const handleVerification = async () => {
+    const newOtp = otpDigits.join("");
+    if (newOtp.length !== 4) {
+      toast.error("Enter the 4-digit OTP.");
+      return;
+    }
+    setVerifying(true);
+    try {
       const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/service_otp_verify.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ phoneNumber, newOtp }),
       });
-
       const data = await res.json();
 
-      if (typeof window !== 'undefined') {
-        // Only run on client side
-        if (data.name) localStorage.setItem('name', data.name);
-        if (data.email) localStorage.setItem('email', data.email);
-        if (data.c_id) localStorage.setItem('customer_id', data.c_id);
+      if (data.name) localStorage.setItem("name", data.name);
+      if (data.email) localStorage.setItem("email", data.email);
+      if (data.c_id) localStorage.setItem("customer_id", data.c_id);
 
-
-
-        //added the here new logic 
-        // ✅ Check if a pending service needs to be added to cart after login
-        const pendingService = localStorage.getItem('pendingServiceToAdd');
-        if (pendingService && data.c_id) {
-          const service_id = JSON.parse(pendingService);
-
-          // ✅ Use latest cart data from API, not localStorage
-          const existingCheckout = data.AllCartDetails || [];
-
-          let quantity = 1;
-          const existingServiceEntry = existingCheckout.find(cartItem =>
-            cartItem.cart_dtls?.some(service => service.service_id == service_id)
-          );
-
-          if (existingServiceEntry) {
-            const matchedService = existingServiceEntry.cart_dtls.find(service => service.service_id == service_id);
-            if (matchedService && Number(matchedService.quantity) > 1) {
-              quantity = Number(matchedService.quantity);
-            }
-          }
-
-          const type = 'add';
-          const cid = data.c_id;
-          const source="mrserviceexpert website";
-
-          const payload = { service_id, quantity, cid, type ,source};
-
-          try {
-            const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-            });
-
-            const cartResponse = await res.json();
-
-            localStorage.setItem('checkoutState', JSON.stringify(cartResponse.AllCartDetails || []));
-            localStorage.setItem('cart_total_price', cartResponse.total_price || 0);
-
-            const existingCart = JSON.parse(localStorage.getItem('cartItems')) || [];
-            if (!existingCart.includes(service_id)) {
-              localStorage.setItem('cartItems', JSON.stringify([...existingCart, service_id]));
-            }
-            syncCartItemsFromCheckoutState();
-            localStorage.removeItem('pendingServiceToAdd');
-          } catch (error) {
-            console.error("Error adding pending service to cart:", error);
-          }
+      // A service was added before login → add it to the cart now.
+      const pendingService = localStorage.getItem("pendingServiceToAdd");
+      if (pendingService && data.c_id) {
+        const service_id = JSON.parse(pendingService);
+        const existingCheckout = data.AllCartDetails || [];
+        let quantity = 1;
+        const entry = existingCheckout.find((c) => c.cart_dtls?.some((s) => s.service_id == service_id));
+        if (entry) {
+          const matched = entry.cart_dtls.find((s) => s.service_id == service_id);
+          if (matched && Number(matched.quantity) > 1) quantity = Number(matched.quantity);
         }
-
-
-        else {
-
-          // if (data.AllCartDetails) {
-          //   localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-          //   syncCartItemsFromCheckoutState();
-          // }
-          // if (data.total_cart_price) {
-          //   localStorage.setItem('cart_total_price', data.total_cart_price);
-          // }
-
-          if (data.AllCartDetails) {
-            // 🔍 Filter out services with quantity 0
-            const filteredCart = data.AllCartDetails.filter(cartItem =>
-              cartItem.cart_dtls.some(service => Number(service.quantity) > 0)
-            ).map(cartItem => ({
-              ...cartItem,
-              cart_dtls: cartItem.cart_dtls.filter(service => Number(service.quantity) > 0)
-            }));
-
-            localStorage.setItem('checkoutState', JSON.stringify(filteredCart));
-            syncCartItemsFromCheckoutState();
-          }
-
-          if (data.total_cart_price) {
-            localStorage.setItem('cart_total_price', data.total_cart_price);
-          }
-        }
-
-
-        if (data.address) {
-          let RecentAdd = JSON.stringify(data.address);
-          localStorage.setItem('RecentAddress', RecentAdd);
-        }
-      }
-
-      if (data.error === false) {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('userPhone', phoneNumber);
-          localStorage.setItem('userToken', 'verified');
-        }
-
-        // toast.success(data.msg);
-        setShowOtpModal(false);
-
-        if (data.status === 1) {
-          setOpenBasic(true);
-        } else {
-          setShowCongrats(true);
+        try {
+          const r = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ service_id, quantity, cid: data.c_id, type: "add", source: "mrserviceexpert website" }),
+          });
+          const cartResponse = await r.json();
+          localStorage.setItem("checkoutState", JSON.stringify(cartResponse.AllCartDetails || []));
+          localStorage.setItem("cart_total_price", cartResponse.total_price || 0);
+          const existingCart = JSON.parse(localStorage.getItem("cartItems")) || [];
+          if (!existingCart.includes(service_id)) localStorage.setItem("cartItems", JSON.stringify([...existingCart, service_id]));
+          syncCartItemsFromCheckoutState();
+          localStorage.removeItem("pendingServiceToAdd");
+        } catch (error) {
+          console.error("Error adding pending service to cart:", error);
         }
       } else {
-        toast.error(data.msg);
+        if (data.AllCartDetails) {
+          const filteredCart = data.AllCartDetails.filter((c) => c.cart_dtls.some((s) => Number(s.quantity) > 0)).map((c) => ({
+            ...c,
+            cart_dtls: c.cart_dtls.filter((s) => Number(s.quantity) > 0),
+          }));
+          localStorage.setItem("checkoutState", JSON.stringify(filteredCart));
+          syncCartItemsFromCheckoutState();
+        }
+        if (data.total_cart_price) localStorage.setItem("cart_total_price", data.total_cart_price);
       }
+      if (data.address) localStorage.setItem("RecentAddress", JSON.stringify(data.address));
 
-      // Call the callback function if provided
-      if (onVerificationComplete) {
-        onVerificationComplete();
+      if (data.error === false) {
+        localStorage.setItem("userPhone", phoneNumber);
+        localStorage.setItem("userToken", "verified");
+        window.dispatchEvent(new Event("cartItemsUpdated"));
+        setShowOtpModal(false);
+        if (data.status === 1) setOpenBasic(true);
+        else setShowCongrats(true);
+      } else {
+        toast.error(data.msg || "Incorrect OTP. Please try again.");
       }
+      if (onVerificationComplete) onVerificationComplete();
     } catch (error) {
       toast.error("Error verifying OTP: " + error.message);
+    } finally {
+      setVerifying(false);
     }
   };
 
   const handleBasicDetails = async (userData) => {
-    const fullUserData = {
-      ...userData,
-      phoneNumber: phoneNumber
-    };
-
     try {
       const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/update_user_dtls.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fullUserData),
+        body: JSON.stringify({ ...userData, phoneNumber }),
       });
-
       const data = await res.json();
-
       if (data.error === false) {
-        // toast.success("Details saved successfully!");
         setOpenBasic(false);
         setShowCongrats(true);
-
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('userName', userData.name);
-          localStorage.setItem('userEmail', userData.email);
-        }
+        localStorage.setItem("userName", userData.name);
+        localStorage.setItem("userEmail", userData.email);
       } else {
         toast.error(data.msg || "Failed to save details");
       }
-
       return data;
     } catch (error) {
       toast.error("Error saving details: " + error.message);
@@ -233,277 +174,235 @@ const PhoneVerification = ({ onVerificationComplete, showModal, setShowModal }) 
     }
   };
 
-  const handlePhoneChange = (e) => {
-    const value = e.target.value;
-    // Only allow digits in the phone number
-    if (value === '' || /^\d+$/.test(value)) {
-      setPhoneNumber(value);
-      setPhoneError('');
-    } else {
-      setPhoneError('Please enter numbers only');
+  const isPhoneValid = /^[6-9]\d{9}$/.test(phoneNumber);
+
+  /** Sends (or resends) the OTP. Guarded against double taps and the cooldown. */
+  const sendOtp = async ({ resend = false } = {}) => {
+    if (!isPhoneValid) {
+      setPhoneError(phoneNumber.length !== 10 ? "Phone number must be 10 digits" : "Please enter a valid phone number");
+      return;
     }
-  };
-
-
-
-  const handlePhoneSubmit = async () => {
-    if (phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber)) {
-      setOtpLoader(true); // Start loading
-      try {
-
-
-        const source = "mrserviceexpert website";
-
+    if (sendingRef.current || cooldown > 0) return;
+    if (resend && resendsLeft <= 0) return;
+    sendingRef.current = true;
+    setOtpLoader(true);
+    try {
       const res = await fetch("/api/send_otp", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phoneNumber, source }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumber, source: "mrserviceexpert website" }),
       });
-       
-
-        const data = await res.json();
-
-        if (data.error === false) {
-          setOtpLoader(false); // Stop loading on success
-          // toast.success(data.msg);
-          setShowModal(false);
-          setShowOtpModal(true);
-          setPhoneError('');
-        } else {
-          setOtpLoader(false); // Stop loading on error
-          toast.error(data.msg);
-        }
-      } catch (error) {
-        setOtpLoader(false); // Stop loading on exception
-        toast.error("Error: " + error.message);
+      const data = await res.json();
+      if (data.error === false) {
+        setShowModal(false);
+        setShowOtpModal(true);
+        setPhoneError("");
+        setOtpDigits(["", "", "", ""]);
+        setCooldown(data.resendAfter || RESEND_COOLDOWN);
+        if (typeof data.resendsLeft === "number") setResendsLeft(data.resendsLeft);
+        else if (resend) setResendsLeft((n) => Math.max(0, n - 1));
+        if (resend) toast.success("A new OTP has been sent.");
+        setTimeout(() => otpInputRefs.current[0]?.focus(), 50);
+      } else {
+        if (data.retryAfter) setCooldown(data.retryAfter);
+        if (data.resendsLeft === 0) setResendsLeft(0);
+        toast.error(data.msg || "Could not send the OTP.");
       }
-    } else if (phoneNumber.length !== 10) {
-      setPhoneError('Phone number must be 10 digits');
-    } else {
-      setPhoneError('Please enter a valid phone number');
+    } catch (error) {
+      toast.error("Error: " + error.message);
+    } finally {
+      setOtpLoader(false);
+      sendingRef.current = false;
     }
   };
+
   const handleOtpChange = (index, value) => {
-    if (value.match(/^[0-9]?$/)) {
-      const newOtpDigits = [...otpDigits];
-      newOtpDigits[index] = value;
-      setOtpDigits(newOtpDigits);
-
-      if (value && index < 3) {
-        otpInputRefs.current[index + 1].focus();
-      }
+    const digits = value.replace(/\D/g, "");
+    if (digits.length > 1) {
+      // Pasted code → fill all boxes.
+      const next = ["", "", "", ""];
+      digits.slice(0, 4).split("").forEach((d, i) => (next[i] = d));
+      setOtpDigits(next);
+      otpInputRefs.current[Math.min(digits.length, 4) - 1]?.focus();
+      return;
     }
+    const next = [...otpDigits];
+    next[index] = digits;
+    setOtpDigits(next);
+    if (digits && index < 3) otpInputRefs.current[index + 1]?.focus();
   };
-
-
 
   const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
-      otpInputRefs.current[index - 1].focus();
-    } else if (e.key === 'Enter') {
-      if (index === 3) {
-        handleVerification();
-      }
-    }
+    if (e.key === "Backspace" && !otpDigits[index] && index > 0) otpInputRefs.current[index - 1]?.focus();
+    else if (e.key === "Enter") handleVerification();
   };
 
-  const handleResendCode = (method) => {
-    setActiveButton(method);
-    setToastMessage(`OTP has been resent to your ${method === 'whatsapp' ? 'WhatsApp' : 'SMS'}`);
-    setShowToast(true);
-
-    // Implement actual resend logic here
-
-    // Hide toast after 3 seconds
-    setTimeout(() => {
-      setShowToast(false);
-    }, 3000);
-  };
-
-  // Check if phone number is valid (10 digits)
-  const isPhoneValid = phoneNumber.length === 10 && /^\d{10}$/.test(phoneNumber);
+  const open = showModal || showOtpModal;
 
   return (
     <div>
       <ToastContainer position="top-right" />
 
-      {/* Phone Verification Modal using MUI Modal */}
-      <Modal
-        open={showModal || showOtpModal}
-        onClose={handleCloseModal}
-        aria-labelledby="phone-verification-modal"
-        aria-describedby="phone-verification-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: { xs: '35%', sm: '50%' },
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '100%',
-            maxWidth: { xs: '328px', sm: '600px' },
-            maxHeight: '90vh',
-            p: { xs: 2, sm: 3 },
-
-            bgcolor: 'background.paper',
-            borderRadius: '0.5rem',
-            boxShadow: 24,
-          }}
+      {open && (
+        <div
+          className="fixed inset-0 z-[1300] flex items-end justify-center bg-black/55 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+          onMouseDown={(e) => e.target === e.currentTarget && handleCloseModal()}
+          role="dialog"
+          aria-modal="true"
+          aria-label={showOtpModal ? "Enter OTP" : "Login with mobile number"}
         >
+          <div className="relative w-full max-w-md rounded-t-3xl bg-white p-6 shadow-2xl sm:rounded-3xl sm:p-8">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              aria-label="Close"
+              className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted)] hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" aria-hidden="true" />
+            </button>
 
-          {/* Close Button */}
-          <button
-            onClick={handleCloseModal}
-            className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+            {showModal && (
+              <div className="text-center">
+                <span className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-[0_10px_22px_-10px_rgba(98,41,205,.7)]">
+                  <Smartphone className="h-7 w-7" aria-hidden="true" />
+                </span>
+                <h2 className="text-xl font-bold text-[var(--ink)] sm:text-2xl">Login with your mobile</h2>
+                <p className="mt-1.5 text-sm text-[var(--muted)]">We&apos;ll send a 4-digit OTP by SMS to verify your number.</p>
 
-          {/* Phone Number Modal */}
-          {showModal && (
-            <div className="text-center flex items-start flex-col gap-3">
-              {/* SVG Phone Icon instead of image */}
-              <div className="w-full flex justify-center mb-2">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-                </svg>
-              </div>
-              <h2 className=" text-xl  md:text-2xl font-semibold mb-2 text-gray-900 w-full text-center">Enter your phone number</h2>
-              <p className="text-gray-600 mb-6 w-full text-center">We'll send you a text with a verification code.</p>
-              <div className="flex mb-2 md:mb-4 w-full">
-                <div className="flex items-center px-4 bg-gray-100 rounded-l-lg border border-gray-300 border-r-0">
-                  <span className="text-gray-600">+91</span>
-                </div>
-                <input
-                  type="tel"
-                  placeholder="Enter your phone number"
-                  className={`flex-1 p-3 border rounded-r-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 ${phoneError ? 'border-red-500' : 'border-gray-300'}`}
-                  value={phoneNumber}
-                  onChange={handlePhoneChange}
-                  maxLength={10}
-                  name='mobile'
-                  id='mobile'
-                />
-              </div>
-
-              {phoneError && (
-                <p className="text-red-500 text-sm mt-1 w-full">{phoneError}</p>
-              )}
-
-              <button
-                onClick={handlePhoneSubmit}
-                className={`w-full py-3 rounded-lg font-medium mt-4 transition ${isPhoneValid && !otpLoader
-                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                  : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                  }`}
-                disabled={!isPhoneValid || otpLoader}
-              >
-                {otpLoader ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sending OTP...
+                <form
+                  className="mt-6 text-left"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    sendOtp();
+                  }}
+                >
+                  <label htmlFor="login-mobile" className="mb-1.5 block text-sm font-medium text-[var(--ink-soft)]">
+                    Mobile number
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center rounded-l-xl border border-r-0 border-[var(--line-strong)] bg-purple-50 px-3.5 text-sm font-semibold text-[var(--ink-soft)]">+91</span>
+                    <input
+                      id="login-mobile"
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      autoFocus
+                      placeholder="10-digit mobile number"
+                      className={`w-full rounded-r-xl border bg-white px-3.5 py-3 text-[16px] tracking-wide text-[var(--ink)] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200 ${phoneError ? "border-red-400" : "border-[var(--line-strong)]"}`}
+                      value={phoneNumber}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10));
+                        setPhoneError("");
+                      }}
+                      maxLength={10}
+                      name="mobile"
+                    />
                   </div>
-                ) : (
-                  'Continue'
-                )}
-              </button>
-
-              <div className="w-full text-center mt-4 contactStyle">
-                <span className='text-gray-400'>By continuing, you agree to our <a href="/terms-and-conditions" className="text-gray-600 font-bold">T&C</a> and <a href="/privacy-and-policy" className="text-gray-600 font-bold">Privacy policy</a>.</span>
-              </div>
-            </div>
-          )}
-
-          {/* OTP Verification Modal */}
-          {showOtpModal && (
-            <div className="text-center">
-              <div className='flex items-center justify-center mb-4'>
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-semibold mb-2 text-gray-900">Enter verification code</h2>
-              <p className="text-gray-600 mb-6">A 4-digit verification code has been sent to +91 {phoneNumber}</p>
-
-              <div className="flex justify-center gap-2 mb-6">
-
-                {otpDigits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={el => otpInputRefs.current[index] = el}
-                    type='text'  // Changed from 'number' to 'text'
-                    maxLength="1"
-                    pattern="[0-9]"  // Only allow digits
-                    inputMode="numeric"  // Show numeric keypad on mobile
-                    className="w-12 h-12 text-center border border-gray-300 rounded-md text-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                  />
-                ))}
-              </div>
-
-              <div className="mb-2 md:mb-6 flex items-center gap-1.5 ">
-                <span className='text-gray-400'>Resend the code on</span>
-                <div className='flex items-center gap-2.5 justify-center mt-2'>
+                  {phoneError && <p className="mt-1.5 text-sm text-red-600">{phoneError}</p>}
 
                   <button
-                    className={`px-4 py-2 rounded-md transition ${activeButton === 'sms' ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'}`}
-                    onClick={() => handleResendCode('sms')}
+                    type="submit"
+                    disabled={!isPhoneValid || otpLoader || cooldown > 0}
+                    className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[15px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
                   >
-                    SMS
+                    {otpLoader ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+                    {otpLoader ? "Sending OTP…" : cooldown > 0 ? `Send OTP in ${cooldown}s` : "Send OTP"}
                   </button>
+                </form>
+
+                <p className="mt-4 text-xs text-[var(--muted)]">
+                  By continuing you agree to our{" "}
+                  <a href="/terms-and-conditions" className="font-semibold text-[var(--ink-soft)] underline">
+                    Terms
+                  </a>{" "}
+                  and{" "}
+                  <a href="/privacy-and-policy" className="font-semibold text-[var(--ink-soft)] underline">
+                    Privacy policy
+                  </a>
+                  .
+                </p>
+              </div>
+            )}
+
+            {showOtpModal && (
+              <div className="text-center">
+                <span className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-[0_10px_22px_-10px_rgba(18,147,77,.7)]">
+                  <ShieldCheck className="h-7 w-7" aria-hidden="true" />
+                </span>
+                <h2 className="text-xl font-bold text-[var(--ink)] sm:text-2xl">Enter the OTP</h2>
+                <p className="mt-1.5 text-sm text-[var(--muted)]">
+                  Sent by SMS to <b className="text-[var(--ink-soft)]">+91 {phoneNumber}</b>{" "}
+                  <button
+                    type="button"
+                    className="font-semibold text-purple-700 underline"
+                    onClick={() => {
+                      setShowOtpModal(false);
+                      setShowModal(true);
+                    }}
+                  >
+                    Change
+                  </button>
+                </p>
+
+                <div className="mt-6 flex justify-center gap-3">
+                  {otpDigits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (otpInputRefs.current[index] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete={index === 0 ? "one-time-code" : "off"}
+                      autoFocus={index === 0}
+                      maxLength={4}
+                      aria-label={`OTP digit ${index + 1}`}
+                      className="h-14 w-12 rounded-xl border border-[var(--line-strong)] bg-white text-center text-2xl font-bold text-[var(--ink)] outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-200 sm:w-14"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(index, e)}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleVerification}
+                  disabled={verifying || otpDigits.join("").length !== 4}
+                  className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[15px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                >
+                  {verifying ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4" aria-hidden="true" />}
+                  {verifying ? "Verifying…" : "Verify & continue"}
+                </button>
+
+                <div className="mt-4 text-sm text-[var(--muted)]">
+                  {resendsLeft <= 0 ? (
+                    <span>Resend limit reached. Please try again in a few minutes.</span>
+                  ) : cooldown > 0 ? (
+                    <span>
+                      Didn&apos;t get it? Resend in <b className="tabular-nums text-[var(--ink-soft)]">{cooldown}s</b>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => sendOtp({ resend: true })}
+                      disabled={otpLoader}
+                      className="inline-flex items-center gap-1.5 font-semibold text-purple-700 hover:underline disabled:opacity-50"
+                    >
+                      {otpLoader ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> : <RotateCw className="h-3.5 w-3.5" aria-hidden="true" />}
+                      Resend OTP
+                      <span className="font-normal text-[var(--muted)]">
+                        ({resendsLeft} left)
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
-
-              <button
-                className="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700"
-                onClick={handleVerification}
-              >
-                Verify
-              </button>
-            </div>
-          )}
-        </Box>
-      </Modal>
-
-      {/* Basic Details Modal */}
-      {openBasic && (
-        <BasicDetails
-          setOpen={setOpenBasic}
-          open={openBasic}
-          phoneNumber={phoneNumber}
-          onSubmitDetails={handleBasicDetails}
-        />
-      )}
-
-      {/* Congrats Modal */}
-      {showCongrats && (
-        <CongratsModal
-          setShowCongrats={setShowCongrats}
-          open={showCongrats}
-        />
-      )}
-
-      {/* Toast Notification */}
-      {showToast && (
-        <div className="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-300">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span>{toastMessage}</span>
+            )}
           </div>
         </div>
       )}
+
+      {openBasic && <BasicDetails setOpen={setOpenBasic} open={openBasic} phoneNumber={phoneNumber} onSubmitDetails={handleBasicDetails} />}
+      {showCongrats && <CongratsModal setShowCongrats={setShowCongrats} open={showCongrats} />}
     </div>
   );
 };
