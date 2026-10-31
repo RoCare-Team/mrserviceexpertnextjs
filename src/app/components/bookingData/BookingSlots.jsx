@@ -6,6 +6,27 @@ import { toast } from "react-toastify";
 import AdressModal from "../modals/AdressModal";
 import TimeSlotModal from "../modals/TimeSlotModal";
 
+// Defined at module level on purpose: an inline component would get a new
+// identity on every render and remount its children (and the modals inside
+// them) each time the checkout refreshes.
+const Step = ({ n, icon: Icon, title, done, children, disabled }) => (
+  <li className={`relative flex gap-3 ${disabled ? "opacity-50" : ""}`}>
+    <span
+      className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ring-4 ring-white ${
+        done ? "bg-emerald-500 text-white" : "bg-purple-100 text-purple-800"
+      }`}
+    >
+      {done ? <Check className="h-4 w-4" aria-hidden="true" /> : n}
+    </span>
+    <div className="min-w-0 flex-1 pb-5">
+      <p className="flex items-center gap-1.5 text-[14px] font-bold text-[var(--ink)]">
+        <Icon className="h-4 w-4 text-purple-600" aria-hidden="true" /> {title}
+      </p>
+      <div className="mt-1.5">{children}</div>
+    </div>
+  </li>
+);
+
 /**
  * Booking details for the checkout: who (from the login), where (address
  * modal) and when (time-slot modal). Selections are kept in localStorage
@@ -83,24 +104,6 @@ export default function BookingSlots({ phoneNumber, bookingSlotsKey }) {
     if (typeof d === "object") return [d.houseNo, d.city, d.state, d.pincode].filter(Boolean).join(", ");
     return d;
   };
-
-  const Step = ({ n, icon: Icon, title, done, children, disabled }) => (
-    <li className={`relative flex gap-3 ${disabled ? "opacity-50" : ""}`}>
-      <span
-        className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ring-4 ring-white ${
-          done ? "bg-emerald-500 text-white" : "bg-purple-100 text-purple-800"
-        }`}
-      >
-        {done ? <Check className="h-4 w-4" aria-hidden="true" /> : n}
-      </span>
-      <div className="min-w-0 flex-1 pb-5">
-        <p className="flex items-center gap-1.5 text-[14px] font-bold text-[var(--ink)]">
-          <Icon className="h-4 w-4 text-purple-600" aria-hidden="true" /> {title}
-        </p>
-        <div className="mt-1.5">{children}</div>
-      </div>
-    </li>
-  );
 
   const editBtn = "inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-[var(--line-strong)] bg-white px-3 text-[13px] font-semibold text-[var(--ink-soft)] hover:bg-purple-50";
   const primaryBtn = "inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-purple-600 px-4 text-[13.5px] font-semibold text-white hover:bg-purple-700";

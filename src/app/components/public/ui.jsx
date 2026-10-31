@@ -348,9 +348,9 @@ export function ServiceHero({ crumbs = [], eyebrow, title, subtitle, image, imag
 /** 2/3 + 1/3 layout for service pages; the aside sticks on desktop. */
 export function TwoThirds({ main, aside, className = "" }) {
   return (
-    <div className={`grid gap-6 lg:grid-cols-3 lg:items-start ${className}`}>
-      <div className="min-w-0 lg:col-span-2">{main}</div>
-      <aside className="pub-sticky min-w-0 lg:col-span-1">{aside}</aside>
+    <div className={`grid gap-6 lg:grid-cols-5 lg:items-start ${className}`}>
+      <div className="min-w-0 lg:col-span-3">{main}</div>
+      <aside className="pub-sticky min-w-0 lg:col-span-2">{aside}</aside>
     </div>
   );
 }

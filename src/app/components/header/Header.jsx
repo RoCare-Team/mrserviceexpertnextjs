@@ -12,8 +12,6 @@ import {
   ChevronDown,
   Home,
   LayoutGrid,
-  BookOpen,
-  MapPin,
   Users,
   LogIn,
   LogOut,
@@ -30,6 +28,16 @@ import { HOME_CARE_SERVICES, HANDYMAN_SERVICES } from "@/lib/homeCare";
 
 const PHONE = "+919311587715";
 const PHONE_DISPLAY = "+91 93115 87715";
+const WHATSAPP = "https://wa.me/919311587715?text=Hi%2C%20I%20need%20help%20with%20a%20service%20booking";
+
+/** WhatsApp brand mark (lucide has no brand icons). */
+function WhatsAppIcon({ className = "h-4 w-4" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.87 9.87 0 0 0 4.79 1.22c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2m0 18.15c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 4.54 0 8.24 3.7 8.24 8.24 0 4.54-3.69 8.24-8.23 8.24m4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.1-.22-.16-.47-.28" />
+    </svg>
+  );
+}
 
 const APPLIANCES = [
   { name: "RO Water Purifier", url: "ro-water-purifier" },
@@ -50,15 +58,10 @@ const SERVICE_GROUPS = [
   { label: "Handyman", icon: Hammer, items: HANDYMAN_SERVICES },
 ];
 
-const NAV = [
-  { label: "Blogs", href: "/blogs", icon: BookOpen },
-  { label: "Store locator", href: "/store-locator", icon: MapPin },
-];
-
 const COMPLAINTS_API = "https://waterpurifierservicecenter.in/customer/ro_customer/all_complaints.php";
 
 /**
- * Site header: logo, Services menu, Blogs, Store locator, Join as partner,
+ * Site header: logo, Services menu, Join as partner, call + WhatsApp,
  * search, call button, cart and account. On phones: logo + call + menu
  * drawer, plus the fixed bottom bar (Home / Services / Cart / Account).
  */
@@ -168,7 +171,7 @@ export default function Header() {
 
   const isActive = (href) => (href === "/" ? pathname === "/" : pathname?.startsWith(href));
   const linkCls = (on) =>
-    `inline-flex h-10 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-[14px] font-semibold transition ${on ? "bg-purple-50 text-purple-800" : "text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800"}`;
+    `inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-[14px] font-semibold transition ${on ? "bg-purple-50 text-purple-800" : "text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800"}`;
 
   const AccountItem = ({ href, onClick, icon: Icon, children, danger }) => {
     const cls = `flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[14px] font-medium ${danger ? "text-red-600 hover:bg-red-50" : "text-[var(--ink)] hover:bg-purple-50"}`;
@@ -194,7 +197,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav aria-label="Main" className="hidden items-center gap-0.5 lg:flex">
+          <nav aria-label="Main" className="ml-2 hidden items-center gap-1.5 lg:flex xl:ml-6">
             <div ref={servicesRef} className="relative">
               <button
                 type="button"
@@ -229,11 +232,6 @@ export default function Header() {
                 </div>
               )}
             </div>
-            {NAV.map((n) => (
-              <Link key={n.href} href={n.href} className={linkCls(isActive(n.href))}>
-                <n.icon className="h-4 w-4" aria-hidden="true" /> {n.label}
-              </Link>
-            ))}
             <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} !text-purple-700`}>
               <Users className="h-4 w-4" aria-hidden="true" /> Join as partner
             </Link>
@@ -241,7 +239,7 @@ export default function Header() {
 
           {/* Right cluster */}
           <div className="ml-auto flex items-center gap-2">
-            <SearchBar className="hidden w-56 md:block xl:w-72" />
+            <SearchBar className="hidden w-56 md:block lg:w-48 xl:w-80" />
             <a
               href={`tel:${PHONE}`}
               title={`Call ${PHONE_DISPLAY}`}
@@ -250,6 +248,16 @@ export default function Header() {
               <Phone className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">{PHONE_DISPLAY}</span>
               <span className="sm:hidden">Call</span>
+            </a>
+            <a
+              href={WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Chat on WhatsApp"
+              aria-label="Chat on WhatsApp"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_18px_-8px_rgba(37,211,102,.9)] transition hover:brightness-105 max-sm:hidden"
+            >
+              <WhatsAppIcon className="h-5 w-5" />
             </a>
             <Link href="/checkout" title="Cart" className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800 md:inline-flex">
               <ShoppingCart className="h-5 w-5" aria-hidden="true" />
@@ -330,13 +338,6 @@ export default function Header() {
                     <Home className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> Home
                   </Link>
                 </li>
-                {NAV.map((n) => (
-                  <li key={n.href}>
-                    <Link href={n.href} className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
-                      <n.icon className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> {n.label}
-                    </Link>
-                  </li>
-                ))}
               </ul>
               {SERVICE_GROUPS.map((g) => (
                 <details key={g.label} className="pub-details group border-t border-[var(--line)]" open={g.label === "Appliance repair"}>
@@ -372,9 +373,12 @@ export default function Header() {
                 )}
               </div>
             </div>
-            <div className="border-t border-[var(--line)] p-4">
-              <a href={`tel:${PHONE}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[15px] font-semibold text-white shadow-[var(--shadow-cta)]">
-                <Phone className="h-4 w-4" aria-hidden="true" /> {PHONE_DISPLAY}
+            <div className="grid grid-cols-2 gap-2 border-t border-[var(--line)] p-4">
+              <a href={`tel:${PHONE}`} className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] text-[14px] font-semibold text-white shadow-[var(--shadow-cta)]">
+                <Phone className="h-4 w-4" aria-hidden="true" /> Call us
+              </a>
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] text-[14px] font-semibold text-white shadow-[0_8px_18px_-8px_rgba(37,211,102,.9)]">
+                <WhatsAppIcon className="h-4 w-4" /> WhatsApp
               </a>
             </div>
           </div>

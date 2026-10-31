@@ -44,7 +44,12 @@ export default function CheckOut() {
     const address = localStorage.getItem("bookingAddress");
     const timeSlot = localStorage.getItem("bookingTimeSlot");
     const addressId = localStorage.getItem("address_id");
-    setBookingData({ address, timeSlot: timeSlot ? JSON.parse(timeSlot) : null, addressId });
+    // Bail out when nothing changed so the 1s poll does not re-render the page
+    // (and the booking modals inside it) every tick.
+    setBookingData((prev) => {
+      const next = { address, timeSlot: timeSlot ? JSON.parse(timeSlot) : null, addressId };
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
+    });
     setBookingCompleted(!!(address && timeSlot && addressId));
   }, []);
 
@@ -268,9 +273,9 @@ export default function CheckOut() {
             </div>
           </div>
         ) : (
-          <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
             {/* ---------- Order ---------- */}
-            <div className="min-w-0 lg:col-span-2">
+            <div className="min-w-0">
               <div className="flex flex-col gap-4">
                 {groups.map((g) => (
                   <section key={g.category_cart_id} className="rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow-sm)]" aria-labelledby={`cat-${g.category_cart_id}`}>
@@ -332,7 +337,7 @@ export default function CheckOut() {
             </div>
 
             {/* ---------- Sidebar ---------- */}
-            <aside className="pub-sticky min-w-0 lg:col-span-1">
+            <aside className="pub-sticky min-w-0">
               <div className="flex flex-col gap-4">
                 {!isLoggedIn ? (
                   <section className="rounded-2xl border border-[var(--line)] bg-white p-5 text-center shadow-[var(--shadow-sm)]">
