@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2, Check, MapPin, Plus, ChevronLeft } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import CustomerOtp from "./CustomerOtp";
@@ -210,8 +211,11 @@ export default function BookPartnerModal({ partner, categories, defaultCategory,
   const fe = err?.fields || {};
   const step = phase === "service" ? 1 : phase === "details" ? 2 : 0;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+  // Portal to <body>: the button lives inside the sticky sidebar, which is its
+  // own stacking context, so a nested fixed overlay would sit under the sticky
+  // service tabs and the sidebar cards.
+  return createPortal(
+    <div className="fixed inset-0 z-[1250] flex items-end justify-center bg-black/50 sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div role="dialog" aria-modal="true" aria-labelledby="book-title" className="flex max-h-[88vh] w-full max-w-lg flex-col rounded-t-3xl bg-white shadow-xl sm:rounded-3xl">
         {/* Header */}
         <div className="flex items-start gap-3 border-b border-[var(--line)] px-5 py-3.5">
@@ -406,6 +410,7 @@ export default function BookPartnerModal({ partner, categories, defaultCategory,
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -5,6 +5,9 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { inputCls, labelCls, btnPrimary, FieldError } from "./ui";
 
+const RESEND_COOLDOWN = 30;
+const MAX_RESENDS = 3;
+
 /**
  * Name + mobile → OTP → server-verified session. Used by the registration
  * wizard (askName) and the partner login page (no name).
@@ -18,8 +21,10 @@ export default function OtpSignIn({ askName = true, onVerified, submitLabel = "V
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [resendsLeft, setResendsLeft] = useState(MAX_RESENDS);
   const [otpLength, setOtpLength] = useState(4);
   const otpRef = useRef(null);
+  const sendingRef = useRef(false);
 
   useEffect(() => {
     if (!cooldown) return;
@@ -37,19 +42,25 @@ export default function OtpSignIn({ askName = true, onVerified, submitLabel = "V
 
   const send = async () => {
     if (!validate()) return;
+    // One request at a time, never inside the cooldown, at most MAX_RESENDS resends.
+    if (sendingRef.current || cooldown > 0 || (sent && resendsLeft <= 0)) return;
+    sendingRef.current = true;
     setBusy(true);
     setMessage("");
     const r = await partnerApi("/api/partner-auth/send-otp", { method: "POST", body: { mobile } });
     setBusy(false);
+    sendingRef.current = false;
     if (!r.ok) {
       if (r.error.fields?.retryAfter) setCooldown(r.error.fields.retryAfter);
+      if (r.error.fields?.resendsLeft === 0) setResendsLeft(0);
       setMessage(r.error.message);
       return;
     }
     setSent(true);
     setOtp("");
     setOtpLength(r.data.length || 4);
-    setCooldown(r.data.resendAfter || 60);
+    setCooldown(r.data.resendAfter || RESEND_COOLDOWN);
+    setResendsLeft(typeof r.data.resendsLeft === "number" ? r.data.resendsLeft : (n) => Math.max(0, n - 1));
     setTimeout(() => otpRef.current?.focus(), 50);
   };
 
@@ -129,8 +140,8 @@ export default function OtpSignIn({ askName = true, onVerified, submitLabel = "V
           />
           <FieldError msg={errors.otp} />
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
-            <button type="button" className="text-purple-700 underline disabled:text-gray-400 disabled:no-underline" disabled={cooldown > 0 || busy} onClick={send}>
-              {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Resend OTP"}
+            <button type="button" className="text-purple-700 underline disabled:text-gray-400 disabled:no-underline" disabled={cooldown > 0 || busy || resendsLeft <= 0} onClick={send}>
+              {resendsLeft <= 0 ? "Resend limit reached" : cooldown > 0 ? `Resend OTP in ${cooldown}s` : `Resend OTP (${resendsLeft} left)`}
             </button>
             <button type="button" className="text-[var(--muted)] underline" onClick={() => { setSent(false); setOtp(""); setMessage(""); }}>
               Change number

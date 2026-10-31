@@ -15,9 +15,11 @@ const DEFAULT_VERIFY_URL =
   "https://waterpurifierservicecenter.in/customer/ro_customer/service_otp_verify.php";
 
 export const OTP_LENGTH = 4;
-const RESEND_COOLDOWN_SEC = 60;
+export const RESEND_COOLDOWN_SEC = 30;
+export const MAX_RESENDS = 3; // first send + 3 resends per number per window
+const RESEND_WINDOW_MIN = 10;
 const EXPIRY_MIN = 10;
-const MAX_SENDS_PER_HOUR_MOBILE = 5;
+const MAX_SENDS_PER_HOUR_MOBILE = 8;
 const MAX_SENDS_PER_HOUR_IP = 15;
 const MAX_ATTEMPTS = 5;
 const SOURCE = "mrserviceexpert website";
@@ -47,11 +49,12 @@ export async function sendPartnerOtp(mobile, ip) {
   const [[stats]] = await db.query(
     `SELECT
         SUM(mobile = ? AND created_at > NOW() - INTERVAL 1 HOUR) AS mobile_hour,
+        SUM(mobile = ? AND created_at > NOW() - INTERVAL ${RESEND_WINDOW_MIN} MINUTE) AS mobile_window,
         SUM(ip = ? AND created_at > NOW() - INTERVAL 1 HOUR) AS ip_hour,
         MIN(CASE WHEN mobile = ? THEN TIMESTAMPDIFF(SECOND, created_at, NOW()) END) AS since_last
        FROM partner_otp_challenges
       WHERE (mobile = ? OR ip = ?) AND created_at > NOW() - INTERVAL 1 HOUR`,
-    [mobile, ip, mobile, mobile, ip]
+    [mobile, mobile, ip, mobile, mobile, ip]
   );
 
   const sinceLast = stats.since_last === null ? null : Number(stats.since_last);
@@ -59,6 +62,11 @@ export async function sendPartnerOtp(mobile, ip) {
     throw new HttpError(429, "otp_cooldown", `Please wait ${RESEND_COOLDOWN_SEC - sinceLast}s before requesting a new OTP.`, {
       retryAfter: RESEND_COOLDOWN_SEC - sinceLast,
     });
+  }
+  // One OTP + MAX_RESENDS resends per number in a window; then wait it out.
+  const inWindow = Number(stats.mobile_window || 0);
+  if (inWindow > MAX_RESENDS) {
+    throw new HttpError(429, "otp_limit", `OTP resend limit reached. Please try again after ${RESEND_WINDOW_MIN} minutes.`, { resendsLeft: 0 });
   }
   if (Number(stats.mobile_hour || 0) >= MAX_SENDS_PER_HOUR_MOBILE || Number(stats.ip_hour || 0) >= MAX_SENDS_PER_HOUR_IP) {
     throw new HttpError(429, "otp_limit", "Too many OTP requests. Please try again after an hour.");
@@ -82,7 +90,7 @@ export async function sendPartnerOtp(mobile, ip) {
     throw new HttpError(502, "otp_send_failed", "Could not send the OTP. Please check the number and try again.");
   }
 
-  return { resendAfter: RESEND_COOLDOWN_SEC, expiresInMin: EXPIRY_MIN, length: OTP_LENGTH };
+  return { resendAfter: RESEND_COOLDOWN_SEC, resendsLeft: Math.max(0, MAX_RESENDS - inWindow), expiresInMin: EXPIRY_MIN, length: OTP_LENGTH };
 }
 
 /** Resolves to the provider response only after it confirms the code

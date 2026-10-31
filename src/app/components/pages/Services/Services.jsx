@@ -1,270 +1,134 @@
-"use client"
-import React, { useEffect, useState } from "react";
+"use client";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
-import PhoneVerification from "../../PhoneVerification/PhoneVerification";
-import { toast } from "react-toastify";
+import React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { Star, ArrowRight, Check } from "lucide-react";
 
-const serviceCategories = [
-    { id: "water-purifier", name: "RO Water Purifier", showImage: true },
-    { id: "ac", name: "Air Conditioner", showImage: true },
-    { id: "washing-machine", name: "Washing Machine", showImage: true },
-    { id: "gyeser", name: "Geyser", showImage: true },
-    { id: "microwav-repair", name: "Microwave", showImage: true },
-    { id: "refrigerator", name: 'Refrigerator', showImage: true },
-    { id: "led-tv-repair", name: "LED TV", showImage: true },
-    { id: "vaccum-cleaner", name: "Vacuum Cleaner", showImage: true },
-    { id: "kitchen-chimney", name: "Kitchen Chimney", showImage: true },
-    { id: "air-purifier", name: "Air Purifier", showImage: true },
+/**
+ * City landing page: one card per appliance category, linking to the city's
+ * category page where the bookable services live. Section ids match the
+ * jump chips in pages/Services/AllServices.jsx.
+ */
+const SERVICES = [
+  {
+    id: "water-purifier",
+    name: "RO Water Purifier",
+    image: "/assets/serviceTabIcons/ro repair service.webp",
+    link: "ro-water-purifier",
+    briefInfo: ["Cleaning of machine and filters", "Complete water purifier check-up", "AMC plans covering filters and membrane", "Service within 24 hours"],
+  },
+  {
+    id: "ac",
+    name: "Air Conditioner",
+    image: "/assets/serviceTabIcons/ac repair and service.webp",
+    link: "ac",
+    briefInfo: ["Complete AC check-up incl. gas level", "Foam and jet-spray cleaning of coils and filters", "Installation, uninstallation and gas refill", "10-day warranty after service"],
+  },
+  {
+    id: "washing-machine",
+    name: "Washing Machine",
+    image: "/assets/serviceTabIcons/washing machine repair and service.webp",
+    link: "washing-machine-repair",
+    briefInfo: ["Top-load, front-load and semi-automatic", "Visit fee adjusted in the repair quote", "Installation and uninstallation", "Service within 24 hours"],
+  },
+  {
+    id: "refrigerator",
+    name: "Refrigerator",
+    image: "/assets/serviceTabIcons/refrigerator repair service.webp",
+    link: "refrigerator-repair",
+    briefInfo: ["Single, double and side-by-side door", "Cooling, gas and compressor issues", "Visit fee adjusted in the repair quote", "Service within 24 hours"],
+  },
+  {
+    id: "gyeser",
+    name: "Geyser",
+    image: "/assets/serviceTabIcons/geyser repair service.webp",
+    link: "geyser-repair",
+    briefInfo: ["Instant and storage geysers", "Descaling and element replacement", "Installation and uninstallation", "Service within 24 hours"],
+  },
+  {
+    id: "microwav-repair",
+    name: "Microwave",
+    image: "/assets/serviceTabIcons/microwave installation.webp",
+    link: "microwav-repair",
+    briefInfo: ["Not heating or not working", "Buttons and noise issues", "Solo, grill and convection models", "Service within 24 hours"],
+  },
+  {
+    id: "kitchen-chimney",
+    name: "Kitchen Chimney",
+    image: "/assets/serviceTabIcons/kitchen chimney installaiton.webp",
+    link: "kitchen-chimney-repair",
+    briefInfo: ["Filter and duct cleaning", "Motor and suction repair", "Installation and uninstallation", "Service within 24 hours"],
+  },
+  {
+    id: "led-tv-repair",
+    name: "LED / Smart TV",
+    image: "/assets/serviceTabIcons/led tv reapair.webp",
+    link: "led-tv-repair",
+    briefInfo: ["No display, flicker or sound issues", "Smart TV maintenance", "Wall installation and uninstallation", "Service within 24 hours"],
+  },
+  {
+    id: "vaccum-cleaner",
+    name: "Vacuum Cleaner",
+    image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp",
+    link: "vacuum-cleaner-repair",
+    briefInfo: ["Low suction and motor faults", "Diagnostic service", "All leading brands", "Service within 24 hours"],
+  },
+  {
+    id: "air-purifier",
+    name: "Air Purifier",
+    image: "/assets/serviceTabIcons/air purifier repair service.webp",
+    link: "air-purifier-repair",
+    briefInfo: ["Filter cleaning and replacement", "Fan and motor repair", "Complete check-up", "Service within 24 hours"],
+  },
 ];
 
-const Services = () => {
-
-    const [showModal, setShowModal] = useState(false);
-    const { city } = useParams();
-
-    // const [city_name,setCity]
-    const services = [
-
-        {
-            id: 1,
-            name: " Ro Water Purifier",
-            category: "water-purifier",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/ro repair service.webp",
-            link: 'ro-water-purifier',
-            briefInfo: [
-                "Cleaning of Machine and Filters",
-                "Complete Water Purifier Checkup",
-                "Price include visit & diagnosis charges",
-                "Filter / Spare Parts Rate applicable as per rate card",
-                "Annual maintenance plan for your RO covering routine services, filters and membrane.",
-                "Include (service, repair, filter, membrane, electric part)",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 2,
-            name: "Vaccum Cleaner",
-            category: "vaccum-cleaner",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/vaccum cleaner repair service.webp",
-            link: 'vacuum-cleaner-repair',
-            briefInfo: [
-                "Vacuum Cleaner Repair & Maintenance",
-                "Vacuum Cleaner Diagnostic Service",
-                "Vacuum Cleaning Machine Servicing",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 3,
-            name: "Air Conditioner",
-            category: "ac",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/ac repair and service.webp",
-            link: 'ac',
-            briefInfo: [
-                "Pre-service checks",
-                "Complete AC check-up, including cooling gas level check",
-                "Indoor unit cleaning",
-                "Foam & jet spray cleaning of filters, coils, fins & tray. AC is covered to prevent spillage.",
-                "Outdoor unit cleaning",
-                "The outer unit is dismantled & cleaned with a jet spray (if easily accessible)",
-                "Warranty activation",
-                "AC gets 10 days warranty automatically after service",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 4,
-            name: "Gyeser",
-            category: "gyeser",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/geyser repair service.webp",
-            link: 'geyser-repair',
-            briefInfo: [
-                "Visitation fee will be adjusted in the final repair quote",
-                "Geyser check-up",
-                "Exterior & interior cleaning with descaling of the geyser",
-                "We do not service gas geysers",
-                "Geyser Installation",
-                "Geyser unInstallation",
-                "Service Within 24 Hour",
-            ]
-        },
-        {
-            id: 5,
-            name: "Washing Machine",
-            category: "washing-machine",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/washing machine repair and service.webp",
-            link: 'washing-machine-repair',
-            briefInfo: [
-                "Automatic top load machine check-up",
-                "Visitation fee will be adjusted in the final repair quote",
-                "automatic top load machine check-up",
-                "Semi-automatic machine check-up",
-                "Installation & uninstallation",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 6,
-            name: "Refrigerator",
-            category: "refrigerator",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/refrigerator repair service.webp",
-            link: 'refrigerator-repair',
-            briefInfo: [
-                "Single door refrigerator check-up",
-                "Double door refrigerator check-up (inverter)",
-                "Double door refrigerator check-up (non-inverter)",
-                "Side-by-side door refrigerator check-up",
-                "Visitation fee will be adjusted in the final repair quote",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 7,
-            name: "Kitchen Chimney",
-            category: "kitchen-chimney",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/kitchen chimney installaiton.webp",
-            link: 'kitchen-chimney-repair',
-            briefInfo: [
-                "Kitchen chimney check-up",
-                "Filter & duct cleaning",
-                "Motor & suction repair",
-                "Installation & uninstallation",
-                "Service Within 24 Hour"
-            ]
-        }
-        ,
-        {
-            id: 8,
-            name: "Microwave",
-            category: "microwav-repair",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/microwave installation.webp",
-            link: 'microwav-repair',
-            briefInfo: [
-                "Not heating",
-                "Not working",
-                "Buttons not working",
-                "Noise issue",
-                "Service Within 24 Hour"
-            ]
-        }, {
-            id: 9,
-            name: "Led",
-            category: "led-tv-repair",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/led tv reapair.webp",
-            link: 'led-tv-repair',
-            briefInfo: [
-                "Television Service Evaluation",
-                "TV Performance Check",
-                "TV Repair Check",
-                "Smart TV Maintenance",
-                "TV installation",
-                "TV uninstallation",
-                "Service Within 24 Hour"
-            ]
-        },
-        {
-            id: 10,
-            name: "Air Purifier",
-            category: "air-purifier",
-            reviews: 52,
-            rating: 4.77,
-            image: "/assets/serviceTabIcons/air purifier repair service.webp",
-            link: 'air-purifier-repair',
-            briefInfo: [
-                "Air purifier check-up",
-                "Filter cleaning & replacement",
-                "Fan & motor repair",
-                "Service Within 24 Hour"
-            ]
-        }
-    ];
-
-
-    return (
-        <div className="services-list">
-
-            {serviceCategories.map(({ id, title, showImage }) => {
-                const filteredServices = services.filter((s) => s.category === id);
-
-
-                if (filteredServices.length === 0) return null;
-
-                return (
-                    <div key={id} id={id} className="common-service-style ">
-                        {/* <h1>{title}</h1> */}
-                        {filteredServices.map((service) => {
-                            return (
-                                // servicePortionDetails
-                                <div className=" flex-col " key={service.id}>
-                                    <div className="flex serviceWiseContainer">
-                                        <div className="serviceDetails">
-
-                                            <h3 className="serviceVarities"><b>{service.name}</b></h3>
-                                            <div>
-                                                <span className="serviceReview">
-                                                    <FontAwesomeIcon icon={faStar} /> {service.rating} ({service.reviews}k reviews)
-                                                </span>
-                                                <div className="dashedLine"></div>
-                                            </div>
-                                        </div>
-                                        <div className="serviceImgContainer">
-                                            {showImage && service.image && (
-                                                <div className="serviceDetailsImg mb-0.5">
-                                                    <img src={service.image} alt={service.name} height={72} width={72} />
-                                                </div>
-                                            )}
-                                            <div className=" ">
-                                                <Link href={`/${city}/${service.link}`}>
-                                                    <button className="bg-violet-300 px-2 py-1.5">
-                                                        View
-                                                    </button>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <ul className="briefInfo2 list-disc ml-5">
-                                        {Array.isArray(service.briefInfo) ? (
-                                            service.briefInfo.map((point, index) => (
-                                                <li key={index}>{point}</li>
-                                            ))
-                                        ) : (
-                                            <li>{service.briefInfo}</li>
-                                        )}
-                                    </ul>
-
-                                </div>
-                            );
-                        })}
-                        <hr className="my-2 border-gray-300" />
-                    </div>
-                );
-            })}
-            <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
-
-        </div>
-    );
-};
-
-export default Services;
+export default function Services() {
+  const { city } = useParams();
+  return (
+    <section id="services" className="scroll-mt-28" aria-labelledby="city-services-h">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+        <h2 id="city-services-h" className="text-lg font-bold text-[var(--ink)] sm:text-xl">
+          Appliance repair and services
+        </h2>
+        <span className="text-xs font-medium text-[var(--muted)]">Pick an appliance to see prices and book</span>
+      </div>
+      <ul className="grid gap-3 sm:grid-cols-2">
+        {SERVICES.map((s) => (
+          <li key={s.id} id={s.id} className="scroll-mt-36">
+            <Link
+              href={`/${city}/${s.link}`}
+              title={`${s.name} service in ${city}`}
+              className="group flex h-full flex-col rounded-2xl border border-[var(--line)] bg-white p-4 shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:border-purple-300 hover:shadow-[var(--shadow-md)]"
+            >
+              <div className="flex items-center gap-3.5">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-soft)]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.image} alt={s.name} width={64} height={64} loading="lazy" className="h-full w-full object-cover" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[15px] font-bold text-[var(--ink)] group-hover:text-purple-800">{s.name}</h3>
+                  <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-[var(--muted)]">
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
+                    <b className="text-[var(--ink-soft)]">4.7</b> (50K+ reviews)
+                  </p>
+                </div>
+              </div>
+              <ul className="mt-3 flex flex-col gap-1.5 text-[13px] text-[var(--body-text)]">
+                {s.briefInfo.map((b) => (
+                  <li key={b} className="flex items-start gap-1.5">
+                    <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600" aria-hidden="true" />
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+              <span className="mt-auto inline-flex items-center gap-1 pt-3 text-[13px] font-semibold text-purple-700">
+                View services and prices <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" aria-hidden="true" />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}

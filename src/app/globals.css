@@ -2876,3 +2876,237 @@ hr {
   flex-direction: column;
   gap: 6px;
 }
+
+/* ============================================================
+   PUBLIC PAGES v3 — shared layout + long-form content primitives
+   Used by the home, city, category, city+category and
+   city+brand+category pages (components/public/*).
+   ============================================================ */
+.pub-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 640px) {
+  .pub-container {
+    padding-inline: 24px;
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sticky right column on service pages (cart + partners). Stays inside the
+   viewport and scrolls internally when it is taller than the screen. */
+@media (min-width: 1024px) {
+  .pub-sticky {
+    position: sticky;
+    top: 84px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+    padding-right: 2px;
+  }
+}
+
+/* Long-form HTML copy (DB page_content, AI copy, about blocks). Left-aligned,
+   readable, consistent — replaces the centered .serviceContentStyle look. */
+.prose-site {
+  color: var(--body-text);
+  line-height: 1.75;
+  font-size: 15.5px;
+}
+
+.prose-site > * + * {
+  margin-top: 12px;
+}
+
+.prose-site h1,
+.prose-site h2,
+.prose-site h3,
+.prose-site h4 {
+  color: var(--ink);
+  text-align: left;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 24px;
+}
+
+.prose-site > :first-child {
+  margin-top: 0;
+}
+
+.prose-site h1 {
+  font-size: 24px;
+}
+
+.prose-site h2 {
+  font-size: 21px;
+}
+
+.prose-site h3 {
+  font-size: 17px;
+}
+
+.prose-site h4 {
+  font-size: 16px;
+}
+
+.prose-site p {
+  margin: 0;
+}
+
+.prose-site a {
+  color: var(--brand-700);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: var(--brand-300);
+  text-underline-offset: 3px;
+}
+
+.prose-site a:hover {
+  text-decoration-color: var(--brand-600);
+}
+
+.prose-site ul,
+.prose-site ol {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.prose-site ul {
+  list-style: disc;
+}
+
+.prose-site ol {
+  list-style: decimal;
+}
+
+.prose-site li::marker {
+  color: var(--brand-500);
+}
+
+.prose-site strong,
+.prose-site b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prose-site img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.prose-site blockquote {
+  border-left: 3px solid var(--brand-300);
+  padding-left: 14px;
+  color: var(--ink-soft);
+}
+
+.prose-site table {
+  border: 1px solid var(--line-strong);
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.prose-site th,
+.prose-site td {
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose-site th {
+  background: var(--brand-50);
+  color: var(--ink);
+}
+
+.prose-site tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-site th:last-child,
+.prose-site td:last-child {
+  border-right: none;
+}
+
+@media (max-width: 640px) {
+  .prose-site table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Short description under a service row (comes from the API as HTML). */
+.svc-desc {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.svc-desc ul,
+.svc-desc ol {
+  list-style: disc;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.svc-desc p + p {
+  margin-top: 4px;
+}
+
+/* Native <details> accordion: hide the marker, rotate the chevron. */
+.pub-details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.pub-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.pub-details[open] .pub-chevron {
+  transform: rotate(180deg);
+}
+
+@keyframes pubFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pub-details[open] > .pub-details-body {
+  animation: pubFade 0.22s var(--ease);
+}
+
+/* Phones: keep the page (and footer) clear of the fixed bottom quick bar. */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 84px;
+  }
+}

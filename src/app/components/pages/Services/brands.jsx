@@ -1,533 +1,144 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from "react";
-import { faLocation } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useState } from "react";
+import { Info, Tag, Wrench } from "lucide-react";
 import Tabs from "@/app/components/pages/Services/AllServices";
 import ServicesList from "@/app/components/service/ServicesList";
 import Cart from "@/app/components/cart/Cart";
 import Assurance from "@/app/components/Assurance/Assurance";
-import ServiceProcedure from "@/app/components/serviceProcedure/index"
-import Popup from "@/app/components/popup";
+import ServiceProcedure from "@/app/components/serviceProcedure/index";
 import AiContent from "@/app/components/aiContent/AiContent";
 import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import PopularCities from "@/app/components/popularCities/PopularCities";
+import LeadPopup from "@/app/components/public/LeadPopup";
+import { Container, Section, ServiceHero, TwoThirds, Card, CardTitle, Faq, LinkCloud } from "@/app/components/public/ui";
+import { faqItemsFor } from "./serviceSchemas";
 
-
-export default function ServicePage({ city, brand, cat, pagedata, aiContent, partnerSection = null }) {
-  const [openItem, setOpenItem] = useState(0)
-
-  // The /{city}/{brand}/{cat} route hands these through unnormalized, so build
-  // links off lowercase copies — an uppercase URL still resolves, and we don't
-  // want it copied into every link on the page.
+/**
+ * /{city}/{brand}/{cat} — e.g. /delhi/kent/ro-water-purifier. Same layout as
+ * the city+category page: hero, services (2/3) + sticky cart & partners (1/3),
+ * FAQ, about copy and the brand / city / category link clouds.
+ */
+export default function ServicePage({ city, brand, cat, pagedata, aiContent, partnerSection = null, partnerSidebar = null }) {
   const citySlug = (city || "").toLowerCase();
   const catSlug = (cat || "").toLowerCase();
 
-  // Heading for the AI copy card, e.g. "Kent RO Water Purifier Service in Delhi".
-  const aiContentHeading = [
-    pagedata?.brandname,
-    (pagedata?.categoryname || cat?.replace(/-/g, " ") || "").replace(/\s*services?\s*$/i, "").trim(),
-    "Service in",
-    pagedata?.cityname || city,
-  ]
-    .filter(Boolean)
-    .join(" ");
-  // const [pagedata, setData] = useState("");
-  const [selectedServices, setSelectedServices] = useState([]);
-  const [addedServices, setAddedServices] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [brandLoader, setBrandLoader] = useState(false);
   const [cartChanged, setCartChanged] = useState(false);
   const [cartLoaded, setCartLoaded] = useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowPopup(true);
-    }, 12000);
-    return () => clearTimeout(timer);
-  }, []);
-
+  const [addedServices, setAddedServices] = useState([]);
 
   const handleCartLoading = () => {
-    setCartLoaded(prevState => prevState + 1);
-    setCartChanged(prev => !prev);
+    setCartLoaded((n) => n + 1);
+    setCartChanged((v) => !v);
   };
 
-
   useEffect(() => {
-    const loadCartFromLocalStorage = () => {
-      try {
-        const savedCartItems = localStorage.getItem('service_name');
-        const savedCartTotal = localStorage.getItem('total_price');
-
-
-        if (savedCartItems && savedCartTotal) {
-          const parsedItems = JSON.parse(savedCartItems);
-          const parsedTotal = parseFloat(savedCartTotal);
-
-          // console.log("ServicePage loading cart from localStorage:", parsedItems);
-
-          setSelectedServices(parsedItems);
-          setTotalAmount(parsedTotal);
-
-          // Update addedServices array with ids from loaded cart items
-          const serviceIds = parsedItems.map(item => item.id);
-          setAddedServices(serviceIds);
-          setCartLoaded(true);
-        }
-      } catch (error) {
-        console.error("Error loading cart from localStorage:", error);
+    try {
+      const saved = localStorage.getItem("service_name");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setAddedServices(parsed.map((i) => i.id));
+        setCartLoaded(true);
       }
-    };
-
-    loadCartFromLocalStorage();
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error);
+    }
   }, []);
 
-
-  const handleAddToCart = (service) => {
-    // Update selectedServices state
-    setSelectedServices((prev) => {
-      // Check if service already exists
-      const existingService = prev.find(s => s.id === service.id);
-
-      if (existingService) {
-        // If exists, increment quantity
-        return prev.map(s =>
-          s.id === service.id
-            ? { ...s, quantity: (s.quantity || 1) + 1 }
-            : s
-        );
-      } else {
-        // If new, add with quantity 1
-        return [...prev, { ...service, quantity: 1 }];
-      }
-    });
-
-    // Also update addedServices state if not already included
-    if (!addedServices.includes(service.id)) {
-      setAddedServices([...addedServices, service.id]);
-    }
-  };
-
-  const handleRemoveFromCart = (serviceId) => {
-    // Update selectedServices state
-    setSelectedServices((prev) => {
-      const updatedServices = prev.filter((s) => s.id !== serviceId);
-      return updatedServices;
-    });
-
-    // Also update addedServices state
-    setAddedServices((prev) => prev.filter(id => id !== serviceId));
-  };
-
-  const handleDecrementService = (serviceId) => {
-    setSelectedServices((prev) => {
-      const updatedServices = prev
-        .map(s =>
-          s.id === serviceId
-            ? {
-              ...s,
-              quantity: Math.max(0, (s.quantity || 1) - 1)
-            }
-            : s
-        )
-        // Remove the service completely if quantity becomes 0
-        .filter(s => s.quantity > 0);
-
-      // If service is completely removed, also update addedServices
-      if (!updatedServices.some(s => s.id === serviceId)) {
-        setAddedServices(prev => prev.filter(id => id !== serviceId));
-      }
-
-      return updatedServices;
-    });
-  };
-
-  const handleIncrementService = (serviceId) => {
-    setSelectedServices((prev) => {
-      const updatedServices = prev.map(s =>
-        s.id === serviceId
-          ? { ...s, quantity: Math.min(5, (s.quantity || 1) + 1) }
-          : s
-      );
-
-      return updatedServices;
-    });
-  };
-
-  // Calculate total and update localStorage whenever selectedServices changes
-  useEffect(() => {
-    if (selectedServices.length > 0) {
-      const total = selectedServices.reduce(
-        (acc, curr) => acc + (curr.price * (curr.quantity || 1)),
-        0
-      );
-
-      setTotalAmount(total);
-
-      // Update localStorage with the latest cart state
-      // localStorage.setItem('cartItems', JSON.stringify(selectedServices));
-      // localStorage.setItem('cartTotal', total.toString());
-    } else {
-      // setTotalAmount(0);
-      // localStorage.removeItem('cartItems');
-      // localStorage.removeItem('cartTotal');
-    }
-  }, [selectedServices]);
-
-  // console.log(setData);
-
-  // Debug logging
-  useEffect(() => {
-    console.log("Current selectedServices:", selectedServices);
-    console.log("Current totalAmount:", totalAmount);
-
-
-  }, [selectedServices, totalAmount]);
-
-  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [city]);
 
+  const brandName = pagedata?.brandname || "";
+  const catName = (pagedata?.categoryname || cat?.replace(/-/g, " ") || "").replace(/\s*services?\s*$/i, "").trim();
+  const cityName = pagedata?.cityname || pagedata?.city_name || city;
+  const aiContentHeading = `${brandName} ${catName} Service in ${cityName}`.trim();
+  const faqItems = faqItemsFor({ content: pagedata?.content, city: cityName, cat: catSlug });
+
+  const otherCities = (pagedata?.related_cities || []).map((c) => ({ href: c.url, label: c.city_name, title: `${brandName} ${pagedata?.categoryname} in ${c.city_name}` }));
+  const otherCategories = (pagedata?.related_categories || []).map((c) => ({ href: c.url, label: c.category_name, title: `${brandName} ${c.category_name} in ${cityName}` }));
+  const otherBrands = (pagedata?.brands || []).map((b) => ({ href: `/${citySlug}/${b.brand_url}/${catSlug}`, label: b.brand_name, title: `${b.brand_name} ${pagedata?.categoryname} in ${cityName}` }));
+
   return (
-    <div className=" ">
-      <div className="services-page common-spacing">
-        <div className="left-side lg:w-1/4 flex-col mb-1.5">
-          <div className="sticky top-20">
-            <h1 className=" cityHeadings"><b>{pagedata?.brandname} {pagedata?.categoryname} Services in {pagedata?.cityname}</b></h1>
-            <Tabs cater={cat} />
-          </div>
-        </div>
-        <div className="right-side lg:w-3/4">
-          <div className="rightSidePortion justify-center">
-            <div className="lg:w-1/2">
-              <h3 className="ml-2.5 mt-1.5 text-[20px]"> {pagedata.cityname}'s Top Picks: Most Loved Services by Our Customers!</h3>
+    <>
+      <Container className="pt-4 sm:pt-6">
+        <ServiceHero
+          compact
+          crumbs={[
+            { label: cityName, href: `/${citySlug}` },
+            { label: pagedata?.categoryname || catName, href: `/${citySlug}/${catSlug}` },
+            { label: brandName },
+          ]}
+          eyebrow={`${brandName} specialists`}
+          title={`${brandName} ${pagedata?.categoryname} Services in ${cityName}`}
+          subtitle={`Doorstep ${brandName} ${catName} repair, installation and AMC in ${cityName} by technicians trained on ${brandName} models. Genuine parts, upfront prices and a service warranty.`}
+          image={pagedata?.banner ? `/assets/categorybanner/${pagedata.banner}` : "/assets/cityBanner/Front Banner.webp"}
+          imageAlt={`${brandName} ${pagedata?.categoryname} in ${cityName}`}
+          chips={
+            <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-1 text-[12px] font-semibold text-purple-800">
+              <Wrench className="h-3.5 w-3.5" aria-hidden="true" /> All {brandName} models
+            </span>
+          }
+        />
+      </Container>
 
-              <div className="mb-3.5 md:flex items-center justify-center hidden md:relative">
-                {!brandLoader && (
-                  <div className="absolute w-full ">
-                    <img src={`/assets/cityBanner/Front Banner.webp`} alt='service img' width={475} height={345} style={{
-                      borderRadius: '17px', width: '100%'
-                    }} />
-                  </div>
-                )}
-
-                <img src={`/assets/categorybanner/${pagedata.banner}`} alt='service img' width={475} height={345} onLoad={() => setBrandLoader(true)} style={{
-                  borderRadius: '17px', width: '100%', opacity: brandLoader ? 1 : 0,
-                  transition: 'opacity 0.5s ease-in-out',
-                }} />
-
-
-              </div>
-
-              <ServicesList
-                // onAddToCart={handleAddToCart}
-                // addedServices={addedServices}
-                // cate={cat}
-                handleCartLoading={handleCartLoading}
-                addedServices={addedServices}
-                cate={cat}
-                state={cartChanged}
-              />
-
-              <AiContent
-                html={aiContent?.html}
-                title={aiContentHeading}
-              />
+      <Container className="mt-6">
+        <TwoThirds
+          main={
+            <div className="flex flex-col gap-5">
+              <Tabs cater={cat} />
+              <ServicesList handleCartLoading={handleCartLoading} addedServices={addedServices} cate={cat} state={cartChanged} />
+              <AiContent html={aiContent?.html} title={aiContentHeading} />
             </div>
-            <div className="lg:w-5/12 cartContainer">
-              <div className="cart-body-section">
-                <Cart
-                  // selectedServices={selectedServices}
-                  // total={totalAmount}
-                  // onRemove={handleRemoveFromCart}
-                  // onIncrement={handleIncrementService}
-                  // onDecrement={handleDecrementService}
-                  // onCartLoad={handleCartLoad}
-                  cartLoaded={cartLoaded}
-                  cartLoadedToggle={handleCartLoading}
-                />
-                <Assurance />
-                <ServiceProcedure />
-
-              </div>
+          }
+          aside={
+            <div className="flex flex-col gap-4">
+              {/* Cart appears once a service is added; until then the partners lead. */}
+              <Cart cartLoaded={cartLoaded} cartLoadedToggle={handleCartLoading} hideWhenEmpty={!!partnerSidebar} />
+              {partnerSidebar}
+              <Assurance />
+              <ServiceProcedure />
             </div>
-          </div>
-        </div>
-      </div>
+          }
+        />
+      </Container>
 
-      {/* Approved partners for this city/locality + brand (server-rendered, passed in by the page). */}
-      {partnerSection}
-
-      <div className=" bg-white common-spacing">
-        <h2 className="text-4xl font-bold faqHeading mb-6">Frequently Asked Questions</h2>
-
-        <div className="flex flex-wrap">
-          <div className='lg:w-1/2  py-3.5 px-7'>
-            <img src="/assets/images/newFaqCon.webp" alt='Faq Image Icon' width={629} height="auto" title="Faq ro Services" className=' w-full ' />
-          </div>
-          <div className="space-y-4 lg:w-1/2">
-
-            <div className={`border rounded-xl overflow-hidden transition-all duration-300 `}>
-              <button
-                onClick={() => setOpenItem(openItem === 1 ? null : 1)}
-                className={`w-full p-4 text-left flex justify-between items-center `}
-              >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion1 || "Do you provide AC repair for all brands in Delhi?"}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform `}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {openItem == 1 && (
-                <div className="p-4 bg-white border-t border-purple-100">
-                  <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer1 || " Yes, we repair all major AC brands including LG, Samsung, Voltas, Daikin, Blue Star, and more."}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className={`border rounded-xl overflow-hidden transition-all duration-300 `}>
-              <button
-                onClick={() => setOpenItem(openItem === 2 ? null : 2)}
-                className={`w-full p-4 text-left flex justify-between items-center `}
-              >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion2 || "Is gas refilling available for split and window ACs?"}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform `}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {openItem == 2 && (
-                <div className="p-4 bg-white border-t border-purple-100">
-                  <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer2 || " Yes, we offer AC gas refilling, servicing, and installation for both split and window ACs."}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className={`border rounded-xl overflow-hidden transition-all duration-300 `}>
-              <button
-                onClick={() => setOpenItem(openItem === 3 ? null : 3)}
-                className={`w-full p-4 text-left flex justify-between items-center `}
-              >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion3 || " What types of washing machines do you repair?"}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform `}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {openItem == 3 && (
-                <div className="p-4 bg-white border-t border-purple-100">
-                  <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer3 || " We repair front load, top load, semi-automatic, and fully automatic washing machines."}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className={`border rounded-xl overflow-hidden transition-all duration-300 `}>
-              <button
-                onClick={() => setOpenItem(openItem === 4 ? null : 4)}
-                className={`w-full p-4 text-left flex justify-between items-center `}
-              >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion4 || " Do you use genuine spare parts?"}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform `}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {openItem == 4 && (
-                <div className="p-4 bg-white border-t border-purple-100">
-                  <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer4 || " Yes, we use 100% original and brand-certified parts for all washing machine repairs."}
-                  </p>
-                </div>
-              )}
-            </div>
-            <div className={`border rounded-xl overflow-hidden transition-all duration-300 `}>
-              <button
-                onClick={() => setOpenItem(openItem === 5 ? null : 5)}
-                className={`w-full p-4 text-left flex justify-between items-center `}
-              >
-                <span className="font-medium text-gray-800">{pagedata?.content?.faqquestion5 || "How often should I get my RO serviced?"}
-                </span>
-                <svg
-                  className={`w-5 h-5 text-purple-600 transform transition-transform `}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {openItem == 5 && (
-                <div className="p-4 bg-white border-t border-purple-100">
-                  <p className="text-gray-600">
-                    {pagedata?.content?.faqanswer5 || " It’s recommended every 3–6 months to ensure water purity and machine efficiency."}
-                  </p>
-                </div>
-              )}
-            </div>
-
-
-          </div>
-        </div>
-      </div>
-      <div className="common-spacing">
-        <div className=" bg-white aboutStyle">
-          <h3 className="catgoreyTitle">ABOUT {pagedata?.categoryname} ({pagedata.brandname})</h3>
-          <CollapsibleHtml
-            html={pagedata?.content?.page_content}
-            className="serviceContentStyle"
-          />
-
-          {/* <p className="catgoreyContent">{cityData?.categorydetail?.category_content}</p> */}
-        </div>
-
-
-      </div>
-      <div className="bg-white px-8 py-1">
-        <h3 className="text-2xl font-bold">Quick Links</h3>
-      </div>
-
-      {/* near-me has no sibling cities in its state, so related_cities is empty
-          there; fall back to the shared Popular Cities list. */}
-      {!pagedata.related_cities?.length && (
-        <PopularCities categoryUrl={catSlug} excludeCity={citySlug} />
+      {partnerSection && (
+        <Container>
+          <Section>{partnerSection}</Section>
+        </Container>
       )}
 
-      {/* Same brand + category, the other cities in this state that have a page. */}
-      {pagedata.related_cities?.length > 0 && (
-        <div className="bg-white px-8 py-6">
-          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
-            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-              <span>
-                {pagedata.brandname} {pagedata.categoryname} in Other Cities
-              </span>
-              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
-            </summary>
+      <Container>
+        <Section>
+          <Faq title="Frequently asked questions" subtitle={`Everything about ${brandName} ${catName} service in ${cityName}`} items={faqItems} />
+        </Section>
+      </Container>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {pagedata.related_cities.map((c) => (
-                <div className="brandsServices" key={c.id}>
-                  <a
-                    href={c.url}
-                    title={`${pagedata.brandname} ${pagedata.categoryname} in ${c.city_name}`}
-                  >
-                    <li className="text-gray-500 list-none">
-                      <FontAwesomeIcon icon={faLocation} /> {c.city_name},
-                      <span></span>
-                    </li>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
+      {pagedata?.content?.page_content && (
+        <Container>
+          <Section className="!pt-0">
+            <Card className="p-5 sm:p-7">
+              <CardTitle icon={Info} title={`About ${brandName} ${pagedata?.categoryname} in ${cityName}`} />
+              <CollapsibleHtml html={pagedata.content.page_content} className="prose-site" />
+            </Card>
+          </Section>
+        </Container>
       )}
 
-      {/* Same brand + city, the brand's other categories that have a page. */}
-      {pagedata.related_categories?.length > 0 && (
-        <div className="bg-white px-8 py-2">
-          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
-            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-              <span>
-                Other {pagedata.brandname} Services in {pagedata.city_name}
-              </span>
-              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
-            </summary>
+      <Container>
+        <Section className="!pt-0 flex flex-col gap-4">
+          {otherBrands.length > 0 && <LinkCloud id="brands" icon={Tag} title={`Other ${pagedata?.categoryname} brands in ${cityName}`} items={otherBrands} />}
+          {otherCategories.length > 0 && <LinkCloud id="brand-services" icon={Wrench} title={`Other ${brandName} services in ${cityName}`} items={otherCategories} />}
+          {otherCities.length > 0 ? (
+            <LinkCloud id="nearby" title={`${brandName} ${pagedata?.categoryname} in other cities`} items={otherCities} />
+          ) : (
+            <PopularCities categoryUrl={catSlug} excludeCity={citySlug} />
+          )}
+        </Section>
+      </Container>
 
-            <div className="brandsServices bg-gray-50 rounded-lg shadow p-4 flex items-center flex-wrap gap-2.5">
-              {pagedata.related_categories.map((c) => (
-                <div className="brandsServices" key={c.id}>
-                  <a
-                    href={c.url}
-                    title={`${pagedata.brandname} ${c.category_name} in ${pagedata.city_name}`}
-                  >
-                    <li className="brand-btn-style">
-                      {c.category_name}
-                      <span></span>
-                    </li>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
-      )}
-
-      {pagedata.brands?.length > 0 && (
-        <div className="bg-white px-8 py-2">
-          <details className="group bg-gray-50 rounded-lg shadow p-4 open:shadow-md transition">
-            <summary className="text-sm md:text-xl font-bold cursor-pointer list-none flex justify-between items-center">
-              <span>Popular Brand in {pagedata.city_name}</span>
-              <span className="text-lg group-open:rotate-180 transition-transform duration-300 text-purple-300">▼</span>
-            </summary>
-
-            <div className="brandsServices bg-gray-50 rounded-lg shadow p-4 flex items-center flex-wrap gap-2.5">
-              {pagedata.brands.map((b) => (
-                <div className="brandsServices" key={b.id}>
-                  <a
-                    href={`/${citySlug}/${b.brand_url}/${catSlug}`}
-                    title={`${b.brand_name} ${pagedata.categoryname} in ${pagedata.city_name}`}
-                  >
-                    <li className="brand-btn-style">
-                      {b.brand_name}
-                      <span></span>
-                    </li>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </details>
-        </div>
-      )}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-[9999]">
-          <div className="bg-white max-h-[90vh] overflow-y-auto rounded-xl shadow-xl w-full max-w-2xl relative hide-scrollbar">
-
-            <div className="p-4">
-              <img src="/mrserviceexpertbanner.webp" alt="popup banner" className='rounded-2xl h-[125px] lg:h-[225px] w-full' />
-            </div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowPopup(false)}
-              className="absolute top-3 right-3 bg-red-500 text-white px-3 py-1 rounded-full"
-            >
-              X
-            </button>
-
-            <Popup />
-          </div>
-        </div>
-      )}
-    </div>
+      <LeadPopup />
+    </>
   );
 }

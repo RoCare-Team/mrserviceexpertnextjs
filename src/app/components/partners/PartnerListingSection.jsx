@@ -1,65 +1,51 @@
 import Link from "next/link";
+import { Users } from "lucide-react";
 import PartnerCard from "./PartnerCard";
 import PartnerLoadMore from "./PartnerLoadMore";
-import { resolvePageIds, getListingPage } from "@/lib/partners/listing";
-import { CRM_LEAD_TYPES } from "@/lib/partners/crmMap";
+import { getPagePartners } from "./pagePartners";
+import { SectionHeader } from "@/app/components/public/ui";
 
 /**
- * Server component: approved partners for an existing service page.
- * Resolves canonical ids from the page's own URL slugs (city_tb.city_url,
- * category_tb.category_url, brand_tb.brand_url) and queries server-side.
- * Renders nothing when there are no partners, so existing pages look the
- * same until someone is approved for that area. A listing failure never
- * breaks the page.
+ * Server component: the full grid of approved partners for a service page.
+ * Pass `data` from getPagePartners() when the page already fetched it (the
+ * sticky sidebar shares the same query); otherwise it fetches itself.
+ * Renders nothing when there are no partners, so pages look the same until
+ * someone is approved for that area.
  */
-export default async function PartnerListingSection({ cityUrl, categoryUrl, brandUrl = null, brandName = null, cityName, categoryName, baseCategoryName = null }) {
-  let ids = null;
-  let first = null;
-  try {
-    ids = await resolvePageIds({ cityUrl, categoryUrl, brandUrl });
-    if (ids) first = await getListingPage(ids);
-  } catch (err) {
-    // ER_NO_SUCH_TABLE = partner migration not applied yet; stay silent.
-    if (err?.code !== "ER_NO_SUCH_TABLE") console.error("[PartnerListingSection]", err?.message);
-    return null;
-  }
-  if (!first?.total) return null;
+export default function PartnerListingSection(props) {
+  if (props.data !== undefined) return <Listing data={props.data} />;
+  return <ListingFetch {...props} />;
+}
 
-  // "Book now" is pre-filled with this page's category / brand / city.
-  const bookingContext = CRM_LEAD_TYPES[categoryUrl]
-    ? {
-        categories: [{ url: categoryUrl, name: baseCategoryName || categoryName }],
-        defaultCategory: categoryUrl,
-        brandName: brandName || null,
-        cityName,
-      }
-    : null;
+async function ListingFetch(props) {
+  const data = await getPagePartners(props);
+  return <Listing data={data} />;
+}
 
+function Listing({ data }) {
+  if (!data?.first?.total) return null;
+  const { ids, first, bookingContext, cityName, categoryName } = data;
   return (
-    <section aria-labelledby="partners-h" className="common-spacing">
-      <div className="mx-auto max-w-6xl px-4">
-        <div className="mb-5 flex flex-wrap items-end gap-2">
-          <div className="flex-1">
-            <h2 id="partners-h" className="text-2xl font-bold text-[var(--ink)]">
-              {categoryName} Service Partners in {cityName}
-            </h2>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              Independent businesses approved by Mr. Service Expert that serve {cityName}.
-            </p>
-          </div>
-          <Link href="/join-as-partner" className="text-sm font-semibold text-purple-700 underline">
-            Are you a technician? Join as a partner
+    <section id="partners" aria-labelledby="partners-h" className="scroll-mt-24">
+      <SectionHeader
+        id="partners-h"
+        eyebrow="Approved partners"
+        title={`${categoryName} service partners in ${cityName}`}
+        subtitle={`Independent businesses approved by Mr. Service Expert that serve ${cityName}.`}
+        action={
+          <Link href="/join-as-partner" className="inline-flex items-center gap-1.5 text-sm font-semibold text-purple-700 hover:underline">
+            <Users className="h-4 w-4" aria-hidden="true" /> Join as a partner
           </Link>
-        </div>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {first.items.map((p) => (
-            <li key={p.slug}>
-              <PartnerCard partner={p} bookingContext={bookingContext} />
-            </li>
-          ))}
-          {first.hasMore && <PartnerLoadMore query={ids} startPage={2} bookingContext={bookingContext} />}
-        </ul>
-      </div>
+        }
+      />
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {first.items.map((p) => (
+          <li key={p.slug}>
+            <PartnerCard partner={p} bookingContext={bookingContext} />
+          </li>
+        ))}
+        {first.hasMore && <PartnerLoadMore query={ids} startPage={2} bookingContext={bookingContext} />}
+      </ul>
     </section>
   );
 }

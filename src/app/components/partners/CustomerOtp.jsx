@@ -5,6 +5,9 @@ import { Loader2, ShieldCheck, Smartphone } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { inputCls, labelCls, btnPrimary, FieldError } from "./ui";
 
+const RESEND_COOLDOWN = 30;
+const MAX_RESENDS = 3;
+
 /** Reads the site's existing customer login hints (localStorage) to pre-fill. */
 export function storedCustomerHints() {
   try {
@@ -30,8 +33,10 @@ export default function CustomerOtp({ onVerified, askName = true, intro }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [resendsLeft, setResendsLeft] = useState(MAX_RESENDS);
   const [len, setLen] = useState(4);
   const otpRef = useRef(null);
+  const sendingRef = useRef(false);
 
   useEffect(() => {
     const h = storedCustomerHints();
@@ -48,17 +53,23 @@ export default function CustomerOtp({ onVerified, askName = true, intro }) {
   const send = async () => {
     if (askName && name.trim().length < 2) return setMsg("Please enter your name.");
     if (!/^[6-9]\d{9}$/.test(mobile)) return setMsg("Enter a valid 10-digit mobile number.");
+    if (sendingRef.current || cooldown > 0 || (sent && resendsLeft <= 0)) return;
+    sendingRef.current = true;
     setBusy(true);
     setMsg("");
     const r = await partnerApi("/api/customer-auth/send-otp", { method: "POST", body: { mobile } });
     setBusy(false);
+    sendingRef.current = false;
     if (!r.ok) {
       if (r.error.fields?.retryAfter) setCooldown(r.error.fields.retryAfter);
+      if (r.error.fields?.resendsLeft === 0) setResendsLeft(0);
       return setMsg(r.error.message);
     }
     setSent(true);
+    setOtp("");
     setLen(r.data.length || 4);
-    setCooldown(r.data.resendAfter || 60);
+    setCooldown(r.data.resendAfter || RESEND_COOLDOWN);
+    setResendsLeft(typeof r.data.resendsLeft === "number" ? r.data.resendsLeft : (n) => Math.max(0, n - 1));
     setTimeout(() => otpRef.current?.focus(), 50);
   };
 
@@ -111,8 +122,8 @@ export default function CustomerOtp({ onVerified, askName = true, intro }) {
             autoComplete="one-time-code"
           />
           <div className="mt-1 flex gap-3 text-sm">
-            <button type="button" className="text-purple-700 underline disabled:text-gray-400 disabled:no-underline" disabled={cooldown > 0 || busy} onClick={send}>
-              {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend OTP"}
+            <button type="button" className="text-purple-700 underline disabled:text-gray-400 disabled:no-underline" disabled={cooldown > 0 || busy || resendsLeft <= 0} onClick={send}>
+              {resendsLeft <= 0 ? "Resend limit reached" : cooldown > 0 ? `Resend in ${cooldown}s` : `Resend OTP (${resendsLeft} left)`}
             </button>
             <button type="button" className="text-[var(--muted)] underline" onClick={() => (setSent(false), setOtp(""))}>
               Change number

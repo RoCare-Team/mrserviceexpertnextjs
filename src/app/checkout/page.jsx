@@ -1,630 +1,447 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { ShoppingBag, Minus, Plus, LogIn, X, CalendarCheck, ShieldCheck, Clock, BadgeCheck, ArrowRight, Receipt, Loader2 } from "lucide-react";
 import PhoneVerification from "../components/PhoneVerification/PhoneVerification";
 import BookingSlots from "../components/bookingData/BookingSlots";
-import Link from "next/link";
 import useServiceOverrides from "@/lib/useServiceOverrides";
+import { Container, Breadcrumbs } from "../components/public/ui";
 
-const CheckOut = () => {
+const CART_API = "https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php";
 
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [showModal, setShowModal] = useState(false);
-    const [bookingSlotsKey, setBookingSlotsKey] = useState(0);
+/**
+ * /checkout — the CRM cart grouped by category. Each category is booked
+ * separately: pick address + slot (sidebar on desktop, modal on phones),
+ * then "Book now" creates the lead and redirects to payment, or "Pay later"
+ * creates it without payment.
+ */
+export default function CheckOut() {
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [bookingSlotsKey, setBookingSlotsKey] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [cartDataArray, setCartDataArray] = useState([]);
+  const [finalTotal, setFinalTotal] = useState(0);
+  const [placing, setPlacing] = useState(null); // category_cart_id being booked
+  const [bookingCompleted, setBookingCompleted] = useState(false);
+  const [bookingData, setBookingData] = useState({ address: null, timeSlot: null, addressId: null });
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [currentBookingItem, setCurrentBookingItem] = useState(null);
 
+  // Admin title / description / image (prices stay from the cart API).
+  const withOverride = useServiceOverrides(cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id)));
 
-    let handlePopup = () => {
-        setShowModal(true)
-    }
+  const displayCartData = () => {
+    const cartdata = localStorage.getItem("checkoutState");
+    setCartDataArray(cartdata ? JSON.parse(cartdata) || [] : []);
+    setFinalTotal(Number(localStorage.getItem("cart_total_price")) || 0);
+  };
 
-    // Comprehensive state management
-    const [services, setServices] = useState([]);
-    const [totalWithDiscount, setTotalWithDiscount] = useState("0.00");
-    const [discountAmount, setDiscountAmount] = useState(0);
-    const [tip, setTip] = useState(0);
-    const [customTip, setCustomTip] = useState("");
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [cartDataArray, setCartDataArray] = useState([]);
-    const [finalTotal, setFinalTotal] = useState(0);
-
-    // Admin title / description / image (prices stay from the cart API).
-    const withOverride = useServiceOverrides(
-        cartDataArray?.flatMap((c) => (c.cart_dtls || []).map((d) => d.service_id))
-    );
-
-    const [bookingCompleted, setBookingCompleted] = useState(false);
-    const [bookingData, setBookingData] = useState({
-        address: null,
-        timeSlot: null,
-        addressId: null
+  const refreshBookingData = useCallback(() => {
+    const address = localStorage.getItem("bookingAddress");
+    const timeSlot = localStorage.getItem("bookingTimeSlot");
+    const addressId = localStorage.getItem("address_id");
+    // Bail out when nothing changed so the 1s poll does not re-render the page
+    // (and the booking modals inside it) every tick.
+    setBookingData((prev) => {
+      const next = { address, timeSlot: timeSlot ? JSON.parse(timeSlot) : null, addressId };
+      return JSON.stringify(prev) === JSON.stringify(next) ? prev : next;
     });
+    setBookingCompleted(!!(address && timeSlot && addressId));
+  }, []);
 
-    // Add booking modal state
-    const [showBookingModal, setShowBookingModal] = useState(false);
-    const [currentBookingItem, setCurrentBookingItem] = useState(null);
+  useEffect(() => {
+    displayCartData();
+    setIsLoggedIn(!!localStorage.getItem("userToken"));
+    const userPhone = localStorage.getItem("userPhone");
+    if (userPhone) setPhoneNumber(userPhone);
+    refreshBookingData();
+  }, [refreshBookingData, showModal]);
 
-    const displayCartData = () => {
-        const cartdata = localStorage.getItem('checkoutState');
-        const cartDataArray = cartdata ? JSON.parse(cartdata) : [];
-        setCartDataArray(cartDataArray);
-        setFinalTotal(localStorage.getItem('cart_total_price'));
-        console.log(localStorage.getItem('cart_total_price') + 'fdsafasd');
+  // Address / slot are written to localStorage by the modals; poll while the
+  // page is open so the buttons enable as soon as both are chosen.
+  useEffect(() => {
+    const id = setInterval(refreshBookingData, 1000);
+    return () => clearInterval(id);
+  }, [refreshBookingData]);
 
+  const post = async (payload) => {
+    const res = await fetch(CART_API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    return res.json();
+  };
+
+  const onIncrement = async (service_id, type, qunt) => {
+    const cid = localStorage.getItem("customer_id");
+    const quantity = Number(qunt) + 1;
+    if (quantity > 5) return toast.error("You can't add more than 5 of one service");
+    try {
+      const data = await post({ service_id, type, cid, quantity });
+      localStorage.setItem("checkoutState", JSON.stringify(data.AllCartDetails));
+      localStorage.setItem("cart_total_price", data.total_main);
+      displayCartData();
+      window.dispatchEvent(new Event("cartItemsUpdated"));
+    } catch (error) {
+      toast.error("Error updating cart");
+      console.error("Error:", error);
+    }
+  };
+
+  const onDecrement = async (service_id, type, qunt) => {
+    const cid = localStorage.getItem("customer_id");
+    const quantity = Number(qunt) - 1;
+    if (quantity < 0) return;
+    try {
+      const data = await post({ service_id, type, cid, quantity });
+      localStorage.setItem("checkoutState", JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
+      localStorage.setItem("cart_total_price", data.total_main == null ? 0 : data.total_main);
+      if (quantity === 0) {
+        const old = JSON.parse(localStorage.getItem("cartItems") || "[]");
+        localStorage.setItem("cartItems", JSON.stringify(old.filter((id) => id !== service_id)));
+      }
+      displayCartData();
+      window.dispatchEvent(new Event("cartItemsUpdated"));
+    } catch (error) {
+      toast.error("Error updating cart");
+      console.error("Error:", error);
+    }
+  };
+
+  const handleBookNowClick = (service) => {
+    if (!isLoggedIn) return setShowModal(true);
+    setCurrentBookingItem(service);
+    setShowBookingModal(true);
+    setTimeout(refreshBookingData, 100);
+  };
+
+  const handleProceedToPayment = () => {
+    refreshBookingData();
+    setTimeout(() => {
+      const address = localStorage.getItem("bookingAddress");
+      const timeSlot = localStorage.getItem("bookingTimeSlot");
+      const addressId = localStorage.getItem("address_id");
+      if (address && timeSlot && addressId && currentBookingItem) {
+        setShowBookingModal(false);
+        handlePaymentCompleted(currentBookingItem.category_cart_id);
+      } else {
+        toast.error("Please complete all booking details before proceeding");
+      }
+    }, 200);
+  };
+
+  const handlePaymentCompleted = async (leadtype, redirect = true) => {
+    if (!isLoggedIn) return setShowModal(true);
+    const cust_id = localStorage.getItem("customer_id");
+    const cust_mobile = localStorage.getItem("userPhone");
+    const address_id = localStorage.getItem("address_id");
+    const cust_email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+    const chkout = JSON.parse(localStorage.getItem("checkoutState") || "[]");
+    const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    const cart_id = leadtype;
+    const timeSlotData = localStorage.getItem("bookingTimeSlot");
+    const time = timeSlotData ? JSON.parse(timeSlotData) : {};
+    const appointment_time = time.time;
+    const appointment_date = time.date;
+    const source = "mrserviceexpert website";
+
+    if (!cust_id || !cust_mobile || !address_id || !cust_email || !appointment_date || !appointment_time) {
+      toast.error(!cust_email ? "Please add your email in your profile before booking." : "Please select an address and a time slot first.", { autoClose: 3000 });
+      if (window.innerWidth < 1024 && (!address_id || !appointment_date)) {
+        const item = chkout.find((c) => c.category_cart_id === cart_id);
+        if (item) {
+          setCurrentBookingItem(item);
+          setShowBookingModal(true);
+        }
+      }
+      return;
     }
 
-    // Function to refresh booking data from localStorage
-    const refreshBookingData = useCallback(() => {
-        const address = localStorage.getItem('bookingAddress');
-        const timeSlot = localStorage.getItem('bookingTimeSlot');
-        const addressId = localStorage.getItem('address_id');
+    setPlacing(cart_id);
+    try {
+      const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_lead_with_full_dtls.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cust_id, cust_mobile, address_id, cust_email, cart_id, appointment_time, appointment_date, source }),
+      });
+      const data = await res.json();
 
-        setBookingData({
-            address,
-            timeSlot: timeSlot ? JSON.parse(timeSlot) : null,
-            addressId
-        });
+      if (data.error == false) {
+        const leftOverItems = chkout.filter((items) => items.category_cart_id !== cart_id);
+        localStorage.setItem("checkoutState", JSON.stringify(leftOverItems));
 
-        // Update booking completed status
-        const isComplete = address && timeSlot && addressId;
-        setBookingCompleted(isComplete);
-    }, []);
+        const currentCategoryItem = chkout.find((item) => item.category_cart_id === cart_id);
+        if (currentCategoryItem && cartItems.length > 0) {
+          const checkedOut = currentCategoryItem.cart_dtls.map((s) => String(s.service_id));
+          localStorage.setItem("cartItems", JSON.stringify(cartItems.filter((item) => !checkedOut.includes(String(item)))));
+        } else if (leftOverItems.length === 0) {
+          localStorage.setItem("cartItems", JSON.stringify([]));
+        }
+        window.dispatchEvent(new Event("cartItemsUpdated"));
 
-    // Load initial data
-    useEffect(() => {
+        ["bookingTimeSlot", "bookingAddress", "time_slot", "address_id"].forEach((k) => localStorage.removeItem(k));
+        setBookingData({ address: null, timeSlot: null, addressId: null });
+        setBookingCompleted(false);
+        setBookingSlotsKey((n) => n + 1);
         displayCartData();
 
-        // Check login status
-        const userToken = localStorage.getItem('userToken');
-        const userPhone = localStorage.getItem('userPhone');
-
-        setIsLoggedIn(!!userToken);
-        if (userPhone) setPhoneNumber(userPhone);
-
-        // Initial booking data load
-        refreshBookingData();
-    }, [refreshBookingData]);
-
-    // Listen for storage changes (when BookingSlots component updates localStorage)
-    useEffect(() => {
-        const handleStorageChange = (e) => {
-            if (e.key === 'bookingAddress' || e.key === 'bookingTimeSlot' || e.key === 'address_id') {
-                refreshBookingData();
-            }
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, [refreshBookingData]);
-
-    // Polling mechanism to check for localStorage changes (as storage event doesn't work for same-window changes)
-    useEffect(() => {
-        let intervalId;
-
-        if (showBookingModal) {
-            intervalId = setInterval(() => {
-                refreshBookingData();
-            }, 1000); // Check every second while modal is open
-        }
-
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [showBookingModal, refreshBookingData]);
-
-    // Increment and Decrement handlers
-    const onIncrement = async (service_id, type, qunt) => {
-        const cid = localStorage.getItem("customer_id");
-        const num = Number(qunt);
-        const quantity = num + 1;
-
-        if (quantity <= 5) {
-            const payload = { service_id, type, cid, quantity };
-
-            try {
-                const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
-
-                const data = await res.json();
-                localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails));
-                localStorage.setItem('cart_total_price', data.total_main);
-
-                displayCartData();
-            } catch (error) {
-                toast.error("Error updating cart");
-                console.error("Error:", error);
-            }
+        if (redirect) {
+          setTimeout(() => {
+            window.location.href = data.lead_id_for_payment;
+          }, 100);
         } else {
-            toast.error("You can't add more than 5 items");
+          toast.success("Booking placed. Our team will contact you soon.");
         }
-    };
+      } else {
+        toast.error(data.msg || "Booking failed. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Network error. Please try again.");
+      console.error("Payment error:", error);
+    } finally {
+      setPlacing(null);
+    }
+  };
 
-    const onDecrement = async (service_id, type, qunt) => {
-        const cid = localStorage.getItem("customer_id");
-        const num = Number(qunt);
-        const quantity = num - 1;
+  const handleCloseModal = () => {
+    setShowBookingModal(false);
+    setCurrentBookingItem(null);
+  };
 
-        if (quantity >= 0) {
-            const payload = { service_id, type, cid, quantity };
+  const groups = cartDataArray || [];
+  const itemCount = groups.reduce((n, g) => n + (g.cart_dtls || []).reduce((m, d) => m + (Number(d.quantity) || 1), 0), 0);
+  const itemsTotal = groups.reduce((sum, g) => {
+    const calc = (g.cart_dtls || []).reduce((s, i) => s + Number(i.total_price || i.price || 0) * Number(i.quantity || 1), 0);
+    return sum + (Number(g.total_main) || calc);
+  }, 0);
+  const grandTotal = finalTotal || itemsTotal;
 
-            try {
-                const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_to_cart.php", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                });
+  const catTotal = (g) => {
+    const calc = (g.cart_dtls || []).reduce((s, i) => s + Number(i.total_price || i.price || 0) * Number(i.quantity || 1), 0);
+    return Number(g.total_main) || calc;
+  };
 
-                const data = await res.json();
-                localStorage.setItem('checkoutState', JSON.stringify(data.AllCartDetails == null ? [] : data.AllCartDetails));
-                localStorage.setItem('cart_total_price', data.total_main == null ? 0 : data.total_main);
+  const bookBtn = "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[image:var(--grad-brand)] px-4 text-[14px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-110 disabled:opacity-60";
+  const laterBtn = "inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line-strong)] bg-white px-4 text-[14px] font-semibold text-[var(--ink-soft)] transition hover:bg-purple-50 disabled:opacity-60";
 
-                if (quantity === 0) {
-                    const oldCartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
-                    const updatedCartItems = oldCartItems.filter(id => id !== service_id);
-                    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
-                     window.dispatchEvent(new Event('cartItemsUpdated'));
-                }
-                
-                displayCartData();
-            } catch (error) {
-                toast.error("Error updating cart");
-                console.error("Error:", error);
-            }
-        }
-    };
+  return (
+    <>
+      <Container className="pt-4 sm:pt-6">
+        <Breadcrumbs items={[{ label: "Checkout" }]} className="mb-3" />
+        <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h1 className="text-[24px] font-extrabold tracking-tight text-[var(--ink)] sm:text-[28px]">Checkout</h1>
+            <p className="mt-1 text-sm text-[var(--muted)]">
+              {itemCount > 0 ? `${itemCount} service${itemCount === 1 ? "" : "s"} in your cart` : "Your cart is empty"}
+            </p>
+          </div>
+          {groups.length > 0 && (
+            <ul className="flex flex-wrap gap-2 text-[12px] font-medium text-[var(--ink-soft)]">
+              {[
+                [Clock, "Doorstep in 30 min"],
+                [BadgeCheck, "Verified technicians"],
+                [ShieldCheck, "Service warranty"],
+              ].map(([Icon, t]) => (
+                <li key={t} className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 ring-1 ring-[var(--line)]">
+                  <Icon className="h-3.5 w-3.5 text-purple-600" aria-hidden="true" /> {t}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Container>
 
-    // Handle Book Now click - open booking modal
-    const handleBookNowClick = (service) => {
-        if (!isLoggedIn) {
-            handlePopup();
-            return;
-        }
-
-        setCurrentBookingItem(service);
-        setShowBookingModal(true);
-        // Refresh booking data when modal opens
-        setTimeout(() => refreshBookingData(), 100);
-    };
-
-    // Check if booking is complete (pure function without side effects)
-    const isBookingComplete = () => {
-        return bookingData.address && bookingData.timeSlot && bookingData.addressId;
-    };
-
-    const handleProceedToPayment = () => {
-        // Force refresh booking data before checking
-        refreshBookingData();
-
-        // Small delay to ensure state is updated
-        setTimeout(() => {
-            const isComplete = isBookingComplete();
-
-            if (isComplete && currentBookingItem) {
-                setShowBookingModal(false);
-                handlePaymentCompleted(currentBookingItem.category_cart_id);
-            } else {
-                // Double check with localStorage directly
-                const address = localStorage.getItem('bookingAddress');
-                const timeSlot = localStorage.getItem('bookingTimeSlot');
-                const addressId = localStorage.getItem('address_id');
-
-                if (address && timeSlot && addressId && currentBookingItem) {
-                    setShowBookingModal(false);
-                    handlePaymentCompleted(currentBookingItem.category_cart_id);
-                } else {
-                    toast.error("Please complete all booking details before proceeding");
-                }
-            }
-        }, 200);
-    };
-
-    const handlePaymentCompleted = async (leadtype, redirect = true) => {
-        const cust_id = localStorage.getItem("customer_id");
-        const cust_mobile = localStorage.getItem("userPhone");
-        const address_id = localStorage.getItem("address_id");
-        const cust_email = localStorage.getItem("email") || localStorage.getItem('userEmail') ;
-        const chkout = JSON.parse(localStorage.getItem("checkoutState") || "[]");
-        const cartItems = JSON.parse(localStorage.getItem("cartItems") || "[]");
-        const cart_id = leadtype;
-
-        const timeSlotData = localStorage.getItem("bookingTimeSlot");
-        const time = timeSlotData ? JSON.parse(timeSlotData) : {};
-        const appointment_time = time.time;
-        const appointment_date = time.date;
-
-        const source = 'mrserviceexpert website';
-
-        // Validate all required fields
-        if (!cust_id || !cust_mobile || !address_id || !cust_email || !appointment_date || !appointment_time) {
-            toast.error("Please complete all booking details before proceeding to payment", {
-                autoClose: 3000,
-            });
-            return;
-        }
-
-        const payload = {
-            cust_id,
-            cust_mobile,
-            address_id,
-            cust_email,
-            cart_id,
-            appointment_time,
-            appointment_date,
-            source
-        };
-
-        try {
-            const res = await fetch("https://waterpurifierservicecenter.in/customer/ro_customer/add_lead_with_full_dtls.php", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await res.json();
-
-            if (data.error == false) {
-                // toast.success(data.msg);
-
-                const leftOverItems = chkout.filter(items => items.category_cart_id !== cart_id);
-
-                if (leftOverItems.length > 0) {
-                    localStorage.setItem('checkoutState', JSON.stringify(leftOverItems));
-                } else {
-                    localStorage.setItem('checkoutState', JSON.stringify([]));
-                }
-
-                const currentCategoryItem = chkout.find(item => item.category_cart_id === cart_id);
-
-                if (currentCategoryItem && cartItems.length > 0) {
-                    const checkedOutServiceIds = currentCategoryItem.cart_dtls.map(service => String(service.service_id));
-
-                    const remainingItems = cartItems.filter(item => {
-                        const isIncluded = checkedOutServiceIds.includes(String(item));
-                        return !isIncluded;
-                    });
-
-                    localStorage.setItem('cartItems', JSON.stringify(remainingItems));
-                      window.dispatchEvent(new Event('cartItemsUpdated'));
-                } else if (leftOverItems.length === 0) {
-                    localStorage.setItem('cartItems', JSON.stringify([]));
-                }
-
-                // Clear booking data
-                const itemsToRemove = [
-                    "bookingTimeSlot",
-                    "bookingAddress",
-                    "time_slot",
-                    "address_id",
-                ];
-
-                itemsToRemove.forEach(item => {
-                    localStorage.removeItem(item);
-                });
-
-                // Reset booking state
-                setBookingData({
-                    address: null,
-                    timeSlot: null,
-                    addressId: null
-                });
-                setBookingCompleted(false);
- setBookingSlotsKey(prev => prev + 1);
-                displayCartData();
-
-                if (redirect) {
-                    setTimeout(() => {
-                        window.location.href = data.lead_id_for_payment;
-                    }, 100);
-                } else {
-                    toast.success("Team Will Contact You Soon!......");
-                }
-
-                // setTimeout(() => {
-                //     window.location.href = data.lead_id_for_payment;
-                // }, 100);
-            } else {
-                toast.error(data.msg || "Payment processing failed");
-            }
-        } catch (error) {
-            toast.error("Network error. Please try again.");
-            console.error("Payment error:", error);
-        }
-    };
-
-    // Close modal handler
-    const handleCloseModal = () => {
-        setShowBookingModal(false);
-        setCurrentBookingItem(null);
-    };
-
-    return (
-
-        <div className="checkout common-spacing bg-white">
-
-
-            <div className="checkSection">
-                {cartDataArray.length > 0 ? (
-                    <div className="checkLeft lg:w-5/12">
-                        <div className="sticky top-15">
-                            <h4 className="text-2xl">Account</h4>
-                            {!isLoggedIn ? (
-                                <div className="login-required-container rounded-lg shadow-sm bg-gray-50 text-center">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="text-red-500 text-3xl mb-2">
-                                            <i className="fas fa-user-lock"></i>
-                                        </div>
-                                        <p className="text-gray-600 mb-4">
-                                            To proceed with your booking, please login or create an account.
-                                        </p>
-                                        <div className="flex gap-4">
-                                            <button className="checkout-btn2" onClick={handlePopup}>Login to Continue</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="address-section hidden_pay">
-                                    <h3 className="mb-4 text-xl">Delivery Address</h3>
-                                    <BookingSlots phoneNumber={phoneNumber} bookingSlotsKey={bookingSlotsKey} />
-
-                                    
-                               <div className="cancellation-section block md:hidden">
-    {/* <h3 className="mb-4 text-xl">Cancellation Policy</h3> */}
-    {/* <p>No questions asked </p> */}
-    <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black">
-        <button>Read Full Privacy</button>
-    </a>
-</div>
-                                </div>
-                            )}
-                        </div>
+      <Container className="pb-8">
+        {groups.length === 0 ? (
+          <div className="mx-auto max-w-lg rounded-3xl border border-[var(--line)] bg-white p-8 text-center shadow-[var(--shadow-sm)] sm:p-10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/assets/images/emptyCart.webp" alt="" width={96} height={96} className="mx-auto h-24 w-24 opacity-80" />
+            <h2 className="mt-4 text-xl font-bold text-[var(--ink)]">Nothing here yet</h2>
+            <p className="mt-1.5 text-sm text-[var(--muted)]">Pick a service and tap “Add” — it will show up here for booking.</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {[
+                ["RO service", "/ro-water-purifier"],
+                ["AC repair", "/ac"],
+                ["Washing machine", "/washing-machine-repair"],
+                ["Refrigerator", "/refrigerator-repair"],
+              ].map(([l, h]) => (
+                <Link key={h} href={h} className="inline-flex min-h-10 items-center gap-1 rounded-full border border-[var(--line)] bg-white px-4 text-[13.5px] font-semibold text-[var(--ink-soft)] hover:border-purple-300 hover:bg-purple-50">
+                  {l} <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+            {/* ---------- Order ---------- */}
+            <div className="min-w-0">
+              <div className="flex flex-col gap-4">
+                {groups.map((g) => (
+                  <section key={g.category_cart_id} className="rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow-sm)]" aria-labelledby={`cat-${g.category_cart_id}`}>
+                    <div className="flex items-center gap-3 border-b border-[var(--line)] px-4 py-3.5 sm:px-5">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-[0_6px_14px_-6px_rgba(98,41,205,.6)]">
+                        <ShoppingBag className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <h2 id={`cat-${g.category_cart_id}`} className="flex-1 text-[15px] font-bold text-[var(--ink)] sm:text-base">
+                        {g.leadtype_name}
+                      </h2>
+                      <span className="text-sm font-bold text-[var(--ink)]">₹{catTotal(g)}</span>
                     </div>
-                ) : null}
 
-                <div className="checkRight max-w-lg">
-                    {cartDataArray.length > 0 ? (
-                        <h3>Order Summary</h3>
-                    ) : (
-                        <div className="emptyCartHeading">
-                            <h3 className="text-center text-black">
-                                <b>For Availing Services Go To <Link href={'/ro-water-purifier'}>Services</Link></b>
-                            </h3>
-                        </div>
-                    )}
-
-                    <div className="order-summary">
-                        {cartDataArray?.length > 0 ? (
-                            <div className="checkOutOrder">
-                                <div>
-                                    {/* {cartDataArray?.map((service) => {
-                                           const categoryTotal = service.cart_dtls.reduce((sum, item) => {
-                                            const price = Number(  item.total_price || item.price );
-                                            const quantity = Number(item.quantity || 1);
-                                            
-                                            return sum + price * quantity;
-                                        }, 0);
-                                        return(
-                                             <div key={service.cart_id}>
-                                            <p className="text-xl"><b>{service.leadtype_name}</b></p>
-                                            {service.cart_dtls.map((serviceDetail) => (
-                                                <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">
-                                                    <div className="problemIcon">
-                                                        <img src={serviceDetail.image} alt={serviceDetail.service_name} />
-                                                    </div>
-                                                    <div>
-                                                        <p className="mb-0">{serviceDetail.service_name}</p>
-                                                        <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: serviceDetail.description }}></p>
-                                                    </div>
-                                                    <div className="flex items-center flex-col">
-                                                        <div>
-                                                            <p className="text-xs text-gray-700 mb-1">₹{serviceDetail.total_price || serviceDetail.price}</p>
-                                                        </div>
-                                                        <div className="quantity-control">
-                                                            <button className="IncrementDcrementBtn" onClick={() => onDecrement(serviceDetail.service_id, 'delete', serviceDetail.quantity)}>
-                                                                -
-                                                            </button>
-                                                            <span>{serviceDetail.quantity || 1}</span>
-                                                            <button className="IncrementDcrementBtn" onClick={() => onIncrement(serviceDetail.service_id, 'add', serviceDetail.quantity)}>
-                                                                +
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                           <div className="flex justify-between">
-                                            <button  onClick={()=>handlePaymentCompleted(service.category_cart_id, false)} className="bg-gray-400 hidden md:block  p-2 rounded-xl text-white hover:bg-blue-700 transition-colors">Pay Later</button>
-                                             <button 
-                                                className="bg-purple-600  md:w-xs w-full p-2 rounded-xl text-white hover:bg-purple-700 transition-colors" 
-                                                onClick={() => {
-                                                    if (window.innerWidth < 768) {
-                                                        handleBookNowClick(service);
-                                                    } else {
-                                                        handlePaymentCompleted(service.category_cart_id);
-                                                    }
-                                                }}
-                                            >
-                                                
-                                                Book Now: ₹{categoryTotal}
-                                            </button>
-                                           </div>
-                                        </div>
-                                        )
-                                    })} */}
-                                    {cartDataArray?.map((service) => {
-                                        const calculatedTotal = service.cart_dtls.reduce((sum, item) => {
-                                            const price = Number(item.total_price || item.price || 0);
-                                            const quantity = Number(item.quantity || 1);
-                                            return sum + (price * quantity);
-                                        }, 0);
-
-                                        const serverTotal = Number(service.total_main) || 0;
-                                        const categoryTotal = serverTotal || calculatedTotal;
-
-                                        return (
-                                            <div key={service.category_cart_id}>
-                                                <p className="text-xl"><b>{service.leadtype_name}</b></p>
-                                                {service.cart_dtls.map((d) => withOverride(d)).map((serviceDetail) => (
-                                                    <div key={serviceDetail.service_id} className="checkout-item service-card2 flex items-center">
-                                                        <div className="problemIcon">
-                                                            <img src={serviceDetail.image} alt={serviceDetail.service_name} />
-                                                        </div>
-                                                        <div>
-                                                            <p className="mb-0">{serviceDetail.service_name}</p>
-                                                            <p className="text-xs text-gray-300" dangerouslySetInnerHTML={{ __html: serviceDetail.description }}></p>
-                                                        </div>
-                                                        <div className="flex items-center flex-col">
-                                                            <div>
-                                                                <p className="text-xs text-gray-700 mb-1">₹{serviceDetail.total_price || serviceDetail.price}</p>
-                                                            </div>
-                                                            <div className="quantity-control">
-                                                                <button className="IncrementDcrementBtn" onClick={() => onDecrement(serviceDetail.service_id, 'delete', serviceDetail.quantity)}>
-                                                                    -
-                                                                </button>
-                                                                <span>{serviceDetail.quantity || 1}</span>
-                                                                <button className="IncrementDcrementBtn" onClick={() => onIncrement(serviceDetail.service_id, 'add', serviceDetail.quantity)}>
-                                                                    +
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                <div className="flex justify-between">
-                                                    <button onClick={() => handlePaymentCompleted(service.category_cart_id, false)} className="bg-gray-400 hidden md:block p-2 rounded-xl text-white hover:bg-blue-700 transition-colors">
-                                                        Pay Later
-                                                    </button>
-                                                    <button
-                                                        className="bg-purple-600 md:w-xs w-full p-2 rounded-xl text-white hover:bg-purple-700 transition-colors"
-                                                        onClick={() => {
-                                                            if (window.innerWidth < 768) {
-                                                                handleBookNowClick(service);
-                                                            } else {
-                                                                handlePaymentCompleted(service.category_cart_id);
-                                                            }
-                                                        }}
-                                                    >
-                                                        Book Now: ₹{categoryTotal}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-
-                                </div>
-
-                                <div className="cancellation-section block md:hidden">
-                                    <h3 className="mb-4 text-xl">Cancellation policy</h3>
-                                    <p>Free cancellations if done more than 12 hrs before the service or if a professional isn't assigned. A fee will be charged otherwise.</p>
-                                    <a href='/privacy-and-policy' target="_blank" rel="noopener noreferrer" className="text-black">
-                                        <button>Read Full Privacy</button>
-                                    </a>
-                                </div>
-
-                                <div className='p-3 bg-white rounded-lg shadow hidden'>
-                                    <div>
-                                        <h4>Payment summary</h4>
-                                        <div className="tip-portion">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-2xs mb-2">Item total</p>
-                                                <p className="text-2xs mb-2">₹{finalTotal}</p>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-2xs mb-2">Service Fee</p>
-                                                <p className="text-2xs mb-2">NIL</p>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-2xs mb-2">Discount</p>
-                                                <p className="text-green-400 text-2xs mb-2">-₹{discountAmount.toFixed(2)}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="dashedLine"></div>
-                                    <div className="checkout-total flex gap-2.5">
-                                        <p className="total-breakdown m-0">Total: ₹{finalTotal}</p>
-                                    </div>
-                                </div>
+                    <ul className="divide-y divide-[var(--line)]">
+                      {(g.cart_dtls || []).map((d) => withOverride(d)).map((item) => (
+                        <li key={item.service_id} className="flex items-start gap-3.5 px-4 py-3.5 sm:px-5">
+                          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface-soft)]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={item.image} alt={item.service_name} width={64} height={64} className="h-full w-full object-cover" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[14.5px] font-bold leading-snug text-[var(--ink)]">{item.service_name}</p>
+                            {item.description && <div className="svc-desc mt-1 line-clamp-2" dangerouslySetInnerHTML={{ __html: item.description }} />}
+                            <div className="mt-2 inline-flex items-center rounded-lg border border-[var(--line-strong)] bg-white">
+                              <button type="button" aria-label="Decrease quantity" onClick={() => onDecrement(item.service_id, "delete", item.quantity)} className="inline-flex h-8 w-8 items-center justify-center text-purple-700 hover:bg-purple-50">
+                                <Minus className="h-3.5 w-3.5" aria-hidden="true" />
+                              </button>
+                              <span className="min-w-[2rem] text-center text-[13px] font-bold text-[var(--ink)]">{item.quantity || 1}</span>
+                              <button type="button" aria-label="Increase quantity" onClick={() => onIncrement(item.service_id, "add", item.quantity)} disabled={(item.quantity || 1) >= 5} className="inline-flex h-8 w-8 items-center justify-center text-purple-700 hover:bg-purple-50 disabled:opacity-40">
+                                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                              </button>
                             </div>
-                        ) : (
-                            <div className="emptyCartStyle emptyStyle">
-                                <img src="/assets/images/emptyCart.png" alt="Empty Cart" />
-                                <p>No items in the cart.</p>
-                            </div>
-                        )}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-[15px] font-extrabold text-[var(--ink)]">₹{item.total_price || item.price}</p>
+                            {Number(item.quantity) > 1 && <p className="text-[11px] text-[var(--muted)]">₹{item.price} × {item.quantity}</p>}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="flex flex-col gap-2 border-t border-[var(--line)] bg-[var(--surface-soft)]/60 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-end sm:px-5">
+                      <button type="button" onClick={() => handlePaymentCompleted(g.category_cart_id, false)} disabled={placing === g.category_cart_id} className={laterBtn}>
+                        Pay later
+                      </button>
+                      <button
+                        type="button"
+                        disabled={placing === g.category_cart_id}
+                        onClick={() => (window.innerWidth < 1024 ? handleBookNowClick(g) : handlePaymentCompleted(g.category_cart_id))}
+                        className={`${bookBtn} sm:max-w-xs`}
+                      >
+                        {placing === g.category_cart_id ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <CalendarCheck className="h-4 w-4" aria-hidden="true" />}
+                        Book now · ₹{catTotal(g)}
+                      </button>
                     </div>
-                </div>
+                  </section>
+                ))}
+              </div>
             </div>
 
-            {/* Booking Modal */}
-            {showBookingModal && (
-                <div className="fixed inset-0 bg-purple-100 bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-                            <h3 className="text-lg font-semibold">Complete Your Booking</h3>
-                            <button
-                                onClick={handleCloseModal}
-                                className="text-gray-500 hover:text-gray-700 text-xl"
-                            >
-                                ✕
-                            </button>
-                        </div>
+            {/* ---------- Sidebar ---------- */}
+            <aside className="pub-sticky min-w-0">
+              <div className="flex flex-col gap-4">
+                {!isLoggedIn ? (
+                  <section className="rounded-2xl border border-[var(--line)] bg-white p-5 text-center shadow-[var(--shadow-sm)]">
+                    <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
+                      <LogIn className="h-6 w-6" aria-hidden="true" />
+                    </span>
+                    <h2 className="mt-3 text-[16px] font-bold text-[var(--ink)]">Login to book</h2>
+                    <p className="mt-1 text-sm text-[var(--muted)]">Verify your mobile number with an OTP to choose an address and time slot.</p>
+                    <button type="button" onClick={() => setShowModal(true)} className={`${bookBtn} mt-4 w-full`}>
+                      <LogIn className="h-4 w-4" aria-hidden="true" /> Login / Sign up
+                    </button>
+                  </section>
+                ) : (
+                  <section className="hidden rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[var(--shadow-sm)] lg:block" aria-labelledby="booking-h">
+                    <h2 id="booking-h" className="mb-4 text-[16px] font-bold text-[var(--ink)]">
+                      Booking details
+                    </h2>
+                    <BookingSlots phoneNumber={phoneNumber} bookingSlotsKey={bookingSlotsKey} />
+                    <p className="-mt-2 text-[12px] text-[var(--muted)]">Then tap “Book now” on a category to confirm.</p>
+                  </section>
+                )}
 
-                        <div className="p-4">
-                            <BookingSlots phoneNumber={phoneNumber} />
-
-                            {/* Booking Status Display */}
-                            {/* <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                                <p className="text-sm font-medium mb-2">Booking Status:</p>
-                                <div className="space-y-1 text-xs">
-                                    <div className={`flex items-center ${bookingData.address ? 'text-green-600' : 'text-red-600'}`}>
-                                        <span className="mr-2">{bookingData.address ? '✓' : '✗'}</span>
-                                        Address: {bookingData.address ? 'Selected' : 'Not selected'}
-                                    </div>
-                                    <div className={`flex items-center ${bookingData.timeSlot ? 'text-green-600' : 'text-red-600'}`}>
-                                        <span className="mr-2">{bookingData.timeSlot ? '✓' : '✗'}</span>
-                                        Time Slot: {bookingData.timeSlot ? 'Selected' : 'Not selected'}
-                                    </div>
-                                    <div className={`flex items-center ${bookingData.addressId ? 'text-green-600' : 'text-red-600'}`}>
-                                        <span className="mr-2">{bookingData.addressId ? '✓' : '✗'}</span>
-                                        Address ID: {bookingData.addressId ? 'Confirmed' : 'Not confirmed'}
-                                    </div>
-                                </div>
-                            </div> */}
-
-                            <div className="mt-6 flex gap-3">
-                                <button
-                                    onClick={() => {
-                                        handleCloseModal();
-                                        // Call handlePaymentCompleted with redirect=false for "Pay Later"
-                                        if (currentBookingItem) {
-                                            handlePaymentCompleted(currentBookingItem.category_cart_id, false);
-                                        }
-                                    }}
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                                >
-                                    Pay Later
-                                </button>
-                                <button
-                                    onClick={handleProceedToPayment}
-                                    className={`flex-1 px-4 py-2 rounded-lg transition-colors ${bookingCompleted
-                                            ? 'bg-purple-600 text-white hover:bg-purple-700'
-                                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        }`}
-                                    disabled={!bookingCompleted}
-                                >
-                                    {bookingCompleted ? 'Next' : 'Book Now'}
-                                </button>
-                            </div>
-                        </div>
+                <section className="rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow-sm)]" aria-labelledby="summary-h">
+                  <div className="flex items-center gap-3 border-b border-[var(--line)] px-4 py-3.5">
+                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_6px_14px_-6px_rgba(224,137,0,.6)]">
+                      <Receipt className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <h2 id="summary-h" className="text-[15px] font-bold text-[var(--ink)]">
+                      Payment summary
+                    </h2>
+                  </div>
+                  <dl className="space-y-2 px-4 py-4 text-sm">
+                    <div className="flex justify-between text-[var(--body-text)]">
+                      <dt>Item total</dt>
+                      <dd className="font-semibold text-[var(--ink)]">₹{itemsTotal}</dd>
                     </div>
-                </div>
-            )}
+                    <div className="flex justify-between text-[var(--body-text)]">
+                      <dt>Visit &amp; service fee</dt>
+                      <dd className="font-semibold text-emerald-700">Free</dd>
+                    </div>
+                    <div className="flex justify-between border-t border-dashed border-[var(--line-strong)] pt-3 text-[var(--ink)]">
+                      <dt className="font-bold">Total</dt>
+                      <dd className="text-lg font-extrabold tracking-tight">₹{grandTotal}</dd>
+                    </div>
+                  </dl>
+                  <p className="border-t border-[var(--line)] px-4 py-3 text-[12px] text-[var(--muted)]">
+                    Spare parts, if needed, are quoted by the technician before work starts. Pay online after booking or in cash on completion.
+                  </p>
+                </section>
 
-            <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
-            <ToastContainer position="top-right" autoClose={3000} />
+                <p className="px-1 text-[12px] text-[var(--muted)]">
+                  By booking you agree to our{" "}
+                  <Link href="/terms-and-conditions" className="font-semibold text-[var(--ink-soft)] underline">
+                    terms
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy-and-policy" className="font-semibold text-[var(--ink-soft)] underline">
+                    privacy policy
+                  </Link>
+                  .
+                </p>
+              </div>
+            </aside>
+          </div>
+        )}
+      </Container>
+
+      {/* Phone / tablet: booking details in a sheet */}
+      {showBookingModal && (
+        <div className="fixed inset-0 z-[1200] flex items-end justify-center bg-black/55 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={(e) => e.target === e.currentTarget && handleCloseModal()} role="dialog" aria-modal="true" aria-label="Complete your booking">
+          <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+            <div className="sticky top-0 flex items-center justify-between border-b border-[var(--line)] bg-white px-5 py-4">
+              <div>
+                <h3 className="text-[16px] font-bold text-[var(--ink)]">Complete your booking</h3>
+                {currentBookingItem && <p className="text-xs text-[var(--muted)]">{currentBookingItem.leadtype_name} · ₹{catTotal(currentBookingItem)}</p>}
+              </div>
+              <button type="button" onClick={handleCloseModal} aria-label="Close" className="inline-flex h-9 w-9 items-center justify-center rounded-full text-[var(--muted)] hover:bg-gray-100">
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+            <div className="px-5 pt-5">
+              <BookingSlots phoneNumber={phoneNumber} bookingSlotsKey={bookingSlotsKey} />
+            </div>
+            <div className="flex gap-2 border-t border-[var(--line)] p-4">
+              <button
+                type="button"
+                onClick={() => {
+                  handleCloseModal();
+                  if (currentBookingItem) handlePaymentCompleted(currentBookingItem.category_cart_id, false);
+                }}
+                className={laterBtn}
+              >
+                Pay later
+              </button>
+              <button type="button" onClick={handleProceedToPayment} disabled={!bookingCompleted} className={bookBtn}>
+                <CalendarCheck className="h-4 w-4" aria-hidden="true" /> {bookingCompleted ? "Book & pay" : "Select address & slot"}
+              </button>
+            </div>
+          </div>
         </div>
-    );
-};
+      )}
 
-export default CheckOut;
+      <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
+      <ToastContainer position="top-right" autoClose={3000} />
+    </>
+  );
+}
