@@ -37,9 +37,11 @@ export const GET = handle(async (req) => {
       `SELECT l.id, l.status, l.crm_status, l.crm_response, l.customer_name, l.customer_mobile, l.service_name, l.service_price,
               l.coin_cost, l.brand_name, l.appointment_date, l.appointment_time, l.area, l.address_city, l.pincode, l.page_url,
               l.issue_note, l.issue_reported_at, l.refunded_at, l.created_at, l.expires_at, l.accepted_at,
+              l.phase, l.opened_at, l.original_partner_id, op.business_name AS original_business_name,
               c.category_name, p.id AS partner_id, p.business_name
          FROM partner_leads l
          JOIN partners p ON p.id = l.partner_id
+         LEFT JOIN partners op ON op.id = l.original_partner_id
          JOIN category_tb c ON c.id = l.category_id
         WHERE ${w} ORDER BY l.id DESC LIMIT ${limit} OFFSET ${(page - 1) * limit}`,
       params

@@ -1,6 +1,8 @@
-// Partner leads: created by a customer's "Book now", offered to that partner
-// for 30 minutes, paid for with coins (50% of the service price) on accept,
-// and forwarded to the CRM when rejected or not accepted in time.
+// Partner leads: created by a customer's "Book now" and offered to that
+// partner for 15 minutes ("direct" phase). If they don't accept, the lead
+// opens to every eligible partner in the city for another 15 minutes
+// ("open" phase) — the first to accept gets it. Accepting costs coins (50%
+// of the service price). Still unaccepted → expired and forwarded to the CRM.
 
 import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
@@ -10,7 +12,8 @@ import { CRM_LEAD_TYPES, crmBrands, crmServices, crmPincode, forwardLeadToCrm } 
 import { brandKey, validName } from "@/lib/partners/validation";
 import { notifyPartner } from "@/lib/partners/notify";
 
-export const LEAD_WINDOW_MIN = 30;
+export const LEAD_WINDOW_MIN = 15; // chosen partner's exclusive window
+export const OPEN_WINDOW_MIN = 15; // then open to the whole city
 export const LEAD_SHARE = 0.5; // partner pays 50% of the service price in coins
 const MAX_SERVICES = 5;
 const MAX_CRM_ATTEMPTS = 3;
@@ -18,6 +21,8 @@ const MAX_CRM_ATTEMPTS = 3;
 const bad = (message, fields) => new HttpError(422, "validation_error", message, fields);
 const round2 = (n) => Math.round(Number(n) * 100) / 100;
 const clean = (v, max) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, max);
+/** DATE column (mysql2 gives a local-midnight Date) → YYYY-MM-DD without a UTC day shift. */
+const ymd = (d) => (d instanceof Date ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}` : String(d ?? "").slice(0, 10));
 
 /* ── create ───────────────────────────────────────────────────────────── */
 
@@ -107,6 +112,13 @@ export async function createLead(customer, input) {
   const [ourBrands] = await db.query("SELECT id, brand_name FROM brand_tb WHERE category_id = ?", [cat.id]);
   const ourBrand = ourBrands.find((b) => brandKey(b.brand_name) === brandKey(brand.name));
 
+  // City the open pool is drawn from: the page's city, else the pincode's city.
+  let openCityId = pageCityId;
+  if (!openCityId && loc.city) {
+    const [[c]] = await db.query("SELECT id FROM city_tb WHERE LOWER(city_name) = ? AND status = '1' ORDER BY id LIMIT 1", [String(loc.city).toLowerCase()]);
+    openCityId = c?.id || null;
+  }
+
   const created = await withTransaction(async (conn) => {
     // One open booking per customer + partner + category per day.
     const [dupe] = await conn.query(
@@ -123,14 +135,14 @@ export async function createLead(customer, input) {
     }
     const [ins] = await conn.query(
       `INSERT INTO partner_leads
-         (partner_id, customer_id, customer_name, customer_mobile, category_id, brand_id, php_lead_type, php_brand_id, brand_name,
+         (partner_id, original_partner_id, customer_id, customer_name, customer_mobile, category_id, brand_id, php_lead_type, php_brand_id, brand_name,
           php_service_id, service_name, service_price, services_json, coin_cost, appointment_date, appointment_time,
-          house_no, area, landmark, pincode, address_city, address_state, php_city_id, page_url, page_city_id, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL ${LEAD_WINDOW_MIN} MINUTE)`,
+          house_no, area, landmark, pincode, address_city, address_state, php_city_id, page_url, page_city_id, open_city_id, expires_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL ${LEAD_WINDOW_MIN} MINUTE)`,
       [
-        partner.id, customer.id, name.value, customer.mobile, cat.id, ourBrand?.id || null, leadType, brand.id, brand.name,
+        partner.id, partner.id, customer.id, name.value, customer.mobile, cat.id, ourBrand?.id || null, leadType, brand.id, brand.name,
         service.id, service.name, service.price, JSON.stringify(picked), round2(service.price * LEAD_SHARE), date, slot,
-        address.house_no, address.area, address.landmark, address.pincode, loc.city, loc.state, loc.cityId, pageUrl, pageCityId,
+        address.house_no, address.area, address.landmark, address.pincode, loc.city, loc.state, loc.cityId, pageUrl, pageCityId, openCityId,
       ]
     );
     return { id: ins.insertId, service: service.name, price: service.price, services: picked };
@@ -161,12 +173,23 @@ export function parseServices(l) {
   return [{ id: Number(l.php_service_id), name: l.service_name, price: Number(l.service_price) }];
 }
 
-/** Customer contact + full address are revealed only after accepting. */
-function shapeForPartner(l) {
-  const open = l.status === "accepted" || l.status === "completed";
+/**
+ * Customer contact + full address are revealed only to the partner who
+ * accepted. `my_status` is the lead as this partner sees it: a lead another
+ * partner took from the open pool shows as "taken" for the original one.
+ */
+function shapeForPartner(l, partnerId) {
+  const status = l.my_status || l.status;
+  const mine = Number(l.partner_id) === Number(partnerId);
+  const open = mine && (status === "accepted" || status === "completed");
   return {
     id: l.id,
-    status: l.status,
+    status,
+    phase: l.phase || "direct",
+    // Open-pool lead: visible to every eligible partner in the city, first to accept wins.
+    is_open: status === "new" && l.phase === "open",
+    assigned_to_me: mine,
+    opened_at: l.opened_at,
     category: l.category_name,
     brand: l.brand_name,
     service: l.service_name,
@@ -192,24 +215,42 @@ function shapeForPartner(l) {
   };
 }
 
-const GROUPS = { new: ["new"], accepted: ["accepted"], completed: ["completed"], missed: ["rejected", "expired"] };
+const GROUPS = { new: ["new"], accepted: ["accepted"], completed: ["completed"], missed: ["rejected", "expired", "taken"] };
+
+/** SQL: partner ? serves the city the lead's open pool is drawn from (city, locality or parent city). */
+const SERVES_LEAD_CITY = `EXISTS (
+  SELECT 1 FROM partner_service_areas a
+   WHERE a.partner_id = ?
+     AND (a.city_id = l.open_city_id OR a.locality_id = l.open_city_id
+          OR a.city_id = (SELECT m.parent_city_id FROM city_parent_map m WHERE m.city_id = l.open_city_id LIMIT 1)))`;
+const OFFERS_LEAD_CATEGORY = "EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = ? AND pc.category_id = l.category_id)";
+const PASSED = "EXISTS (SELECT 1 FROM partner_lead_passes x WHERE x.lead_id = l.id AND x.partner_id = ?)";
+/** Leads this partner may see: their own, ones they originally got, and the city's open pool. */
+const VISIBLE = `(
+  (l.partner_id = ? AND NOT ${PASSED})
+  OR (l.original_partner_id = ? AND l.status <> 'new')
+  OR (l.phase = 'open' AND l.status = 'new' AND l.expires_at > NOW() AND l.open_city_id IS NOT NULL
+      AND ${OFFERS_LEAD_CATEGORY} AND ${SERVES_LEAD_CITY} AND NOT ${PASSED})
+)`;
+const MY_STATUS = "IF(l.partner_id = ? OR l.status = 'new', l.status, 'taken')";
 
 /** filters: { group: new|accepted|completed|missed, search, from, to } */
 export async function listPartnerLeads(partnerId, { group = null, search = "", from = null, to = null, limit = 50 } = {}) {
   await processDueLeads().catch((e) => console.error("[leads] process", e?.message));
-  const params = [partnerId];
-  let where = "l.partner_id = ?";
+  const p = partnerId;
+  const params = [p, p, p, p, p, p, p]; // MY_STATUS (select) + VISIBLE
+  let where = VISIBLE;
   if (GROUPS[group]) {
-    where += " AND l.status IN (?)";
-    params.push(GROUPS[group]);
+    where += ` AND ${MY_STATUS} IN (?)`;
+    params.push(p, GROUPS[group]);
   }
   const q = String(search || "").trim().slice(0, 60);
   if (q) {
     // Customer name / mobile are searchable only on leads the partner paid for.
     const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
     where += ` AND (l.service_name LIKE ? OR l.area LIKE ? OR l.id = ?
-                OR (l.status IN ('accepted','completed') AND (l.customer_name LIKE ? OR l.customer_mobile LIKE ?)))`;
-    params.push(like, like, Number(q) || 0, like, like);
+                OR (l.partner_id = ? AND l.status IN ('accepted','completed') AND (l.customer_name LIKE ? OR l.customer_mobile LIKE ?)))`;
+    params.push(like, like, Number(q) || 0, p, like, like);
   }
   if (from && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
     where += " AND l.created_at >= ?";
@@ -220,16 +261,17 @@ export async function listPartnerLeads(partnerId, { group = null, search = "", f
     params.push(`${to} 23:59:59`);
   }
   const [rows] = await db.query(
-    `SELECT l.*, c.category_name, TIMESTAMPDIFF(SECOND, NOW(), l.expires_at) AS seconds_left
+    `SELECT l.*, c.category_name, ${MY_STATUS} AS my_status, TIMESTAMPDIFF(SECOND, NOW(), l.expires_at) AS seconds_left
        FROM partner_leads l JOIN category_tb c ON c.id = l.category_id
       WHERE ${where}
-      ORDER BY (l.status = 'new') DESC, l.id DESC
+      ORDER BY (l.status = 'new') DESC, (l.partner_id = ?) DESC, l.id DESC
       LIMIT ${Math.min(Number(limit) || 50, 200)}`,
-    params
+    [...params, p]
   );
-  return rows.map(shapeForPartner);
+  return rows.map((l) => shapeForPartner(l, partnerId));
 }
 
+/** Lock a lead this partner owns (direct or already taken by them). */
 async function lockOwnLead(conn, partnerId, leadId) {
   const [[l]] = await conn.query(
     "SELECT *, TIMESTAMPDIFF(SECOND, NOW(), expires_at) AS seconds_left FROM partner_leads WHERE id = ? AND partner_id = ? FOR UPDATE",
@@ -239,13 +281,89 @@ async function lockOwnLead(conn, partnerId, leadId) {
   return l;
 }
 
+/** Approved partners (other than `excludeId`) who offer the category and serve the lead's city. */
+async function eligiblePartnerIds(conn, l, excludeId = 0) {
+  if (!l.open_city_id) return [];
+  const [rows] = await conn.query(
+    `SELECT DISTINCT p.id
+       FROM partners p
+       JOIN partner_categories pc ON pc.partner_id = p.id AND pc.category_id = ?
+       JOIN partner_service_areas a ON a.partner_id = p.id
+        AND (a.city_id = ? OR a.locality_id = ?
+             OR a.city_id = (SELECT m.parent_city_id FROM city_parent_map m WHERE m.city_id = ? LIMIT 1))
+      WHERE p.status = 'approved' AND p.is_listed = 1 AND p.is_available = 1
+        AND p.mobile_verified_at IS NOT NULL AND p.deleted_at IS NULL AND p.id <> ?`,
+    [l.category_id, l.open_city_id, l.open_city_id, l.open_city_id, excludeId]
+  );
+  return rows.map((r) => r.id);
+}
+
+/**
+ * Move a still-new direct lead to the open pool (fresh OPEN_WINDOW_MIN
+ * window). With nobody else eligible in the city it goes straight to the
+ * CRM instead. Caller holds the row lock. Returns who to notify.
+ */
+async function openLead(conn, l, { rejected = false, reason = null } = {}) {
+  const others = await eligiblePartnerIds(conn, l, l.original_partner_id || l.partner_id);
+  if (!others.length) {
+    await conn.query(
+      `UPDATE partner_leads SET status = ?, rejected_at = IF(?, NOW(), rejected_at), reject_reason = ?, crm_status = 'pending'
+        WHERE id = ? AND status = 'new'`,
+      [rejected ? "rejected" : "expired", rejected ? 1 : 0, reason, l.id]
+    );
+    return { opened: false, partnerIds: [] };
+  }
+  await conn.query(
+    `UPDATE partner_leads
+        SET phase = 'open', opened_at = NOW(), expires_at = NOW() + INTERVAL ${OPEN_WINDOW_MIN} MINUTE,
+            rejected_at = IF(?, NOW(), rejected_at), reject_reason = ?
+      WHERE id = ? AND status = 'new'`,
+    [rejected ? 1 : 0, reason, l.id]
+  );
+  // A partner who rejected it should not see it again in the pool.
+  if (rejected) await conn.query("INSERT IGNORE INTO partner_lead_passes (lead_id, partner_id, reason) VALUES (?, ?, ?)", [l.id, l.partner_id, reason]);
+  return { opened: true, partnerIds: others };
+}
+
+async function notifyPool(l, partnerIds) {
+  await Promise.all(
+    partnerIds.map((id) =>
+      notifyPartner(
+        id,
+        {
+          type: "lead_open",
+          title: `Open lead: ${l.service_name}`,
+          body: `${l.address_city} · ₹${l.service_price} · ${ymd(l.appointment_date)} ${l.appointment_time}. First to accept in ${OPEN_WINDOW_MIN} minutes gets it.`,
+          link: "/partner/dashboard?tab=leads",
+        },
+        { push: true }
+      )
+    )
+  );
+}
+
+/** First to accept wins: the row lock + status check make that atomic. */
 export async function acceptLead(partnerId, leadId) {
   return withTransaction(async (conn) => {
     const [[p]] = await conn.query("SELECT status FROM partners WHERE id = ?", [partnerId]);
     if (p?.status !== "approved") throw new HttpError(403, "not_active", "Only active partners can accept leads.");
-    const l = await lockOwnLead(conn, partnerId, leadId);
-    if (l.status !== "new") throw new HttpError(409, "not_available", "This lead is no longer available.");
-    if (Number(l.seconds_left) <= 0) throw new HttpError(409, "expired", "The 30-minute window for this lead has ended.");
+    const [[l]] = await conn.query("SELECT *, TIMESTAMPDIFF(SECOND, NOW(), expires_at) AS seconds_left FROM partner_leads WHERE id = ? FOR UPDATE", [leadId]);
+    if (!l) throw new HttpError(404, "not_found", "Lead not found.");
+    const mine = Number(l.partner_id) === Number(partnerId);
+    if (!mine && l.phase !== "open") throw new HttpError(404, "not_found", "Lead not found.");
+    if (l.status !== "new") {
+      if (l.phase === "open" && !mine) throw new HttpError(409, "taken", "Another partner already accepted this lead.");
+      throw new HttpError(409, "not_available", "This lead is no longer available.");
+    }
+    if (Number(l.seconds_left) <= 0) throw new HttpError(409, "expired", `The ${l.phase === "open" ? OPEN_WINDOW_MIN : LEAD_WINDOW_MIN}-minute window for this lead has ended.`);
+    if (!mine) {
+      const [[ok]] = await conn.query(
+        `SELECT 1 AS ok FROM partner_leads l
+          WHERE l.id = ? AND ${OFFERS_LEAD_CATEGORY} AND ${SERVES_LEAD_CITY}`,
+        [leadId, partnerId, partnerId]
+      );
+      if (!ok) throw new HttpError(403, "not_eligible", "This lead is outside your service area or categories.");
+    }
     const balance = await applyTxn(conn, {
       partnerId,
       type: "lead_debit",
@@ -255,22 +373,44 @@ export async function acceptLead(partnerId, leadId) {
       actorType: "partner",
       actorId: partnerId,
     });
-    await conn.query("UPDATE partner_leads SET status = 'accepted', accepted_at = NOW() WHERE id = ?", [leadId]);
-    return { balance };
+    await conn.query("UPDATE partner_leads SET status = 'accepted', accepted_at = NOW(), partner_id = ? WHERE id = ?", [partnerId, leadId]);
+    return { balance, original: l.original_partner_id, takenFromPool: !mine, service: l.service_name };
+  }).then(async (r) => {
+    // Tell the partner who missed it that someone else took it.
+    if (r.takenFromPool && r.original && Number(r.original) !== Number(partnerId)) {
+      await notifyPartner(r.original, {
+        type: "lead_missed",
+        title: `Lead #${leadId} taken by another partner`,
+        body: `${r.service} was accepted by another partner from the open pool.`,
+        link: "/partner/dashboard?tab=leads",
+      });
+    }
+    return { balance: r.balance };
   });
 }
 
+/**
+ * Direct phase: the chosen partner rejecting opens the lead to the city
+ * right away (or sends it to the CRM when nobody else is eligible).
+ * Open phase: "reject" just hides the lead for this partner (a pass).
+ */
 export async function rejectLead(partnerId, leadId, reason) {
-  await withTransaction(async (conn) => {
-    const l = await lockOwnLead(conn, partnerId, leadId);
+  const why = clean(reason, 255) || null;
+  const r = await withTransaction(async (conn) => {
+    const [[l]] = await conn.query("SELECT * FROM partner_leads WHERE id = ? FOR UPDATE", [leadId]);
+    if (!l) throw new HttpError(404, "not_found", "Lead not found.");
+    const mine = Number(l.partner_id) === Number(partnerId);
+    if (!mine && l.phase !== "open") throw new HttpError(404, "not_found", "Lead not found.");
     if (l.status !== "new") throw new HttpError(409, "not_available", "This lead is no longer available.");
-    await conn.query(
-      "UPDATE partner_leads SET status = 'rejected', rejected_at = NOW(), reject_reason = ?, crm_status = 'pending' WHERE id = ?",
-      [clean(reason, 255) || null, leadId]
-    );
+    if (l.phase === "open") {
+      await conn.query("INSERT IGNORE INTO partner_lead_passes (lead_id, partner_id, reason) VALUES (?, ?, ?)", [leadId, partnerId, why]);
+      return { passed: true };
+    }
+    return { lead: l, ...(await openLead(conn, l, { rejected: true, reason: why })) };
   });
-  // Rejected leads go to the CRM right away.
-  await forwardOne(leadId).catch((e) => console.error("[leads] forward", e?.message));
+  if (r.passed) return;
+  if (r.opened) await notifyPool(r.lead, r.partnerIds);
+  else await forwardOne(leadId).catch((e) => console.error("[leads] forward", e?.message)); // nobody else: CRM right away
 }
 
 /** details: { final_amount?, work_done? } — partner's own record of the job. */
@@ -337,34 +477,73 @@ async function forwardOne(leadId) {
 let lastRun = 0;
 
 /**
- * Expire leads past their 30-minute window and push pending ones to the CRM.
- * Runs from the cron endpoint and opportunistically (throttled) on dashboard
+ * Move leads along: direct leads past 15 minutes open to the city (or go
+ * to the CRM when nobody else is eligible), open leads past their 15
+ * minutes expire to the CRM, and pending CRM forwards are pushed. Runs
+ * from the cron endpoint and opportunistically (throttled) on dashboard
  * loads, so leads still move even if the cron is late.
  */
 export async function processDueLeads({ force = false } = {}) {
   if (!force && Date.now() - lastRun < 60_000) return { skipped: true };
   lastRun = Date.now();
-  const [expiring] = await db.query(
-    "SELECT id, partner_id, service_name FROM partner_leads WHERE status = 'new' AND expires_at <= NOW() ORDER BY id LIMIT 100"
+
+  // 1) Direct window over → open pool.
+  const [directDue] = await db.query(
+    "SELECT id FROM partner_leads WHERE status = 'new' AND phase = 'direct' AND expires_at <= NOW() ORDER BY id LIMIT 100"
   );
+  let opened = 0;
   let expired = 0;
-  for (const l of expiring) {
+  for (const { id } of directDue) {
+    const r = await withTransaction(async (conn) => {
+      const [[l]] = await conn.query("SELECT * FROM partner_leads WHERE id = ? FOR UPDATE", [id]);
+      if (!l || l.status !== "new" || l.phase !== "direct") return null;
+      return { lead: l, ...(await openLead(conn, l)) };
+    }).catch((e) => (console.error("[leads] open", e?.message), null));
+    if (!r) continue;
+    const l = r.lead;
+    if (r.opened) {
+      opened++;
+      await notifyPartner(l.partner_id, {
+        type: "lead_missed",
+        title: `Lead #${l.id} opened to other partners`,
+        body: `You didn't accept ${l.service_name} within ${LEAD_WINDOW_MIN} minutes. It is now open to all partners in ${l.address_city} for ${OPEN_WINDOW_MIN} minutes — you can still accept it.`,
+        link: "/partner/dashboard?tab=leads",
+      });
+      await notifyPool(l, r.partnerIds);
+    } else {
+      expired++;
+      await notifyPartner(l.partner_id, {
+        type: "lead_missed",
+        title: `Lead missed: ${l.service_name}`,
+        body: `Lead #${l.id} wasn't accepted within ${LEAD_WINDOW_MIN} minutes and went to our support team.`,
+        link: "/partner/dashboard?tab=leads",
+      });
+    }
+  }
+
+  // 2) Open window over → expired, CRM.
+  const [openDue] = await db.query(
+    "SELECT id, original_partner_id, service_name FROM partner_leads WHERE status = 'new' AND phase = 'open' AND expires_at <= NOW() ORDER BY id LIMIT 100"
+  );
+  for (const l of openDue) {
     const [r] = await db.query("UPDATE partner_leads SET status = 'expired', crm_status = 'pending' WHERE id = ? AND status = 'new'", [l.id]);
     if (!r.affectedRows) continue;
     expired++;
-    await notifyPartner(l.partner_id, {
-      type: "lead_missed",
-      title: `Lead missed: ${l.service_name}`,
-      body: `Lead #${l.id} wasn't accepted within ${LEAD_WINDOW_MIN} minutes and went to our support team.`,
-      link: "/partner/dashboard?tab=leads",
-    });
+    if (l.original_partner_id) {
+      await notifyPartner(l.original_partner_id, {
+        type: "lead_missed",
+        title: `Lead #${l.id} went to support`,
+        body: `No partner accepted ${l.service_name} within ${OPEN_WINDOW_MIN} minutes, so our support team is handling it.`,
+        link: "/partner/dashboard?tab=leads",
+      });
+    }
   }
   const [due] = await db.query(
     `SELECT id FROM partner_leads WHERE crm_status IN ('pending','failed') AND crm_attempts < ? ORDER BY id LIMIT 20`,
     [MAX_CRM_ATTEMPTS]
   );
   for (const d of due) await forwardOne(d.id);
-  return { expired, forwarded: due.length };
+  return { opened, expired, forwarded: due.length };
 }
 
 /* ── admin ────────────────────────────────────────────────────────────── */

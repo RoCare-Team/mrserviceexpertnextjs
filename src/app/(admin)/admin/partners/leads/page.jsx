@@ -121,7 +121,7 @@ export default function AdminPartnerLeadsPage() {
       <PageHead
         eyebrow="Partners"
         title="Partner leads"
-        subtitle="Bookings made from partner cards / profiles. Unaccepted leads move to the CRM after 30 minutes."
+        subtitle="Bookings made from partner cards / profiles. The chosen partner has 15 minutes; then the lead opens to all partners in the city for 15 minutes; still unaccepted → CRM."
         count={counts.issues || 0}
         countLabel="problem reports"
       />
@@ -169,7 +169,14 @@ export default function AdminPartnerLeadsPage() {
                 rows.map((r) => (
                   <tr key={r.id}>
                     <td className="col-id">{r.id}</td>
-                    <td><Link href={`/admin/partners/${r.partner_id}`}>{r.business_name}</Link></td>
+                    <td>
+                      <Link href={`/admin/partners/${r.partner_id}`}>{r.business_name}</Link>
+                      {r.original_partner_id && r.original_partner_id !== r.partner_id && (
+                        <span className="col-muted" style={{ display: "block", fontSize: 12 }}>
+                          from pool · chosen: <Link href={`/admin/partners/${r.original_partner_id}`}>{r.original_business_name}</Link>
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <b style={{ display: "block" }}>{r.customer_name}</b>
                       <span className="col-muted">{r.customer_mobile} · {r.area}, {r.address_city} {r.pincode}</span>
@@ -184,6 +191,7 @@ export default function AdminPartnerLeadsPage() {
                     <td>{Number(r.coin_cost)}{r.refunded_at && <span className="col-muted" style={{ display: "block", fontSize: 12 }}>refunded</span>}</td>
                     <td>
                       <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge>
+                      {r.phase === "open" && <span className="col-muted" style={{ display: "block", fontSize: 12 }}>open pool{r.status === "new" ? " · live" : ""}</span>}
                       {r.issue_note && <span style={{ display: "block", fontSize: 12, color: "#b45309", maxWidth: 220 }}>⚑ {r.issue_note}</span>}
                     </td>
                     <td>

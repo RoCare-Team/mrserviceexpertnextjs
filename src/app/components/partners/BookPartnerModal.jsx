@@ -241,7 +241,7 @@ export default function BookPartnerModal({ partner, categories, defaultCategory,
           {phase === "loading" && <p className="flex items-center gap-2 py-8 text-sm text-[var(--muted)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>}
 
           {phase === "login" && (
-            <CustomerOtp intro="Verify your mobile number to book. Your booking is shared only with this partner." onVerified={(d) => enterForm(d.customer, d.addresses)} />
+            <CustomerOtp intro="Verify your mobile number to book. This partner gets 15 minutes to confirm; if they can't, we offer it to other verified partners in your city." onVerified={(d) => enterForm(d.customer, d.addresses)} />
           )}
 
           {phase === "done" && (
