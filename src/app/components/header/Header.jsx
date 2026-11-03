@@ -232,14 +232,14 @@ export default function Header() {
                 </div>
               )}
             </div>
-            <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} !text-purple-700`}>
-              <Users className="h-4 w-4" aria-hidden="true" /> Join as partner
-            </Link>
           </nav>
 
           {/* Right cluster */}
           <div className="ml-auto flex items-center gap-2">
             <SearchBar className="hidden w-56 md:block lg:w-48 xl:w-80" />
+            <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} hidden !text-purple-700 lg:inline-flex`}>
+              <Users className="h-4 w-4" aria-hidden="true" /> Join as partner
+            </Link>
             <a
               href={`tel:${PHONE}`}
               title={`Call ${PHONE_DISPLAY}`}
@@ -385,7 +385,9 @@ export default function Header() {
         </div>
       )}
 
-      {/* Mobile bottom bar: floating pill, raised Call button in the middle. */}
+      {/* Mobile bottom bar: floating pill, raised Call button in the middle.
+          Hidden on partner pages — the partner dashboard has its own bottom nav. */}
+      {!pathname?.startsWith("/partner") && (
       <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[max(10px,env(safe-area-inset-bottom))] md:hidden">
         <ul className="relative grid grid-cols-5 items-end rounded-[22px] border border-white/60 bg-white/90 shadow-[0_10px_30px_-8px_rgba(26,18,64,0.35)] ring-1 ring-[var(--line)] backdrop-blur-xl">
           {[
@@ -431,6 +433,7 @@ export default function Header() {
           })}
         </ul>
       </nav>
+      )}
       <PhoneVerification setShowModal={setShowModal} showModal={showModal} />
     </>
   );

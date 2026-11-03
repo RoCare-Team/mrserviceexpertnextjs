@@ -11,6 +11,7 @@ import { applyTxn } from "@/lib/partners/wallet";
 import { CRM_LEAD_TYPES, crmBrands, crmServices, crmPincode, forwardLeadToCrm } from "@/lib/partners/crm";
 import { brandKey, validName } from "@/lib/partners/validation";
 import { notifyPartner } from "@/lib/partners/notify";
+import { sendLeadAssignedWhatsApp } from "@/lib/partners/whatsapp";
 
 export const LEAD_WINDOW_MIN = 15; // chosen partner's exclusive window
 export const OPEN_WINDOW_MIN = 15; // then open to the whole city
@@ -157,6 +158,7 @@ export async function createLead(customer, input) {
     },
     { push: true }
   );
+  sendLeadAssignedWhatsApp(partner.id, created.id).catch(() => {});
   return created;
 }
 
@@ -326,6 +328,7 @@ async function openLead(conn, l, { rejected = false, reason = null } = {}) {
 }
 
 async function notifyPool(l, partnerIds) {
+  sendLeadAssignedWhatsApp(partnerIds, l.id).catch(() => {});
   await Promise.all(
     partnerIds.map((id) =>
       notifyPartner(
