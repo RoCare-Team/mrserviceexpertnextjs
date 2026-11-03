@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Clock, Coins, Loader2, MapPin, Phone, MessageCircle, Navigation, CheckCircle2, XCircle, Flag, StickyNote, Search } from "lucide-react";
+import { Clock, Coins, Loader2, MapPin, Phone, MessageCircle, Navigation, CheckCircle2, XCircle, Flag, StickyNote, Search, Users, Zap } from "lucide-react";
 import { partnerApi } from "../partnerApi";
 import { btnPrimary, btnGhost, cardCls, inputCls, FieldError } from "../ui";
 
@@ -18,6 +18,7 @@ const STATUS = {
   completed: { label: "Completed", cls: "bg-purple-50 text-purple-700" },
   rejected: { label: "Rejected", cls: "bg-gray-100 text-gray-600" },
   expired: { label: "Expired", cls: "bg-gray-100 text-gray-600" },
+  taken: { label: "Taken by another partner", cls: "bg-gray-100 text-gray-600" },
 };
 const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
@@ -70,10 +71,23 @@ function LeadCard({ l, balance, onAction, busy }) {
   return (
     <li className={`rounded-2xl border bg-white p-4 shadow-sm ${l.status === "new" ? "border-amber-300" : "border-[var(--line)]"}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS[l.status].cls}`}>{STATUS[l.status].label}</span>
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${(STATUS[l.status] || STATUS.expired).cls}`}>{(STATUS[l.status] || STATUS.expired).label}</span>
+        {l.is_open && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-purple-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+            <Users className="h-3.5 w-3.5" /> Open to all partners in {l.area?.split(", ").pop()}
+          </span>
+        )}
         <span className="text-xs text-[var(--muted)]">#{l.id} · {fmtDate(l.created_at)}</span>
         {l.status === "new" && <span className="ml-auto"><Countdown seconds={l.seconds_left} onEnd={() => onAction(null, "refresh")} /></span>}
       </div>
+      {l.is_open && (
+        <p className="mt-2 flex items-start gap-1.5 rounded-xl bg-purple-50 px-3 py-2 text-xs text-purple-900">
+          <Zap className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          {l.assigned_to_me
+            ? "You missed the 15-minute window, so this lead is now open to every partner in the city. You can still accept it — first to accept gets it."
+            : "Another partner didn't accept this booking in time. First partner to accept gets it; once accepted it disappears for everyone else."}
+        </p>
+      )}
 
       <p className="mt-2 font-semibold text-[var(--ink)]">
         {l.service} · {l.category}{l.brand ? ` · ${l.brand}` : ""}
@@ -111,7 +125,7 @@ function LeadCard({ l, balance, onAction, busy }) {
             <button className={btnPrimary} disabled={busy || balance < l.coin_cost || l.seconds_left <= 0} onClick={() => run("accept")}>
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Accept ({l.coin_cost} coins)
             </button>
-            <button className={btnGhost} disabled={busy} onClick={() => setPanel("reject")}><XCircle className="h-4 w-4" /> Reject</button>
+            <button className={btnGhost} disabled={busy} onClick={() => setPanel("reject")}><XCircle className="h-4 w-4" /> {l.is_open ? "Pass" : "Reject"}</button>
           </>
         )}
         {open && (
@@ -179,11 +193,17 @@ function LeadCard({ l, balance, onAction, busy }) {
                   : run("note", { note: text })
               }
             >
-              {{ reject: "Confirm reject", report: "Send report", complete: "Mark completed", note: "Save note" }[panel]}
+              {{ reject: l.is_open ? "Confirm pass" : "Confirm reject", report: "Send report", complete: "Mark completed", note: "Save note" }[panel]}
             </button>
             <button className={btnGhost} onClick={() => setPanel(null)}>Cancel</button>
           </div>
-          {panel === "reject" && <p className="text-xs text-[var(--muted)]">The booking goes to our support team so the customer still gets served. No coins are charged.</p>}
+          {panel === "reject" && (
+            <p className="text-xs text-[var(--muted)]">
+              {l.is_open
+                ? "The lead is hidden for you; other partners in the city can still accept it. No coins are charged."
+                : "The booking is offered to other partners in the city right away (or to our support team if there are none). No coins are charged."}
+            </p>
+          )}
         </div>
       )}
     </li>
@@ -220,7 +240,7 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
   useEffect(() => {
     setLeads(null);
     load();
-    const t = setInterval(load, 30_000);
+    const t = setInterval(load, 15_000); // open-pool leads can be taken any second
     return () => clearInterval(t);
   }, [load]);
 
@@ -233,7 +253,7 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
     setBusyId(null);
     if (!r.ok) return r.error.message;
     setBalance(r.data.balance);
-    const text = { accept: "Lead accepted — call the customer now.", reject: "Lead rejected.", complete: "Marked as completed.", report: "Problem reported. Our team will review it.", note: "Note saved." }[action];
+    const text = { accept: "Lead accepted — call the customer now.", reject: "Done — the lead is no longer shown to you.", complete: "Marked as completed.", report: "Problem reported. Our team will review it.", note: "Note saved." }[action];
     setMsg(text);
     await load();
     refresh?.();
@@ -265,7 +285,10 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
           <input aria-label="From date" type="date" className={inputCls} value={from} onChange={(e) => setFrom(e.target.value)} />
           <input aria-label="To date" type="date" className={inputCls} value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
-        <p className="mt-2 text-xs text-[var(--muted)]">Accept within 30 minutes. Accepting costs 50% of the service price in coins; customer details unlock after accepting.</p>
+        <p className="mt-2 text-xs text-[var(--muted)]">
+          Accept within <b>15 minutes</b>. If you don&apos;t, the booking opens to all partners in the city for 15 minutes (first to accept gets it), then goes to our support team.
+          Accepting costs 50% of the service price in coins; customer details unlock after accepting.
+        </p>
       </div>
 
       {msg && <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{msg}</p>}

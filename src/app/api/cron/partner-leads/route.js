@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 /**
  * cPanel cron (every 2–5 min):
  *   curl -s "https://www.mrserviceexpert.com/api/cron/partner-leads?key=$CRON_SECRET" > /dev/null
- * Expires leads older than 30 minutes and forwards them to the CRM, and
+ * Moves leads along (15 min direct → 15 min open to the city → CRM) and
  * re-checks pending wallet payments with Easebuzz.
  */
 export async function GET(req) {

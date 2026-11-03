@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Inbox, Coins, Star, BadgeCheck, CircleAlert, Bell, X } from "lucide-react";
+import { Loader2, Inbox, Coins, Star, BadgeCheck, CircleAlert, Bell, X, Users } from "lucide-react";
 import { partnerApi } from "../partnerApi";
 
-const ICON = { lead_new: Inbox, lead_missed: CircleAlert, refund: Coins, payment: Coins, review: Star, status: BadgeCheck, change_request: BadgeCheck };
+const ICON = { lead_new: Inbox, lead_open: Users, lead_missed: CircleAlert, refund: Coins, payment: Coins, review: Star, status: BadgeCheck, change_request: BadgeCheck };
 
 function ago(d) {
   const s = Math.max(1, Math.round((Date.now() - new Date(d).getTime()) / 1000));
