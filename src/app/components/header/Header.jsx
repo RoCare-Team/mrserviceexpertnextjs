@@ -189,7 +189,7 @@ export default function Header() {
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-white/90 backdrop-blur-md">
-        <div className="pub-container flex h-16 items-center gap-3">
+        <div className="pub-container flex h-16 items-center gap-3 lg:gap-6">
           {/* Logo */}
           <Link href="/" title="Mr. Service Expert — Home" className="flex shrink-0 items-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -197,7 +197,7 @@ export default function Header() {
           </Link>
 
           {/* Desktop nav */}
-          <nav aria-label="Main" className="ml-2 hidden items-center gap-1.5 lg:flex xl:ml-6">
+          <nav aria-label="Main" className="hidden shrink-0 items-center gap-1.5 lg:flex">
             <div ref={servicesRef} className="relative">
               <button
                 type="button"
@@ -234,10 +234,14 @@ export default function Header() {
             </div>
           </nav>
 
+          {/* Search: takes the free space between the nav and the actions. */}
+          <div className="hidden min-w-0 flex-1 justify-center md:flex">
+            <SearchBar className="w-full max-w-[260px] xl:max-w-[300px]" />
+          </div>
+
           {/* Right cluster */}
-          <div className="ml-auto flex items-center gap-2">
-            <SearchBar className="hidden w-56 md:block lg:w-48 xl:w-80" />
-            <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} hidden !text-purple-700 lg:inline-flex`}>
+          <div className="ml-auto flex shrink-0 items-center gap-2 lg:gap-3">
+            <Link href="/join-as-partner" className={`${linkCls(isActive("/join-as-partner"))} join-partner-cta max-lg:!hidden`}>
               <Users className="h-4 w-4" aria-hidden="true" /> Join as partner
             </Link>
             <a
@@ -259,6 +263,7 @@ export default function Header() {
             >
               <WhatsAppIcon className="h-5 w-5" />
             </a>
+            <span aria-hidden="true" className="hidden h-6 w-px bg-[var(--line-strong)] md:block" />
             <Link href="/checkout" title="Cart" className="relative hidden h-10 w-10 items-center justify-center rounded-xl text-[var(--ink-soft)] hover:bg-purple-50 hover:text-purple-800 md:inline-flex">
               <ShoppingCart className="h-5 w-5" aria-hidden="true" />
               {cartCount > 0 && (

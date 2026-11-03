@@ -219,6 +219,7 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
   const [leads, setLeads] = useState(null);
   const [busyId, setBusyId] = useState(null);
   const [msg, setMsg] = useState(null);
+  const [loadError, setLoadError] = useState(null);
   const timer = useRef(null);
 
   useEffect(() => {
@@ -234,6 +235,11 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
     if (r.ok) {
       setLeads(r.data.leads);
       setBalance(r.data.balance);
+      setLoadError(null);
+    } else {
+      // Never sit on the spinner: show why the list could not load.
+      setLeads((cur) => cur ?? []);
+      setLoadError(r.error?.message || "Could not load leads. Please try again.");
     }
   }, [group, search, from, to, setBalance]);
 
@@ -292,8 +298,9 @@ export default function LeadsTab({ balance, setBalance, refresh }) {
       </div>
 
       {msg && <p role="status" className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">{msg}</p>}
+      {loadError && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{loadError}</p>}
       {leads === null && <p className="flex items-center gap-2 text-sm text-[var(--muted)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading leads…</p>}
-      {leads?.length === 0 && (
+      {leads?.length === 0 && !loadError && (
         <div className={`${cardCls} text-center text-sm text-[var(--muted)]`}>
           {group === "new" ? "No new bookings right now. You'll be alerted when one arrives." : "No leads here."}
         </div>

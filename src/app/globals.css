@@ -3110,3 +3110,24 @@ hr {
     padding-bottom: 84px;
   }
 }
+
+/* Header "Join as partner": soft attention pulse, pauses on hover. */
+.join-partner-cta {
+  color: #5b21b6;
+  background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+  border: 1px solid #ddd6fe;
+  box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
+  animation: joinPulse 2.8s ease-in-out infinite;
+}
+.join-partner-cta:hover {
+  animation: none;
+  background: #ede9fe;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+}
+@keyframes joinPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(124, 58, 237, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .join-partner-cta { animation: none; }
+}
