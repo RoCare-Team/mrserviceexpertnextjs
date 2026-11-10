@@ -26,6 +26,11 @@ import {
   Wrench,
   Handshake,
   Wallet,
+  BriefcaseBusiness,
+  Users,
+  CalendarClock,
+  BarChart3,
+  Settings,
 } from "lucide-react";
 
 const NAV = [
@@ -44,6 +49,18 @@ const NAV = [
       { href: "/admin/partners/leads", icon: Inbox, name: "Partner Leads", badge: "leads" },
       { href: "/admin/partners/locations", icon: MapPin, name: "Partner Localities", badge: "localities" },
       { href: "/admin/partners/payments", icon: Wallet, name: "Partner Payments" },
+    ],
+  },
+  {
+    label: "Careers",
+    items: [
+      { href: "/admin/careers", icon: LayoutDashboard, name: "Careers Dashboard", exact: true },
+      { href: "/admin/careers/jobs", icon: BriefcaseBusiness, name: "Job Listings", exact: true },
+      { href: "/admin/careers/jobs/new", icon: PlusCircle, name: "Add New Job", exact: true },
+      { href: "/admin/careers/applications", icon: Users, name: "Applications" },
+      { href: "/admin/careers/interviews", icon: CalendarClock, name: "Interviews" },
+      { href: "/admin/careers/reports", icon: BarChart3, name: "Recruitment Reports" },
+      { href: "/admin/careers/settings", icon: Settings, name: "Career Settings" },
     ],
   },
   {
@@ -104,6 +121,13 @@ const TITLES = {
   "/admin/partners/services": "Partner Service Catalogue",
   "/admin/partners/leads": "Partner Leads",
   "/admin/partners/payments": "Partner Payments",
+  "/admin/careers": "Careers",
+  "/admin/careers/jobs": "Job Listings",
+  "/admin/careers/jobs/new": "Add New Job",
+  "/admin/careers/applications": "Applications",
+  "/admin/careers/interviews": "Interviews",
+  "/admin/careers/reports": "Recruitment Reports",
+  "/admin/careers/settings": "Career Settings",
   "/admin/redirects": "Redirects",
   "/admin/admins": "Admins",
 };
@@ -165,7 +189,15 @@ export default function AdminShell({ children }) {
   const isActive = (item) =>
     item.exact ? pathname === item.href : pathname.startsWith(item.href);
 
-  const title = TITLES[pathname] || (pathname.startsWith("/admin/partners/") ? "Partner Review" : "Admin");
+  const title =
+    TITLES[pathname] ||
+    (pathname.startsWith("/admin/partners/")
+      ? "Partner Review"
+      : pathname.startsWith("/admin/careers/jobs/")
+      ? "Edit Job"
+      : pathname.startsWith("/admin/careers/applications/")
+      ? "Candidate Profile"
+      : "Admin");
   const isSuper = user?.role === "super_admin";
 
   const logout = async () => {

@@ -1,0 +1,20 @@
+/* Careers pages — rich text from the job editor (sanitized HTML). */
+.job-rich { color: var(--body-text); font-size: 15px; line-height: 1.7; overflow-wrap: anywhere; }
+.job-rich > * + * { margin-top: 0.75rem; }
+.job-rich h2 { font-size: 1.15rem; font-weight: 700; color: var(--ink); margin-top: 1.25rem; }
+.job-rich h3, .job-rich h4 { font-size: 1.02rem; font-weight: 700; color: var(--ink); margin-top: 1rem; }
+.job-rich ul { list-style: disc; padding-left: 1.35rem; }
+.job-rich ol { list-style: decimal; padding-left: 1.35rem; }
+.job-rich li + li { margin-top: 0.3rem; }
+.job-rich li::marker { color: #7b3fe4; }
+.job-rich a { color: #6323cc; text-decoration: underline; text-underline-offset: 2px; }
+.job-rich blockquote { border-left: 3px solid var(--line-strong); padding-left: 0.9rem; color: var(--muted); }
+.job-rich hr { border: 0; border-top: 1px solid var(--line); }
+.job-rich strong, .job-rich b { color: var(--ink-soft); }
+
+.careers-progress { height: 8px; border-radius: 999px; background: #ece7f8; overflow: hidden; }
+.careers-progress > span { display: block; height: 100%; background: var(--grad-brand); transition: width 0.15s linear; }
+
+@media (prefers-reduced-motion: reduce) {
+  .careers-progress > span { transition: none; }
+}

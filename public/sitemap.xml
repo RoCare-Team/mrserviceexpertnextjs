@@ -99,4 +99,7 @@
   <sitemap>
     <loc>https://www.mrserviceexpert.com/sitemap/partners.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://www.mrserviceexpert.com/sitemap/careers.xml</loc>
+  </sitemap>
 </sitemapindex>
