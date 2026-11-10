@@ -15,6 +15,9 @@ export const DOC_TYPES = {
   gst_certificate: "GST certificate",
   id_proof: "PAN / other ID proof",
   business_proof: "Business proof (shop licence, Udyam, etc.)",
+  address_proof: "Address proof",
+  bank_proof: "Bank proof (cancelled cheque / passbook)",
+  shop_photo: "Shop / workplace photo",
   other: "Other document",
 };
 

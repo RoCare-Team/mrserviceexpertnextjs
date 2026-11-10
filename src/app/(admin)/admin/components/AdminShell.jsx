@@ -32,6 +32,7 @@ import {
   BarChart3,
   Settings,
 } from "lucide-react";
+import { canAccess, pageModule, TEAMS } from "@/lib/adminAccess";
 
 const NAV = [
   {
@@ -151,22 +152,29 @@ export default function AdminShell({ children }) {
   // The login screen renders bare (no sidebar / topbar).
   const isLogin = pathname === "/admin/login";
 
+  // Re-checked on every navigation: /me refreshes the session from the
+  // database, so section changes by a super admin apply straight away.
   useEffect(() => {
     if (isLogin) return;
     let alive = true;
     fetch("/api/admin/auth/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) window.location.assign("/admin/login");
+        return r.json();
+      })
       .then((d) => alive && d.success && setUser(d.user))
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [isLogin]);
+  }, [isLogin, pathname]);
+
+  const canPartners = !!user && canAccess(user, "partners");
 
   // Partner notification badge (new applications, locality requests,
   // reported leads, failed CRM forwards) — refreshed every minute.
   useEffect(() => {
-    if (isLogin) return;
+    if (isLogin || !canPartners) return;
     let alive = true;
     const load = () =>
       fetch("/api/admin/partners/notifications")
@@ -179,7 +187,7 @@ export default function AdminShell({ children }) {
       alive = false;
       clearInterval(t);
     };
-  }, [isLogin, pathname]);
+  }, [isLogin, pathname, canPartners]);
 
   const badgeCount = (key) =>
     !alerts ? 0 : key === "partners" ? (alerts.pending_applications || 0) + (alerts.change_requests || 0) : key === "localities" ? alerts.locality_requests || 0 : key === "leads" ? (alerts.lead_issues || 0) + (alerts.crm_failed || 0) : 0;
@@ -198,7 +206,6 @@ export default function AdminShell({ children }) {
       : pathname.startsWith("/admin/careers/applications/")
       ? "Candidate Profile"
       : "Admin");
-  const isSuper = user?.role === "super_admin";
 
   const logout = async () => {
     setLoggingOut(true);
@@ -229,7 +236,8 @@ export default function AdminShell({ children }) {
 
           <nav className="adm-nav">
             {NAV.map((group) => {
-              const items = group.items.filter((it) => !it.superOnly || isSuper);
+              // Sections this admin may open (super admin: all; HR: careers; …).
+              const items = user ? group.items.filter((it) => canAccess(user, pageModule(it.href))) : [];
               if (!items.length) return null;
               return (
                 <div key={group.label}>
@@ -286,7 +294,11 @@ export default function AdminShell({ children }) {
                     {user?.name || "…"}
                   </b>
                   <small style={{ textTransform: "capitalize" }}>
-                    {user ? (user.role === "super_admin" ? "Super admin" : "Admin") : "Loading"}
+                    {user
+                      ? user.role === "super_admin"
+                        ? "Super admin"
+                        : `Admin${TEAMS[user.team] ? ` · ${TEAMS[user.team].label}` : ""}`
+                      : "Loading"}
                   </small>
                 </div>
               )}

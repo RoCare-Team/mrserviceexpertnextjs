@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { signSession, sessionCookieOptions } from "@/lib/session";
+import { parseModules, sessionModules } from "@/lib/adminAccess";
 
 // Runs on the Node runtime (scrypt + mysql2 are Node-only).
 export const runtime = "nodejs";
@@ -11,8 +12,6 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
-    console.log("Login attempt:", email);
-    console.log("Login attempt:", password);
     if (!email || !password) {
       return NextResponse.json(
         { success: false, message: "Email and password are required." },
@@ -22,8 +21,7 @@ export async function POST(request) {
 
     connection = await db.getConnection();
     const [rows] = await connection.query(
-      `SELECT id, name, email, password, role, status
-       FROM admin_users WHERE email = ? LIMIT 1`,
+      `SELECT * FROM admin_users WHERE email = ? LIMIT 1`,
       [String(email).trim().toLowerCase()]
     );
 
@@ -54,6 +52,8 @@ export async function POST(request) {
       email: user.email,
       name: user.name,
       role: user.role,
+      team: user.team || null,
+      modules: parseModules(user.modules), // null = every section
     });
 
     // best-effort last-login stamp; ignore if the column doesn't exist
@@ -63,7 +63,14 @@ export async function POST(request) {
 
     const res = NextResponse.json({
       success: true,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        team: user.team || null,
+        modules: sessionModules({ role: user.role, modules: parseModules(user.modules) }),
+      },
     });
     const opts = sessionCookieOptions();
     res.cookies.set(opts.name, token, opts);

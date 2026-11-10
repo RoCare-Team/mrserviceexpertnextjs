@@ -12,6 +12,7 @@ import ReviewsTab from "./ReviewsTab";
 import SettingsTab from "./SettingsTab";
 import NotificationsPanel from "./NotificationsPanel";
 import ApplicationStatus from "./ApplicationStatus";
+import DocRequestsBanner from "./DocRequestsBanner";
 
 const TABS = [
   { key: "overview", label: "Overview", short: "Home", icon: LayoutDashboard },
@@ -160,6 +161,7 @@ export default function PartnerDashboard({ initialApp, initialTab, paymentResult
             </div>
           </header>
 
+          <DocRequestsBanner app={app} setApp={setApp} />
           {lowBalance && tab !== "wallet" && (
             <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               <Coins className="h-5 w-5" /> Low balance: {balance} coins. You may not be able to accept the next lead.

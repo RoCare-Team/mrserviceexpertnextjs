@@ -6,7 +6,10 @@ import db from "@/lib/db";
 import { HttpError } from "@/lib/partners/http";
 import { publicUrl } from "@/lib/partners/storage";
 import { notifyPartner } from "@/lib/partners/notify";
+import { sendPartnerApprovedWhatsApp } from "@/lib/partners/whatsapp";
 import { queuePartnerSeo } from "@/lib/partners/seo";
+import { getRefundPercent } from "@/lib/partners/settings";
+import { listDocRequests } from "@/lib/partners/docRequests";
 import {
   validName,
   validateBusiness,
@@ -220,6 +223,8 @@ export async function getApplication(partnerId, { forAdmin = false } = {}) {
   app.completion = completion(app);
   app.is_available = !!p.is_available;
   app.low_balance_alert = Number(p.low_balance_alert ?? 200);
+  app.lead_refund_percent = await getRefundPercent();
+  app.doc_requests = await listDocRequests(partnerId, { forAdmin });
   const [photos] = await db.query("SELECT id, s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id", [partnerId]);
   app.photos = photos.map((ph) => ({ id: ph.id, url: publicUrl(ph.s3_key) }));
 
@@ -644,6 +649,8 @@ export async function adminChangeStatus(partnerId, admin, { action, reason, publ
   const out = await adminChangeStatusTx(partnerId, admin, rule, action, why, publish);
   // Profile is (about to be) public: write / refresh its SEO copy in the background.
   if (rule.to === "approved") queuePartnerSeo(partnerId);
+  // First approval only (not reactivation); fire-and-forget, never blocks the response.
+  if (action === "approve") sendPartnerApprovedWhatsApp(partnerId);
   await notifyPartner(
     partnerId,
     { type: "status", title: STATUS_MESSAGES[action], body: why, link: "/partner/dashboard" },

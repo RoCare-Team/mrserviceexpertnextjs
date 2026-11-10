@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
+import { apiModule, canAccess, homeFor, pageModule } from "@/lib/adminAccess";
 
 /**
  * One middleware, two jobs:
@@ -72,6 +73,20 @@ const json401 = () =>
     }
   );
 
+const json403 = () =>
+  new NextResponse(
+    JSON.stringify({
+      success: false,
+      message: "You don't have access to this section. Ask a super admin.",
+    }),
+    {
+      status: 403,
+      headers: {
+        "content-type": "application/json",
+      },
+    }
+  );
+
 // Serve the /410 page UI while keeping the 410 status code.
 // The URL in the browser stays unchanged (rewrite, not redirect).
 const gone = (req) =>
@@ -93,6 +108,9 @@ export async function proxy(req) {
     const session = await getSession(req);
 
     if (!session) return json401();
+
+    // Section access (HR → careers only, Sales → partners, …).
+    if (!canAccess(session, apiModule(pathname))) return json403();
 
     return NextResponse.next();
   }
@@ -124,6 +142,17 @@ export async function proxy(req) {
       );
 
       return NextResponse.redirect(url);
+    }
+
+    // Section access: send the admin to the first section they can open.
+    if (!canAccess(session, pageModule(pathname))) {
+      const home = homeFor(session);
+      // No sections at all → /admin shows a "no access" notice.
+      if (pathname === ADMIN_PREFIX || !home) {
+        if (pathname === ADMIN_PREFIX) return NextResponse.next();
+        return NextResponse.redirect(new URL(ADMIN_PREFIX, req.url));
+      }
+      return NextResponse.redirect(new URL(home, req.url));
     }
 
     return NextResponse.next();

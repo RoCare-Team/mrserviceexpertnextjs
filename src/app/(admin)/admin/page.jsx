@@ -34,6 +34,15 @@ const QUICK = [
 export default function AdminDashboard() {
   const [counts, setCounts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [noAccess, setNoAccess] = useState(false);
+
+  // An admin with no sections assigned lands here (the proxy has nowhere else to send them).
+  useEffect(() => {
+    fetch("/api/admin/auth/me")
+      .then((r) => r.json())
+      .then((d) => d.success && !d.user.modules?.length && setNoAccess(true))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -53,6 +62,17 @@ export default function AdminDashboard() {
       alive = false;
     };
   }, []);
+
+  if (noAccess) {
+    return (
+      <div className="adm-tablecard" style={{ padding: 48, textAlign: "center" }}>
+        <div className="adm-tablestate">
+          <b>No sections assigned yet</b>
+          <span>Ask a super admin to give your account access to the sections you work on.</span>
+        </div>
+      </div>
+    );
+  }
 
   const fmt = (n) =>
     n === null || n === undefined ? "—" : Number(n).toLocaleString("en-IN");

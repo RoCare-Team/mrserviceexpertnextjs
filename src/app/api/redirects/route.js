@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { canAccess } from "@/lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -12,6 +13,11 @@ async function requireAuth(request) {
     return NextResponse.json(
       { success: false, message: "Authentication required." },
       { status: 401 }
+    );
+  if (!canAccess(session, "redirects"))
+    return NextResponse.json(
+      { success: false, message: "You don't have access to redirects." },
+      { status: 403 }
     );
   return null;
 }

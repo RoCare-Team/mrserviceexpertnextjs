@@ -12,6 +12,7 @@ import { CRM_LEAD_TYPES, crmBrands, crmServices, crmPincode, forwardLeadToCrm } 
 import { brandKey, validName } from "@/lib/partners/validation";
 import { notifyPartner } from "@/lib/partners/notify";
 import { sendLeadAssignedWhatsApp } from "@/lib/partners/whatsapp";
+import { getRefundPercent, parsePercent, refundCoins } from "@/lib/partners/settings";
 
 export const LEAD_WINDOW_MIN = 15; // chosen partner's exclusive window
 export const OPEN_WINDOW_MIN = 15; // then open to the whole city
@@ -209,6 +210,7 @@ function shapeForPartner(l, partnerId) {
     seconds_left: Math.max(0, Number(l.seconds_left || 0)),
     issue_note: l.issue_note,
     refunded: !!l.refunded_at,
+    refund_coins: l.refund_coins == null ? null : Number(l.refund_coins),
     partner_note: l.partner_note,
     final_amount: l.final_amount === null ? null : Number(l.final_amount),
     work_done: l.work_done,
@@ -551,31 +553,45 @@ export async function processDueLeads({ force = false } = {}) {
 
 /* ── admin ────────────────────────────────────────────────────────────── */
 
-export async function refundLead(admin, leadId, note) {
+/**
+ * Refund part of a charged lead. `percent` (1–100) overrides the default
+ * refund % from partner settings for this one refund.
+ */
+export async function refundLead(admin, leadId, note, percent) {
+  let pct = await getRefundPercent();
+  if (percent !== undefined && percent !== null && percent !== "") {
+    pct = parsePercent(percent);
+    if (pct === null) throw new HttpError(422, "validation_error", "Refund % must be a whole number from 1 to 100.");
+  }
   return withTransaction(async (conn) => {
     const [[l]] = await conn.query("SELECT * FROM partner_leads WHERE id = ? FOR UPDATE", [leadId]);
     if (!l) throw new HttpError(404, "not_found", "Lead not found.");
     if (!["accepted", "completed"].includes(l.status)) throw new HttpError(409, "bad_state", "Only accepted leads were charged.");
     if (l.refunded_at) throw new HttpError(409, "refunded", "Already refunded.");
+    const coins = refundCoins(l.coin_cost, pct);
+    if (coins <= 0) throw new HttpError(409, "nothing_to_refund", "This lead cost no coins.");
     const balance = await applyTxn(conn, {
       partnerId: l.partner_id,
       type: "refund",
-      amount: Number(l.coin_cost),
+      amount: coins,
       leadId,
-      note: clean(note, 255) || `Refund for lead #${leadId}`,
+      note: clean(note, 255) || `Refund (${pct}%) for lead #${leadId}`,
       actorType: "admin",
       actorId: admin.id,
     });
-    await conn.query("UPDATE partner_leads SET refunded_at = NOW(), refunded_by = ? WHERE id = ?", [admin.id, leadId]);
-    return { balance, partnerId: l.partner_id, coins: Number(l.coin_cost) };
+    await conn.query(
+      "UPDATE partner_leads SET refunded_at = NOW(), refunded_by = ?, refund_coins = ?, refund_percent = ? WHERE id = ?",
+      [admin.id, coins, pct, leadId]
+    );
+    return { balance, partnerId: l.partner_id, coins };
   }).then(async (r) => {
     await notifyPartner(r.partnerId, {
       type: "refund",
       title: `${r.coins} coins refunded`,
-      body: `Refund for lead #${leadId}. ${clean(note, 200)}`.trim(),
+      body: `${pct}% refund for lead #${leadId}. ${clean(note, 200)}`.trim(),
       link: "/partner/dashboard?tab=wallet",
     });
-    return { balance: r.balance };
+    return { balance: r.balance, coins: r.coins, percent: pct };
   });
 }
 

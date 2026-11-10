@@ -124,7 +124,7 @@ export default function SettingsTab({ app, setApp, live, vapidKey }) {
           <li><b>Leads:</b> customers book you from your card or profile. You have <b>15 minutes</b> to accept. If you don&apos;t, the booking opens to <b>all partners in the city for 15 minutes</b> — the first to accept gets it (you can still accept it too). If nobody does, it goes to our support team. Open leads from other partners in your city show up in your Leads tab as well.</li>
           <li><b>Coins:</b> 1 coin = ₹1. Accepting a lead costs <b>50% of the service price</b> (e.g. ₹399 service → 199.5 coins). Rejecting is free.</li>
           <li><b>Recharge:</b> minimum ₹500 via Easebuzz. Coins are added only after the payment is confirmed. Every attempt is listed under Wallet → Payment history.</li>
-          <li><b>Refunds:</b> if a lead is fake or the customer can&apos;t be reached, use “Report a problem” on the lead. Our team reviews it and refunds the coins if valid.</li>
+          <li><b>Refunds:</b> if a lead is fake or the customer can&apos;t be reached, use “Report a problem” on the lead. Our team reviews it and, if valid, refunds <b>{app.lead_refund_percent ?? 100}% of the coins</b> to your wallet.</li>
           <li><b>Profile changes:</b> description, hours, photos and service areas update instantly. Business name, type, GSTIN, categories and services are approved by our team first.</li>
           <li><b>Reviews:</b> verified customers can review you. You can reply publicly; inappropriate reviews can be removed.</li>
         </ul>

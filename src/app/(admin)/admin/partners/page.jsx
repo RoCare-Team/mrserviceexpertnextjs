@@ -124,7 +124,13 @@ export default function AdminPartnersPage() {
     setPage(1);
   };
 
-  const allCount = Object.values(counts).reduce((a, b) => a + b, 0);
+  const allCount = Object.keys(STATUS_META).reduce((a, k) => a + (counts[k] || 0), 0);
+  const tabs = [
+    ["", "All", allCount],
+    ...Object.entries(STATUS_META).map(([k, m]) => [k, m.label, counts[k] || 0]),
+    ["listed", "Listed", counts.listed || 0],
+    ["unlisted", "Unlisted", counts.unlisted || 0],
+  ];
   const sortProps = { sortBy, sortDir, onSort };
   const fromN = total === 0 ? 0 : (page - 1) * limit + 1;
 
@@ -148,7 +154,7 @@ export default function AdminPartnersPage() {
       )}
 
       <div className="mb-4 flex flex-wrap gap-2">
-        {[["", "All", allCount], ...Object.entries(STATUS_META).map(([k, m]) => [k, m.label, counts[k] || 0])].map(([k, label, n]) => (
+        {tabs.map(([k, label, n]) => (
           <button
             key={k || "all"}
             onClick={() => {
@@ -257,7 +263,11 @@ export default function AdminPartnersPage() {
                     <td className="col-muted" style={{ whiteSpace: "nowrap" }}>{fmtDate(r.submitted_at) || <Dash />}</td>
                     <td>
                       <Badge tone={STATUS_META[r.status]?.tone}>{STATUS_META[r.status]?.label}</Badge>
-                      {r.status === "approved" && !r.is_listed && <span className="col-muted" style={{ display: "block", fontSize: 12 }}>Hidden</span>}
+                      {r.status === "approved" && (
+                        <span className="col-muted" style={{ display: "block", fontSize: 12, color: r.is_listed ? "#16a34a" : undefined }}>
+                          {r.is_listed ? "Listed" : "Unlisted"}
+                        </span>
+                      )}
                     </td>
                     <td className="col-muted" style={{ whiteSpace: "nowrap" }}>{fmtDate(r.reviewed_at) || <Dash />}</td>
                     <td>

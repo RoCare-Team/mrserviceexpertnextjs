@@ -117,7 +117,7 @@ function LeadCard({ l, balance, onAction, busy }) {
           <StickyNote className="mt-0.5 h-4 w-4 shrink-0" /> {l.partner_note}
         </p>
       )}
-      {l.issue_note && <p className="mt-2 text-xs text-amber-800">Reported: {l.issue_note}{l.refunded ? " · Refunded" : " · Under review"}</p>}
+      {l.issue_note && <p className="mt-2 text-xs text-amber-800">Reported: {l.issue_note}{l.refunded ? ` · Refunded${l.refund_coins != null ? ` ${l.refund_coins} coins` : ""}` : " · Under review"}</p>}
 
       <div className="mt-3 flex flex-wrap gap-2">
         {l.status === "new" && (
