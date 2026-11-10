@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { getSession } from "@/lib/session";
+import { TEAMS, parseModules } from "@/lib/adminAccess";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,16 @@ async function requireSuperAdmin(request) {
   return { session };
 }
 
+// Team label + section list. Super admins always see everything → stored as NULL.
+// Returns [] when the access columns don't exist yet (migration not run).
+function accessColumns(cols, role, body) {
+  if (!cols.has("modules") || !cols.has("team")) return [];
+  if (role === "super_admin") return [["team", null], ["modules", null]];
+  const team = TEAMS[body.team] ? body.team : null;
+  const modules = parseModules(Array.isArray(body.modules) ? body.modules : TEAMS[team]?.modules || []);
+  return [["team", team], ["modules", modules.join(",")]];
+}
+
 const isEmail = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 // ── LIST ──────────────────────────────────────────────────────────────
@@ -44,11 +55,13 @@ export async function GET(request) {
     const createdCol = createdColumn(cols);
     const createdSel = createdCol ? `${createdCol} AS created_at` : "NULL AS created_at";
     const lastLoginSel = cols.has("last_login") ? "last_login" : "NULL AS last_login";
+    const accessSel = cols.has("modules") && cols.has("team") ? "team, modules" : "NULL AS team, NULL AS modules";
     const [rows] = await connection.query(
-      `SELECT id, name, email, role, status, ${createdSel}, ${lastLoginSel}
+      `SELECT id, name, email, role, status, ${accessSel}, ${createdSel}, ${lastLoginSel}
        FROM admin_users ORDER BY id ASC`
     );
-    return NextResponse.json({ success: true, data: rows, total: rows.length });
+    const data = rows.map((r) => ({ ...r, modules: parseModules(r.modules) })); // null = all sections
+    return NextResponse.json({ success: true, data, total: rows.length });
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   } finally {
@@ -82,12 +95,13 @@ export async function POST(request) {
     const hash = await hashPassword(password);
     const cols = await getAdminColumns(connection);
     const createdCol = createdColumn(cols);
-    const extraCol = createdCol ? `, ${createdCol}` : "";
-    const extraVal = createdCol ? `, NOW()` : "";
+    const access = accessColumns(cols, role, body);
+    const extraCol = (createdCol ? `, ${createdCol}` : "") + access.map(([c]) => `, ${c}`).join("");
+    const extraVal = (createdCol ? `, NOW()` : "") + access.map(() => ", ?").join("");
     const [result] = await connection.query(
       `INSERT INTO admin_users (name, email, password, role, status${extraCol})
        VALUES (?, ?, ?, ?, '1'${extraVal})`,
-      [name, email, hash, role]
+      [name, email, hash, role, ...access.map(([, v]) => v)]
     );
 
     return NextResponse.json(
@@ -153,6 +167,14 @@ export async function PUT(request) {
       }
       sets.push("status = ?");
       params.push(status);
+    }
+    // Team / sections: sent together from the Manage dialog.
+    if (body.team !== undefined || body.modules !== undefined || body.role === "super_admin") {
+      const role = ROLES.includes(body.role) ? body.role : target.role;
+      for (const [col, val] of accessColumns(await getAdminColumns(connection), role, body)) {
+        sets.push(`${col} = ?`);
+        params.push(val);
+      }
     }
     if (body.password) {
       if (String(body.password).length < 8)

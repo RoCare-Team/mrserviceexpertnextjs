@@ -15,8 +15,20 @@ import {
   ConfirmDialog,
   Toast,
 } from "@/app/(admin)/admin/components/AdminUI";
+import { MODULES, MODULE_KEYS, TEAMS } from "@/lib/adminAccess";
 
-const EMPTY = { name: "", email: "", role: "admin", password: "" };
+const EMPTY = { name: "", email: "", role: "admin", password: "", team: "other", modules: [] };
+
+function TeamTag({ team }) {
+  if (!TEAMS[team]) return null;
+  const colors = { hr: ["#fdf2f8", "#be185d"], sales: ["#ecfdf5", "#047857"], seo: ["#eff6ff", "#1d4ed8"], other: ["#f4f4f5", "#52525b"] };
+  const [bg, fg] = colors[team];
+  return (
+    <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: 999, background: bg, color: fg, fontSize: 11, fontWeight: 700, letterSpacing: 0.3 }}>
+      {TEAMS[team].label}
+    </span>
+  );
+}
 
 export default function AdminsPage() {
   const [rows, setRows] = useState([]);
@@ -59,13 +71,26 @@ export default function AdminsPage() {
   }, [fetchRows]);
 
   const setField = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const pickTeam = (team) => setForm((f) => ({ ...f, team, modules: [...(TEAMS[team]?.modules || [])] }));
+  const toggleModule = (m) =>
+    setForm((f) => ({ ...f, modules: f.modules.includes(m) ? f.modules.filter((x) => x !== m) : [...f.modules, m] }));
 
   const openCreate = () => {
     setForm(EMPTY);
     setModalMode("create");
   };
   const openEdit = (row) => {
-    setForm({ id: row.id, name: row.name, email: row.email, role: row.role, status: String(row.status), password: "" });
+    setForm({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+      status: String(row.status),
+      password: "",
+      team: row.team || "other",
+      // null = account from before access control → every section ticked.
+      modules: row.modules === null || row.modules === undefined ? [...MODULE_KEYS] : row.modules,
+    });
     setModalMode("edit");
   };
   const closeModal = () => {
@@ -81,6 +106,7 @@ export default function AdminsPage() {
     } else if (form.password && form.password.length < 8) {
       return "New password must be at least 8 characters.";
     }
+    if (form.role === "admin" && form.modules.length === 0) return "Tick at least one section this admin can open.";
     return null;
   };
 
@@ -100,9 +126,11 @@ export default function AdminsPage() {
             name: form.name,
             role: form.role,
             status: form.status,
+            team: form.team,
+            modules: form.modules,
             ...(form.password ? { password: form.password } : {}),
           }
-        : { name: form.name, email: form.email, role: form.role, password: form.password };
+        : { name: form.name, email: form.email, role: form.role, password: form.password, team: form.team, modules: form.modules };
 
       const res = await fetch("/api/admin/users", {
         method: isEdit ? "PUT" : "POST",
@@ -187,6 +215,7 @@ export default function AdminsPage() {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Role</th>
+                <th>Sections</th>
                 <th>Status</th>
                 <th>Last login</th>
                 <th>Actions</th>
@@ -194,7 +223,7 @@ export default function AdminsPage() {
             </thead>
             <tbody>
               {loading || rows.length === 0 ? (
-                <TableState colSpan={7} loading={loading} emptyTitle="No admins yet" emptyHint="Add the first admin account." />
+                <TableState colSpan={8} loading={loading} emptyTitle="No admins yet" emptyHint="Add the first admin account." />
               ) : (
                 rows.map((u) => (
                   <tr key={u.id}>
@@ -205,7 +234,15 @@ export default function AdminsPage() {
                       <span className={`adm-rolebadge ${u.role === "super_admin" ? "super" : "admin"}`}>
                         {u.role === "super_admin" ? <ShieldCheck size={13} /> : <ShieldAlert size={13} />}
                         {u.role === "super_admin" ? "Super admin" : "Admin"}
-                      </span>
+                      </span>{" "}
+                      {u.role !== "super_admin" && <TeamTag team={u.team} />}
+                    </td>
+                    <td className="col-muted" style={{ fontSize: 12, maxWidth: 240 }}>
+                      {u.role === "super_admin" || u.modules === null
+                        ? "All sections"
+                        : u.modules.length
+                        ? u.modules.map((m) => MODULES[m]?.label.split(" (")[0]).join(", ")
+                        : "None"}
                     </td>
                     <td>
                       <StatusBadge status={u.status} />
@@ -282,10 +319,40 @@ export default function AdminsPage() {
                 autoComplete="new-password"
               />
             </Field>
-            {form.role === "super_admin" && (
+            {form.role === "super_admin" ? (
               <p className="full adm-tabhint" style={{ margin: 0 }}>
                 Super admins can manage other admins and access every section.
               </p>
+            ) : (
+              <>
+                <Field label="Team tag" className="full">
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {Object.entries(TEAMS).map(([k, t]) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => pickTeam(k)}
+                        className={`adm-btn adm-btn-sm ${form.team === k ? "adm-btn-primary" : ""}`}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+                <Field label="Sections this admin can open" className="full">
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {MODULE_KEYS.map((m) => (
+                      <label key={m} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 14, cursor: "pointer" }}>
+                        <input type="checkbox" checked={form.modules.includes(m)} onChange={() => toggleModule(m)} />
+                        {MODULES[m].label}
+                      </label>
+                    ))}
+                  </div>
+                </Field>
+                <p className="full adm-tabhint" style={{ margin: 0 }}>
+                  Choosing a team ticks its usual sections (HR → Careers, Sales → Contact leads + Partners, SEO → Catalogue, Blogs, AI, Redirects). You can tick or untick any section. Hidden sections are blocked on the server too, not just removed from the menu.
+                </p>
+              </>
             )}
           </div>
         </Modal>

@@ -46,6 +46,10 @@ export const GET = handle(async (req) => {
   if (STATUSES.includes(status)) {
     where.push("p.status = ?");
     params.push(status);
+  } else if (status === "listed" || status === "unlisted") {
+    // Listed / unlisted only make sense for approved partners.
+    where.push("p.status = 'approved' AND p.is_listed = ?");
+    params.push(status === "listed" ? 1 : 0);
   }
   const categoryId = toInt(sp.get("categoryId"));
   if (categoryId) {
@@ -91,11 +95,17 @@ export const GET = handle(async (req) => {
         LIMIT ${limit} OFFSET ${offset}`,
       params
     ),
-    db.query("SELECT status, COUNT(*) AS n FROM partners WHERE deleted_at IS NULL GROUP BY status"),
+    db.query(
+      `SELECT status, COUNT(*) AS n, SUM(status = 'approved' AND is_listed = 1) AS listed
+         FROM partners WHERE deleted_at IS NULL GROUP BY status`
+    ),
   ]);
 
   const counts = Object.fromEntries(STATUSES.map((s) => [s, 0]));
   for (const r of countRows) counts[r.status] = Number(r.n);
+  const listed = countRows.reduce((a, r) => a + Number(r.listed || 0), 0);
+  counts.listed = listed;
+  counts.unlisted = counts.approved - listed;
 
   return ok({
     rows: rows.map((r) => ({ ...r, ref: partnerRef(r.id), mobile_verified: !!r.mobile_verified, is_listed: !!r.is_listed })),

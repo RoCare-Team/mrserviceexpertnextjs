@@ -2,11 +2,13 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, Eye, ExternalLink, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Eye, ExternalLink, FileText, Loader2, FilePlus2, X } from "lucide-react";
 import {
   PageHead,
   Field,
   Textarea,
+  Input,
+  Select,
   Button,
   Badge,
   Dash,
@@ -19,6 +21,9 @@ import {
 } from "@/app/(admin)/admin/components/AdminUI";
 import { STATUS_META } from "../statusMeta";
 import { BUSINESS_TYPES, CONTACT_PREFERENCES, DOC_TYPES } from "@/lib/partners/validation";
+
+const REQ_TONE = { open: "warn", submitted: "info", completed: "ok", cancelled: "off" };
+const REQ_LABEL = { open: "Waiting for upload", submitted: "Uploaded — review", completed: "Verified", cancelled: "Cancelled" };
 
 const fmt = (d) =>
   d ? new Date(d).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : null;
@@ -101,6 +106,8 @@ export default function AdminPartnerDetail({ params }) {
   const [saving, setSaving] = useState(false);
   const [note, setNote] = useState("");
   const [toast, setToast] = useState(null);
+  const [docReq, setDocReq] = useState(null); // { doc_type, note, due_date } while the request modal is open
+  const [docReject, setDocReject] = useState(null); // { doc, note }
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -313,7 +320,11 @@ export default function AdminPartnerDetail({ params }) {
                     key={s}
                     size="sm"
                     disabled={saving || d.review_status === s}
-                    onClick={() => run(() => call(`/api/admin/partners/${id}/documents/${d.id}`, "PATCH", { review_status: s }), "Document updated.")}
+                    onClick={() =>
+                      s === "rejected"
+                        ? setDocReject({ doc: d, note: "" })
+                        : run(() => call(`/api/admin/partners/${id}/documents/${d.id}`, "PATCH", { review_status: s }), "Document updated.")
+                    }
                   >
                     {s === "verified" ? "Verify" : "Reject"}
                   </Button>
@@ -321,6 +332,53 @@ export default function AdminPartnerDetail({ params }) {
               </span>
             </div>
           ))}
+
+          <SectionTitle>Document requests</SectionTitle>
+          {["approved", "suspended"].includes(app.status) ? (
+            <>
+              <p className="col-muted" style={{ marginBottom: 8, fontSize: 13 }}>
+                Ask the partner for a document (e.g. Aadhaar). They get a notification and an upload box on their dashboard; the listing stays live.
+              </p>
+              {(app.doc_requests || []).map((r) => (
+                <div key={r.id} style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", padding: "6px 0", borderBottom: "1px solid var(--adm-border, #eee)" }}>
+                  <b>{r.label}</b>
+                  <Badge tone={REQ_TONE[r.status]}>{REQ_LABEL[r.status]}</Badge>
+                  {r.due_date && <span className="col-muted" style={{ fontSize: 12 }}>due {r.due_date}</span>}
+                  {r.note && <span className="col-muted" style={{ display: "block", width: "100%", fontSize: 12 }}>{r.note}</span>}
+                  {r.status === "open" && r.review_note && (
+                    <span style={{ display: "block", width: "100%", fontSize: 12, color: "#b45309" }}>Last upload rejected: {r.review_note}</span>
+                  )}
+                  {["open", "submitted"].includes(r.status) && (
+                    <span style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+                      {r.status === "submitted" && r.document_id && (
+                        <Button size="sm" variant="ghost" onClick={() => viewDoc(r.document_id)}><Eye size={14} /> View</Button>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={saving}
+                        title="Cancel request"
+                        onClick={() =>
+                          setConfirm({
+                            title: "Cancel this request?",
+                            message: `${r.label} will no longer be asked from the partner.`,
+                            run: () => call(`/api/admin/partners/${id}/doc-requests?request_id=${r.id}`, "DELETE"),
+                          })
+                        }
+                      >
+                        <X size={14} />
+                      </Button>
+                    </span>
+                  )}
+                </div>
+              ))}
+              <Button size="sm" style={{ marginTop: 8 }} onClick={() => setDocReq({ doc_type: "aadhaar", note: "", due_date: "" })}>
+                <FilePlus2 size={14} /> Request document
+              </Button>
+            </>
+          ) : (
+            <p className="col-muted" style={{ fontSize: 13 }}>Available once the partner is approved.</p>
+          )}
 
           <SectionTitle>Internal note</SectionTitle>
           <Textarea rows={3} value={note} maxLength={2000} onChange={(e) => setNote(e.target.value)} placeholder="Only admins can see this." />
@@ -529,6 +587,81 @@ export default function AdminPartnerDetail({ params }) {
             if (await run(confirm.run, "Done.")) setConfirm(null);
           }}
         />
+      )}
+      {docReq && (
+        <Modal
+          title="Request a document"
+          onClose={() => setDocReq(null)}
+          footer={
+            <>
+              <Button onClick={() => setDocReq(null)} disabled={saving}>Cancel</Button>
+              <Button
+                variant="primary"
+                disabled={saving}
+                onClick={async () => {
+                  if (await run(() => call(`/api/admin/partners/${id}/doc-requests`, "POST", docReq), "Request sent to partner.")) setDocReq(null);
+                }}
+              >
+                Send request
+              </Button>
+            </>
+          }
+        >
+          <div className="adm-formgrid">
+            <Field label="Document" className="full">
+              <Select value={docReq.doc_type} onChange={(e) => setDocReq((r) => ({ ...r, doc_type: e.target.value }))}>
+                {Object.entries(DOC_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </Select>
+            </Field>
+            <Field label={docReq.doc_type === "other" ? "What should they upload? (required)" : "Note for partner (optional)"} className="full">
+              <Textarea
+                rows={2}
+                maxLength={500}
+                value={docReq.note}
+                onChange={(e) => setDocReq((r) => ({ ...r, note: e.target.value }))}
+                placeholder="e.g. Front and back of Aadhaar in one PDF"
+              />
+            </Field>
+            <Field label="Upload by (optional)">
+              <Input type="date" value={docReq.due_date} onChange={(e) => setDocReq((r) => ({ ...r, due_date: e.target.value }))} />
+            </Field>
+          </div>
+          <p className="col-muted" style={{ marginTop: 10, fontSize: 13 }}>The partner gets a notification and an upload box on their dashboard.</p>
+        </Modal>
+      )}
+      {docReject && (
+        <Modal
+          title={`Reject ${DOC_TYPES[docReject.doc.doc_type] || "document"}`}
+          onClose={() => setDocReject(null)}
+          footer={
+            <>
+              <Button onClick={() => setDocReject(null)} disabled={saving}>Cancel</Button>
+              <Button
+                variant="danger"
+                disabled={saving}
+                onClick={async () => {
+                  const ok = await run(
+                    () => call(`/api/admin/partners/${id}/documents/${docReject.doc.id}`, "PATCH", { review_status: "rejected", note: docReject.note }),
+                    "Document rejected."
+                  );
+                  if (ok) setDocReject(null);
+                }}
+              >
+                Reject
+              </Button>
+            </>
+          }
+        >
+          <Field label="Reason (shown to the partner if this document was requested)">
+            <Textarea
+              rows={2}
+              maxLength={500}
+              value={docReject.note}
+              onChange={(e) => setDocReject((r) => ({ ...r, note: e.target.value }))}
+              placeholder="e.g. Photo is blurry — please upload a clear scan"
+            />
+          </Field>
+        </Modal>
       )}
       <Toast toast={toast} />
     </div>

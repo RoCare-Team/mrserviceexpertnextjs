@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, RotateCcw, Undo2 } from "lucide-react";
+import { ArrowLeft, RotateCcw, Undo2, Percent } from "lucide-react";
 import {
   PageHead,
   Field,
   SearchInput,
   Select,
+  Input,
   Button,
   Badge,
   Dash,
@@ -20,6 +21,8 @@ import {
 
 const STATUS_TONE = { new: "warn", accepted: "ok", completed: "ok", rejected: "off", expired: "off" };
 const CRM_TONE = { none: "off", pending: "warn", sent: "ok", duplicate: "info", failed: "off" };
+const refundOf = (cost, pct) => Math.round(Number(cost) * pct) / 100;
+const validPct = (v) => Number.isInteger(Number(v)) && Number(v) >= 1 && Number(v) <= 100;
 const fmt = (d) => (d ? new Date(d).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : null);
 
 async function call(url, method = "GET", body) {
@@ -45,6 +48,9 @@ export default function AdminPartnerLeadsPage() {
   const [search, setSearch] = useState("");
   const [refund, setRefund] = useState(null);
   const [note, setNote] = useState("");
+  const [refundPct, setRefundPct] = useState(""); // this refund (override)
+  const [defaultPct, setDefaultPct] = useState(null); // global setting
+  const [pctEdit, setPctEdit] = useState(null); // settings modal value
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
   const timer = useRef(null);
@@ -66,6 +72,33 @@ export default function AdminPartnerLeadsPage() {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => (setSearch(searchInput), setPage(1)), 400);
   }, [searchInput]);
+
+  useEffect(() => {
+    call("/api/admin/partners/settings")
+      .then((d) => setDefaultPct(d.lead_refund_percent))
+      .catch(() => {});
+  }, []);
+
+  const saveDefaultPct = async () => {
+    if (!validPct(pctEdit)) return showToast("Enter a whole number from 1 to 100.", "error");
+    setSaving(true);
+    try {
+      const d = await call("/api/admin/partners/settings", "PUT", { lead_refund_percent: Number(pctEdit) });
+      setDefaultPct(d.lead_refund_percent);
+      setPctEdit(null);
+      showToast(`Default refund set to ${d.lead_refund_percent}%.`);
+    } catch (e) {
+      showToast(e.message, "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const openRefund = (r) => {
+    setRefund(r);
+    setNote(r.issue_note ? `Refund: ${r.issue_note}` : "");
+    setRefundPct(String(defaultPct ?? 100));
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -92,8 +125,9 @@ export default function AdminPartnerLeadsPage() {
   const doRefund = async () => {
     setSaving(true);
     try {
-      await call(`/api/admin/partners/leads/${refund.id}`, "POST", { action: "refund", note });
-      showToast(`Refunded ${refund.coin_cost} coins to ${refund.business_name}.`);
+      if (!validPct(refundPct)) throw new Error("Refund % must be a whole number from 1 to 100.");
+      const d = await call(`/api/admin/partners/leads/${refund.id}`, "POST", { action: "refund", note, percent: Number(refundPct) });
+      showToast(`Refunded ${d.coins} coins (${d.percent}%) to ${refund.business_name}.`);
       setRefund(null);
       load();
     } catch (e) {
@@ -125,6 +159,15 @@ export default function AdminPartnerLeadsPage() {
         count={counts.issues || 0}
         countLabel="problem reports"
       />
+
+      <div className="adm-card" style={{ padding: 12, marginBottom: 12, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 12, fontSize: 14 }}>
+        <Percent size={16} />
+        <span>
+          Fake / problem lead refund: <b>{defaultPct === null ? "…" : `${defaultPct}% of coins`}</b>
+          <span className="col-muted"> · default for every refund, can be changed per refund</span>
+        </span>
+        <Button size="sm" style={{ marginLeft: "auto" }} onClick={() => setPctEdit(String(defaultPct ?? 100))}>Change</Button>
+      </div>
 
       <div className="adm-toolbar">
         <Field label="Search (customer, mobile, partner, lead #)" grow>
@@ -188,7 +231,14 @@ export default function AdminPartnerLeadsPage() {
                       </span>
                       <a href={r.page_url} target="_blank" rel="noreferrer" className="col-muted" style={{ fontSize: 12 }}>source page</a>
                     </td>
-                    <td>{Number(r.coin_cost)}{r.refunded_at && <span className="col-muted" style={{ display: "block", fontSize: 12 }}>refunded</span>}</td>
+                    <td>
+                      {Number(r.coin_cost)}
+                      {r.refunded_at && (
+                        <span className="col-muted" style={{ display: "block", fontSize: 12 }}>
+                          refunded{r.refund_coins != null ? ` ${Number(r.refund_coins)} (${r.refund_percent}%)` : ""}
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <Badge tone={STATUS_TONE[r.status]}>{r.status}</Badge>
                       {r.phase === "open" && <span className="col-muted" style={{ display: "block", fontSize: 12 }}>open pool{r.status === "new" ? " · live" : ""}</span>}
@@ -201,7 +251,7 @@ export default function AdminPartnerLeadsPage() {
                     <td className="col-muted" style={{ whiteSpace: "nowrap" }}>{fmt(r.created_at) || <Dash />}</td>
                     <td style={{ whiteSpace: "nowrap" }}>
                       {["accepted", "completed"].includes(r.status) && !r.refunded_at && (
-                        <Button size="sm" onClick={() => (setRefund(r), setNote(r.issue_note ? `Refund: ${r.issue_note}` : ""))}>
+                        <Button size="sm" onClick={() => openRefund(r)}>
                           <Undo2 size={14} /> Refund
                         </Button>
                       )}
@@ -226,15 +276,42 @@ export default function AdminPartnerLeadsPage() {
           footer={
             <>
               <Button onClick={() => setRefund(null)} disabled={saving}>Cancel</Button>
-              <Button variant="primary" onClick={doRefund} disabled={saving}>Refund {Number(refund.coin_cost)} coins</Button>
+              <Button variant="primary" onClick={doRefund} disabled={saving || !validPct(refundPct)}>
+                Refund {validPct(refundPct) ? refundOf(refund.coin_cost, Number(refundPct)) : "…"} coins
+              </Button>
             </>
           }
         >
           <p style={{ marginBottom: 10 }}>
-            Return <b>{Number(refund.coin_cost)} coins</b> to <b>{refund.business_name}</b> for lead #{refund.id}. This can be done once per lead.
+            Lead #{refund.id} cost <b>{Number(refund.coin_cost)} coins</b>. Return{" "}
+            <b>{validPct(refundPct) ? refundOf(refund.coin_cost, Number(refundPct)) : "…"} coins</b> to <b>{refund.business_name}</b>. This can be done once per lead.
           </p>
+          <Field label={`Refund % (default ${defaultPct ?? 100}%)`}>
+            <Input type="number" min={1} max={100} step={1} value={refundPct} onChange={(e) => setRefundPct(e.target.value)} />
+          </Field>
+          <div style={{ height: 10 }} />
           <Field label="Note (shown in partner's wallet history)">
             <Textarea rows={2} maxLength={255} value={note} onChange={(e) => setNote(e.target.value)} />
+          </Field>
+        </Modal>
+      )}
+      {pctEdit !== null && (
+        <Modal
+          title="Default refund %"
+          onClose={() => setPctEdit(null)}
+          footer={
+            <>
+              <Button onClick={() => setPctEdit(null)} disabled={saving}>Cancel</Button>
+              <Button variant="primary" onClick={saveDefaultPct} disabled={saving}>Save</Button>
+            </>
+          }
+        >
+          <p style={{ marginBottom: 10 }}>
+            When a partner reports a fake or problem lead and you refund it, this % of the lead&apos;s coins is returned to their wallet.
+            Partners see this % on their dashboard.
+          </p>
+          <Field label="Refund % (1–100)">
+            <Input type="number" min={1} max={100} step={1} value={pctEdit} onChange={(e) => setPctEdit(e.target.value)} />
           </Field>
         </Modal>
       )}

@@ -2,6 +2,9 @@ import db from "@/lib/db";
 import { ok, handle, requireAdmin, readJson, toInt, HttpError } from "@/lib/partners/http";
 import { getApplication, withTransaction, logHistory } from "@/lib/partners/application";
 import { privateDocumentUrl } from "@/lib/partners/storage";
+import { syncRequestWithReview } from "@/lib/partners/docRequests";
+import { notifyPartner } from "@/lib/partners/notify";
+import { DOC_TYPES } from "@/lib/partners/validation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +38,7 @@ export const PATCH = handle(async (req, ctx) => {
     throw new HttpError(422, "validation_error", "Invalid review status.");
   }
   const note = String(body.note ?? "").trim().slice(0, 500) || null;
-  await withTransaction(async (conn) => {
+  const request = await withTransaction(async (conn) => {
     await conn.query(
       "UPDATE partner_documents SET review_status = ?, review_note = ?, reviewed_by = ?, reviewed_at = NOW() WHERE id = ?",
       [body.review_status, note, admin.id, doc.id]
@@ -47,6 +50,20 @@ export const PATCH = handle(async (req, ctx) => {
       actorType: "admin",
       actorId: admin.id,
     });
+    return syncRequestWithReview(conn, doc.id, body.review_status, note);
   });
+  // A requested document was rejected → the partner has to upload it again.
+  if (request && body.review_status === "rejected") {
+    await notifyPartner(
+      doc.partner_id,
+      {
+        type: "document_request",
+        title: `Please upload again: ${DOC_TYPES[doc.doc_type] || doc.doc_type}`,
+        body: note || "The uploaded file was not accepted.",
+        link: "/partner/dashboard",
+      },
+      { push: true }
+    );
+  }
   return ok(await getApplication(doc.partner_id, { forAdmin: true }));
 });

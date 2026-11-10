@@ -7,12 +7,14 @@
 //   WHATSAPP_API_KEY=ws_…
 //   WHATSAPP_BRAND=Mr. Service Expert
 //   WHATSAPP_CAMPAIGN_LEAD=partner_lead_assignment   (params: partner name, lead id)
+//   WHATSAPP_CAMPAIGN_APPROVED=partner_registration_approved   (params: partner name)
 
 import db from "@/lib/db";
 
 const API_URL = () => process.env.WHATSAPP_API_URL || "https://whatsapp.limbu.ai/api/campaigns/send";
 const API_KEY = () => process.env.WHATSAPP_API_KEY || "";
 const BRAND = () => process.env.WHATSAPP_BRAND || "Mr. Service Expert";
+const APPROVED_CAMPAIGN = () => process.env.WHATSAPP_CAMPAIGN_APPROVED || "partner_registration_approved";
 const LEAD_CAMPAIGN = () => process.env.WHATSAPP_CAMPAIGN_LEAD || "partner_lead_assignment";
 
 /** Lead id as the partner sees it on the dashboard. */
@@ -83,5 +85,21 @@ export async function sendLeadAssignedWhatsApp(partnerIds, leadId) {
     );
   } catch (err) {
     console.error("[whatsapp] lead", leadId, err?.message);
+  }
+}
+
+/** "Your partner registration is approved" — template param: owner's first name. */
+export async function sendPartnerApprovedWhatsApp(partnerId) {
+  if (!API_KEY()) return;
+  try {
+    const [[p]] = await db.query("SELECT mobile, full_name, business_name FROM partners WHERE id = ?", [partnerId]);
+    if (!p) return;
+    await sendWhatsAppTemplate({
+      mobile: p.mobile,
+      campaign: APPROVED_CAMPAIGN(),
+      params: [(p.full_name || p.business_name || "Partner").trim().split(/\s+/)[0]],
+    });
+  } catch (err) {
+    console.error("[whatsapp] approved", partnerId, err?.message);
   }
 }
