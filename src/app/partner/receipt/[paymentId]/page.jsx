@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { getPartner } from "@/lib/partners/auth";
 import { getPartnerPayment } from "@/lib/partners/payments";
 import { partnerRef } from "@/lib/partners/validation";
+import { BADGE_PERIOD, BADGE_NAME } from "@/lib/partners/badge";
 import PrintButton from "@/app/components/partners/dashboard/PrintButton";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,7 @@ export const metadata = {
 
 const fmt = (d) => (d ? new Date(d).toLocaleString("en-IN", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
 
-/** Printable receipt for a successful wallet recharge ("Save as PDF" from the print dialog). */
+/** Printable receipt for a successful wallet recharge or badge purchase ("Save as PDF" from the print dialog). */
 export default async function ReceiptPage({ params }) {
   const p = await getPartner();
   if (!p) redirect("/partner/login");
@@ -21,12 +22,13 @@ export default async function ReceiptPage({ params }) {
   const pay = Number.isInteger(id) && id > 0 ? await getPartnerPayment(p.id, id) : null;
   if (!pay || pay.status !== "success") notFound();
 
+  const badge = pay.purpose === "badge";
   const rows = [
     ["Receipt no.", `MSE-R${String(pay.id).padStart(6, "0")}`],
     ["Date", fmt(pay.completed_at || pay.created_at)],
     ["Partner", `${p.business_name || p.full_name} (${partnerRef(p.id)})`],
     ["Mobile", `+91 ${p.mobile}`],
-    ["Description", "Partner wallet recharge (coins)"],
+    ["Description", badge ? `${BADGE_NAME} badge (${BADGE_PERIOD})` : "Partner wallet recharge (coins)"],
     ["Payment method", [pay.payment_mode, pay.card_or_vpa].filter(Boolean).join(" · ") || "—"],
     ["Transaction ID", pay.txnid],
     ["Easebuzz ID", pay.easebuzz_id || "—"],
@@ -61,7 +63,11 @@ export default async function ReceiptPage({ params }) {
           <span className="font-semibold text-[var(--ink-soft)]">Amount paid</span>
           <span className="text-2xl font-bold text-[var(--ink)]">₹{Number(pay.amount).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
         </div>
-        <p className="mt-2 text-sm text-[var(--muted)]">{Number(pay.amount).toLocaleString("en-IN")} coins credited to the partner wallet (1 coin = ₹1).</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          {badge
+            ? `${BADGE_NAME} badge for ${BADGE_PERIOD} (no coins credited).`
+            : `${Number(pay.amount).toLocaleString("en-IN")} coins credited to the partner wallet (1 coin = ₹1).`}
+        </p>
         <p className="mt-6 text-xs text-[var(--muted)]">This is a computer-generated payment receipt and does not require a signature.</p>
         <div className="mt-6 print:hidden">
           <PrintButton />

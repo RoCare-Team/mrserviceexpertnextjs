@@ -13,6 +13,7 @@ import { publicUrl } from "@/lib/partners/storage";
 import { getRatingSummaries } from "@/lib/partners/reviews";
 import { CRM_LEAD_TYPES } from "@/lib/partners/crm";
 import { getWorkDoneCounts, workDoneLabel } from "@/lib/partners/seo";
+import { featuredSql, unlockedSql, locksReady } from "@/lib/partners/badge";
 
 const PUBLIC_WHERE = `p.status = 'approved' AND p.is_listed = 1
   AND p.mobile_verified_at IS NOT NULL AND p.deleted_at IS NULL`;
@@ -44,36 +45,53 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
   const size = Math.min(Math.max(Number(pageSize) || LISTING_PAGE_SIZE, 1), 24);
   const offset = (Math.max(Number(page) || 1, 1) - 1) * size;
 
+  // Free-plan locks: cities / categories / brands above the free plan are
+  // hidden while the partner has no active badge (see badge.js).
+  const locks = await locksReady();
   const params = [categoryId, cityId, cityId];
   let brandSql = "";
   if (brandId) {
     brandSql = `AND EXISTS (SELECT 1 FROM partner_brands pb
-                             WHERE pb.partner_id = p.id AND pb.category_id = ? AND pb.brand_id = ?)`;
+                             WHERE pb.partner_id = p.id AND pb.category_id = ? AND pb.brand_id = ?${locks ? " AND pb.badge_locked = 0" : ""})`;
     params.push(categoryId, brandId);
+  }
+  let catLock = "";
+  if (locks) {
+    catLock = "AND EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = p.id AND pc.category_id = ? AND pc.badge_locked = 0)";
+    params.push(categoryId);
   }
   const where = `${PUBLIC_WHERE}
     AND EXISTS (SELECT 1 FROM partner_services ps WHERE ps.partner_id = p.id AND ps.category_id = ?)
     AND EXISTS (SELECT 1 FROM partner_service_areas a
-                 WHERE a.partner_id = p.id
+                 WHERE a.partner_id = p.id${locks ? " AND a.badge_locked = 0" : ""}
                    AND ((a.city_id = ? AND a.locality_key = 0) OR a.locality_id = ?))
-    ${brandSql}`;
+    ${brandSql}
+    ${catLock}`;
 
   const [[{ total }]] = await db.query(`SELECT COUNT(*) AS total FROM partners p WHERE ${where}`, params);
   if (!total) return { items: [], total: 0, page: 1, pageSize: size, hasMore: false };
 
-  // Best-rated first. The score is a Bayesian average (prior 4.0 with the
-  // weight of 2 reviews) so a single 5★ review does not outrank 40 reviews at
-  // 4.8; ties go to the most-reviewed, then ID-verified, then oldest partner.
+  // Ranking:
+  //   1. Featured Partner badge holders first (paid ₹499 / 1 year or given by admin).
+  //   2. Rating — a Bayesian average (prior 4.0 with the weight of 2 reviews) so
+  //      a single 5★ review does not outrank 40 reviews at 4.8.
+  //   3. Jobs done (completed leads), then review count, ID-verified, oldest.
+  // Steps 2–3 order partners inside the featured group and inside the rest.
+  const featured = await featuredSql();
   const [rows] = await db.query(
     `SELECT p.id, p.slug, p.business_name, p.business_type, p.experience_years, p.logo_key,
-            p.operating_hours, p.is_available,
+            p.operating_hours, p.is_available, ${featured} AS featured,
             p.identity_verified_at IS NOT NULL AS identity_verified,
             p.gst_verified_at IS NOT NULL AS gst_verified
        FROM partners p
        LEFT JOIN (SELECT partner_id, AVG(rating) AS avg_rating, COUNT(*) AS review_count
                     FROM partner_reviews WHERE status = 'published' GROUP BY partner_id) rv ON rv.partner_id = p.id
+       LEFT JOIN (SELECT partner_id, COUNT(*) AS jobs
+                    FROM partner_leads WHERE status = 'completed' GROUP BY partner_id) wd ON wd.partner_id = p.id
       WHERE ${where}
-      ORDER BY (COALESCE(rv.avg_rating, 0) * COALESCE(rv.review_count, 0) + 4.0 * 2) / (COALESCE(rv.review_count, 0) + 2) DESC,
+      ORDER BY ${featured} DESC,
+               (COALESCE(rv.avg_rating, 0) * COALESCE(rv.review_count, 0) + 4.0 * 2) / (COALESCE(rv.review_count, 0) + 2) DESC,
+               COALESCE(wd.jobs, 0) DESC,
                COALESCE(rv.review_count, 0) DESC,
                (p.identity_verified_at IS NOT NULL) DESC, p.approved_at ASC, p.id ASC
       LIMIT ${size} OFFSET ${offset}`,
@@ -87,6 +105,8 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
 async function decorate(rows, categoryId) {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
+  const lockB = await unlockedSql("pb");
+  const lockA = await unlockedSql("a");
   const [[svcs], [brands], [areas], ratings, workDone] = await Promise.all([
     db.query(
       `SELECT ps.partner_id, t.name FROM partner_services ps
@@ -97,7 +117,7 @@ async function decorate(rows, categoryId) {
     db.query(
       `SELECT pb.partner_id, COALESCE(b.brand_name, pb.custom_name) AS name
          FROM partner_brands pb LEFT JOIN brand_tb b ON b.id = pb.brand_id
-        WHERE pb.partner_id IN (?) AND pb.category_id = ?
+        WHERE pb.partner_id IN (?) AND pb.category_id = ?${lockB}
           AND (pb.brand_id IS NOT NULL OR pb.custom_status = 'approved')
         ORDER BY name`,
       [ids, categoryId]
@@ -107,7 +127,7 @@ async function decorate(rows, categoryId) {
          FROM partner_service_areas a
          JOIN city_tb c ON c.id = a.city_id
          LEFT JOIN city_tb l ON l.id = a.locality_id
-        WHERE a.partner_id IN (?) ORDER BY a.is_primary DESC, a.id`,
+        WHERE a.partner_id IN (?)${lockA} ORDER BY a.is_primary DESC, a.id`,
       [ids]
     ),
     getRatingSummaries(ids),
@@ -122,6 +142,7 @@ async function decorate(rows, categoryId) {
     operating_hours: r.operating_hours,
     identity_verified: !!r.identity_verified,
     gst_verified: !!r.gst_verified,
+    featured: !!Number(r.featured),
     services: svcs.filter((s) => s.partner_id === r.id).map((s) => s.name),
     brands: brands.filter((b) => b.partner_id === r.id).map((b) => b.name),
     areas: areas.filter((a) => a.partner_id === r.id).map((a) => a.name).slice(0, 4),
@@ -144,11 +165,12 @@ export async function getPublicProfile(slug) {
   );
   if (!p) return null;
 
+  const [lockC, lockB, lockA] = await Promise.all([unlockedSql("pc"), unlockedSql("pb"), unlockedSql("a")]);
   const [[cats], [svcs], [brands], [areas], [photos]] = await Promise.all([
     db.query(
       `SELECT c.id, c.category_name AS name, c.category_url AS url
          FROM partner_categories pc JOIN category_tb c ON c.id = pc.category_id
-        WHERE pc.partner_id = ? ORDER BY c.id`,
+        WHERE pc.partner_id = ?${lockC} ORDER BY c.id`,
       [p.id]
     ),
     db.query(
@@ -161,7 +183,7 @@ export async function getPublicProfile(slug) {
     db.query(
       `SELECT pb.category_id, COALESCE(b.brand_name, pb.custom_name) AS name
          FROM partner_brands pb LEFT JOIN brand_tb b ON b.id = pb.brand_id
-        WHERE pb.partner_id = ? AND (pb.brand_id IS NOT NULL OR pb.custom_status = 'approved')
+        WHERE pb.partner_id = ?${lockB} AND (pb.brand_id IS NOT NULL OR pb.custom_status = 'approved')
         ORDER BY name`,
       [p.id]
     ),
@@ -171,7 +193,7 @@ export async function getPublicProfile(slug) {
          FROM partner_service_areas a
          JOIN city_tb c ON c.id = a.city_id
          LEFT JOIN city_tb l ON l.id = a.locality_id
-        WHERE a.partner_id = ? ORDER BY a.is_primary DESC, c.city_name, l.city_name`,
+        WHERE a.partner_id = ?${lockA} ORDER BY a.is_primary DESC, c.city_name, l.city_name`,
       [p.id]
     ),
     db.query("SELECT s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id LIMIT 12", [p.id]),
@@ -202,6 +224,7 @@ export async function getPublicProfile(slug) {
     meta_description: p.meta_description,
     meta_keywords: p.meta_keywords,
     seo_generated_at: p.seo_generated_at,
+    featured: !!p.featured_until && new Date(p.featured_until) > new Date(),
     work_done_count: workDone,
     work_done: workDoneLabel(workDone),
     experience_years: p.experience_years,

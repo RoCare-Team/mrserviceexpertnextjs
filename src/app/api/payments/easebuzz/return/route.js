@@ -6,7 +6,15 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const siteOrigin = (req) => process.env.SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
-const back = (req, result) => NextResponse.redirect(`${siteOrigin(req)}/partner/dashboard?tab=wallet&payment=${result}`, 303);
+const back = async (req, result, payment) => {
+  if (payment?.purpose === "badge") {
+    // Bought while registering / under review → back to the form.
+    const [[p]] = await db.query("SELECT status FROM partners WHERE id = ?", [payment.partner_id]);
+    const page = p && p.status !== "approved" ? "/join-as-partner?" : "/partner/dashboard?tab=wallet&";
+    return NextResponse.redirect(`${siteOrigin(req)}${page}payment=${result}&for=badge`, 303);
+  }
+  return NextResponse.redirect(`${siteOrigin(req)}/partner/dashboard?tab=wallet&payment=${result}`, 303);
+};
 
 /**
  * Easebuzz surl / furl (browser POST after checkout).
@@ -24,7 +32,7 @@ export async function POST(req) {
   }
   const [[payment]] = await db.query("SELECT * FROM partner_payments WHERE txnid = ?", [String(posted.txnid || "")]);
   if (!payment) return back(req, "failed");
-  if (payment.status === "success") return back(req, "success");
+  if (payment.status === "success") return back(req, "success", payment);
 
   try {
     let r = await applyGatewayResult(payment, posted);
@@ -32,9 +40,9 @@ export async function POST(req) {
       console.error("[easebuzz] return hash not verified, checking with gateway:", payment.txnid);
       r = await checkWithGateway(payment);
     }
-    return back(req, r === "success" ? "success" : r === "failed" ? "failed" : "pending");
+    return back(req, r === "success" ? "success" : r === "failed" ? "failed" : "pending", payment);
   } catch (err) {
     console.error("[easebuzz] return error:", payment.txnid, err?.message);
-    return back(req, "pending");
+    return back(req, "pending", payment);
   }
 }

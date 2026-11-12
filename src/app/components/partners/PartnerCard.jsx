@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MapPin, Clock, Briefcase, Store, Star, Wrench } from "lucide-react";
 import BookNowButton from "./BookNowButton";
-import { TrustBadges } from "./ui";
+import { TrustBadges, FeaturedBadge } from "./ui";
 import { BUSINESS_TYPES } from "@/lib/partners/validation";
 
 /**
@@ -10,7 +10,7 @@ import { BUSINESS_TYPES } from "@/lib/partners/validation";
  */
 export default function PartnerCard({ partner: p, bookingContext }) {
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-[var(--line)] bg-white p-4 shadow-sm transition hover:shadow-md">
+    <article className={`flex h-full flex-col rounded-2xl border bg-white p-4 shadow-sm transition hover:shadow-md ${p.featured ? "border-amber-300 ring-1 ring-amber-200" : "border-[var(--line)]"}`}>
       <div className="flex items-start gap-3">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-purple-50">
           {p.logo_url ? (
@@ -21,6 +21,11 @@ export default function PartnerCard({ partner: p, bookingContext }) {
           )}
         </div>
         <div className="min-w-0 flex-1">
+          {p.featured && (
+            <div className="mb-1">
+              <FeaturedBadge compact />
+            </div>
+          )}
           <h3 className="text-base font-bold leading-snug text-[var(--ink)]">
             <Link href={`/partners/${p.slug}`} className="hover:text-purple-700">
               {p.business_name}

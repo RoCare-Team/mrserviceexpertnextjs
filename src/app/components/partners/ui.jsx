@@ -18,6 +18,7 @@ import {
   FileCheck2,
   Phone,
   Loader2,
+  Award,
 } from "lucide-react";
 
 export const inputCls =
@@ -60,6 +61,20 @@ export function CategoryIcon({ url, className = "h-6 w-6" }) {
  * Honest trust badges: each states exactly what was checked.
  * "Approved" only means the listing passed review.
  */
+/** "Featured Partner" pill (paid / admin-granted badge — listed first). */
+export function FeaturedBadge({ compact = false }) {
+  return (
+    <span
+      title="Featured partner on Mr. Service Expert"
+      className={`inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 font-bold text-white shadow-sm ${
+        compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs"
+      }`}
+    >
+      <Award className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} aria-hidden="true" /> Featured Partner
+    </span>
+  );
+}
+
 export function TrustBadges({ verification, compact = false }) {
   const items = [
     { on: verification?.approved ?? true, icon: BadgeCheck, label: "Approved partner", title: "Profile reviewed and approved by Mr. Service Expert" },

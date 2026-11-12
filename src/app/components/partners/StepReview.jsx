@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Pencil, Loader2, BadgeCheck, CircleAlert } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { btnPrimary, btnGhost, FieldError } from "./ui";
+import { BadgeBuyBox } from "./BadgePlan";
 import { BUSINESS_TYPES, DOC_TYPES } from "@/lib/partners/validation";
 
 function Section({ title, step, onJump, missing, children }) {
@@ -78,27 +79,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
         </p>
       </Section>
 
-      <Section title="Categories, services & brands" step={2} onJump={onJump} missing={missing[2] || missing[3]}>
-        {app.categories.length === 0 && <p>No categories selected.</p>}
-        <ul className="space-y-2">
-          {app.categories.map((c) => (
-            <li key={c.id}>
-              <b className="text-[var(--ink)]">{c.name}</b>
-              <Row k="Services" v={(app.services[c.id] || []).map((s) => s.name).join(", ")} />
-              <Row
-                k="Brands"
-                v={(app.brands[c.id] || []).map((x) => (x.custom ? `${x.name} (pending review)` : x.name)).join(", ") || "Skipped (optional)"}
-              />
-            </li>
-          ))}
-        </ul>
-        <div className="mt-1 flex gap-3 text-xs">
-          <button type="button" className="text-purple-700 underline" onClick={() => onJump(3)}>Edit services</button>
-          <button type="button" className="text-purple-700 underline" onClick={() => onJump(4)}>Edit brands</button>
-        </div>
-      </Section>
-
-      <Section title="Business" step={5} onJump={onJump} missing={missing[5]}>
+      <Section title="Business" step={2} onJump={onJump} missing={missing[2]}>
         <Row k="Type" v={BUSINESS_TYPES[b.business_type]} />
         <Row k="Name" v={b.business_name} />
         <Row k="Experience" v={b.experience_years != null && b.experience_years !== "" ? `${b.experience_years} years` : null} />
@@ -112,7 +93,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
         />
       </Section>
 
-      <Section title="Address & service areas" step={6} onJump={onJump} missing={missing[6]}>
+      <Section title="Address & service areas" step={3} onJump={onJump} missing={missing[3]}>
         <Row k="Address" v={[a.line, a.locality, a.city_name, a.state_name, a.pincode].filter(Boolean).join(", ")} />
         <ul className="mt-1 space-y-1">
           {cities.map((g) => (
@@ -130,6 +111,28 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
           />
         )}
       </Section>
+
+      <Section title="Categories, services & brands" step={4} onJump={onJump} missing={missing[4] || missing[5]}>
+        {app.categories.length === 0 && <p>No categories selected.</p>}
+        <ul className="space-y-2">
+          {app.categories.map((c) => (
+            <li key={c.id}>
+              <b className="text-[var(--ink)]">{c.name}</b>
+              <Row k="Services" v={(app.services[c.id] || []).map((s) => s.name).join(", ")} />
+              <Row
+                k="Brands"
+                v={(app.brands[c.id] || []).map((x) => (x.custom ? `${x.name} (pending review)` : x.name)).join(", ") || "Skipped (optional)"}
+              />
+            </li>
+          ))}
+        </ul>
+        <div className="mt-1 flex gap-3 text-xs">
+          <button type="button" className="text-purple-700 underline" onClick={() => onJump(5)}>Edit services</button>
+          <button type="button" className="text-purple-700 underline" onClick={() => onJump(6)}>Edit brands</button>
+        </div>
+      </Section>
+
+      <BadgeBuyBox app={app} required={!!app.plan?.needs_badge} over={app.plan?.over || []} />
 
       <fieldset className="mt-4 space-y-3 rounded-2xl bg-purple-50/60 p-4 text-sm text-[var(--ink-soft)]">
         <legend className="sr-only">Consent</legend>
@@ -173,7 +176,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
 
       <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-5 sm:flex-row sm:justify-between">
         <button type="button" className={btnGhost} onClick={onBack} disabled={busy}>Back</button>
-        <button type="button" className={btnPrimary} onClick={submit} disabled={busy || !app.completion.ready}>
+        <button type="button" className={btnPrimary} onClick={submit} disabled={busy || !app.completion.ready || (app.plan?.needs_badge && !app.plan?.badge_ok)}>
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Submit application
         </button>
       </div>

@@ -13,6 +13,7 @@ import SettingsTab from "./SettingsTab";
 import NotificationsPanel from "./NotificationsPanel";
 import ApplicationStatus from "./ApplicationStatus";
 import DocRequestsBanner from "./DocRequestsBanner";
+import InstallAppCard from "./InstallAppCard";
 
 const TABS = [
   { key: "overview", label: "Overview", short: "Home", icon: LayoutDashboard },
@@ -42,7 +43,7 @@ function beep() {
  * notifications can open a specific section. Leads + notifications are
  * polled so new bookings alert the partner on any tab.
  */
-export default function PartnerDashboard({ initialApp, initialTab, paymentResult }) {
+export default function PartnerDashboard({ initialApp, initialTab, paymentResult, paymentFor }) {
   const [app, setApp] = useState(initialApp);
   // "live" = approved at least once → leads, wallet, profile tools are available.
   const live = !!app.approved_at || app.status === "approved";
@@ -175,9 +176,10 @@ export default function PartnerDashboard({ initialApp, initialTab, paymentResult
             </div>
           )}
 
+          {tab === "overview" && <InstallAppCard />}
           {tab === "overview" && (live ? <OverviewTab {...shared} newLeads={newLeads} /> : <ApplicationStatus app={app} />)}
           {tab === "leads" && <LeadsTab {...shared} />}
-          {tab === "wallet" && <WalletTab {...shared} paymentResult={paymentResult} />}
+          {tab === "wallet" && <WalletTab {...shared} paymentResult={paymentResult} paymentFor={paymentFor} />}
           {tab === "profile" && <ProfileTab {...shared} />}
           {tab === "reviews" && <ReviewsTab {...shared} />}
           {tab === "settings" && <SettingsTab {...shared} live={live} />}

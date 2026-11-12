@@ -10,6 +10,8 @@ import { sendPartnerApprovedWhatsApp } from "@/lib/partners/whatsapp";
 import { queuePartnerSeo } from "@/lib/partners/seo";
 import { getRefundPercent } from "@/lib/partners/settings";
 import { listDocRequests } from "@/lib/partners/docRequests";
+import { BADGE_DAYS, BADGE_PERIOD, BADGE_NAME, badgeInfo, badgePrice, syncBadgeLocks, activatePendingBadge } from "@/lib/partners/badge";
+import { appOverLimits } from "@/lib/partners/plan";
 import {
   validName,
   validateBusiness,
@@ -224,6 +226,17 @@ export async function getApplication(partnerId, { forAdmin = false } = {}) {
   app.is_available = !!p.is_available;
   app.low_balance_alert = Number(p.low_balance_alert ?? 200);
   app.lead_refund_percent = await getRefundPercent();
+  app.badge = {
+    ...badgeInfo(p.featured_until),
+    name: BADGE_NAME,
+    price: badgePrice(),
+    days: BADGE_DAYS,
+    period: BADGE_PERIOD,
+    pending_days: Number(p.featured_pending_days || 0), // paid during registration, starts on approval
+  };
+  // Free plan: 1 city, 2 categories, 2 brands per category — more needs the badge.
+  const over = appOverLimits(app);
+  app.plan = { over, needs_badge: over.length > 0, badge_ok: app.badge.active || app.badge.pending_days > 0 };
   app.doc_requests = await listDocRequests(partnerId, { forAdmin });
   const [photos] = await db.query("SELECT id, s3_key FROM partner_photos WHERE partner_id = ? ORDER BY sort_order, id", [partnerId]);
   app.photos = photos.map((ph) => ({ id: ph.id, url: publicUrl(ph.s3_key) }));
@@ -251,15 +264,16 @@ export async function getApplication(partnerId, { forAdmin = false } = {}) {
 /** Which wizard steps are complete, and what's missing. */
 export function completion(app) {
   const missing = {};
+  // Steps: 1 basic, 2 business, 3 address & areas, 4 categories, 5 services,
+  // 6 brands (optional, never blocks submission), 7 review.
   if (!app.full_name || !app.mobile_verified) missing[1] = "Verify your name and mobile number.";
-  if (!app.categories.length) missing[2] = "Select at least one category.";
-  const noSvc = app.categories.filter((c) => !app.services[c.id]?.length);
-  if (app.categories.length && noSvc.length) missing[3] = `Select services for: ${noSvc.map((c) => c.name).join(", ")}.`;
-  // Step 4 (brands) is optional and never blocks submission.
-  if (!app.business.business_type || !app.business.business_name) missing[5] = "Add your business type and name.";
+  if (!app.business.business_type || !app.business.business_name) missing[2] = "Add your business type and name.";
   const a = app.address;
-  if (!a.line || !a.state_id || !a.city_id || !a.pincode) missing[6] = "Complete your business address.";
-  else if (!app.areas.length) missing[6] = "Add at least one service area.";
+  if (!a.line || !a.state_id || !a.city_id || !a.pincode) missing[3] = "Complete your business address.";
+  else if (!app.areas.length) missing[3] = "Add at least one service area.";
+  if (!app.categories.length) missing[4] = "Select at least one category.";
+  const noSvc = app.categories.filter((c) => !app.services[c.id]?.length);
+  if (app.categories.length && noSvc.length) missing[5] = `Select services for: ${noSvc.map((c) => c.name).join(", ")}.`;
   const done = 5 - Object.keys(missing).length;
   return { missing, percent: Math.round((done / 5) * 100), ready: done === 5 };
 }
@@ -282,10 +296,11 @@ export async function saveStep(partnerId, step, data, version) {
       throw new HttpError(409, "version_conflict", "This application was changed in another window. Reload to get the latest version.");
     }
 
-    const savers = { 1: saveBasic, 2: saveCategories, 3: saveServices, 4: saveBrands, 5: saveBusiness, 6: saveLocations };
+    const savers = { 1: saveBasic, 2: saveBusiness, 3: saveLocations, 4: saveCategories, 5: saveServices, 6: saveBrands };
     const saver = savers[step];
     if (!saver) throw new HttpError(400, "bad_step", "Unknown step.");
     await saver(conn, p, data || {});
+    if ([3, 4, 6].includes(Number(step))) await syncBadgeLocks(conn, p.id);
 
     await conn.query(
       "UPDATE partners SET version = version + 1, current_step = GREATEST(current_step, ?) WHERE id = ?",
@@ -554,6 +569,9 @@ export async function submitApplication(partnerId, { consents, ip, userAgent }) 
   if (!app.completion.ready) {
     throw new HttpError(422, "incomplete", "Your application is incomplete.", { steps: app.completion.missing });
   }
+  if (app.plan.needs_badge && !app.plan.badge_ok) {
+    throw new HttpError(402, "badge_required", `Your selection is above the free plan (${app.plan.over.join(", ")}). Get the ${BADGE_NAME} badge to submit, or reduce your selection.`);
+  }
 
   return withTransaction(async (conn) => {
     const p = await lockPartner(conn, partnerId);
@@ -684,6 +702,8 @@ async function adminChangeStatusTx(partnerId, admin, rule, action, why, publish)
     }
 
     await conn.query(`UPDATE partners SET ${sets.join(", ")} WHERE id = ?`, [...vals, partnerId]);
+    // Badge paid during registration starts now; otherwise apply the free-plan limits.
+    if (rule.to === "approved") await activatePendingBadge(conn, partnerId);
     await logHistory(conn, {
       partnerId,
       action,
@@ -772,6 +792,7 @@ export async function saveLiveLocations(partnerId, data) {
   await withTransaction(async (conn) => {
     const p = await lockLive(conn, partnerId);
     await saveLocations(conn, p, data);
+    await syncBadgeLocks(conn, p.id);
     await conn.query("UPDATE partners SET version = version + 1 WHERE id = ?", [p.id]);
     await logHistory(conn, { partnerId, action: "areas_updated", from: p.status, to: p.status, actorType: "partner", actorId: partnerId });
   });
@@ -798,6 +819,7 @@ async function applyChangePayload(conn, p, payload) {
   if (payload.category_ids) await saveCategories(conn, p, { category_ids: payload.category_ids });
   if (payload.services) await saveServices(conn, p, { services: payload.services });
   if (payload.brands) await saveBrands(conn, p, { brands: payload.brands });
+  if (payload.category_ids || payload.brands) await syncBadgeLocks(conn, p.id);
 }
 
 /** Validate by applying inside a transaction that is always rolled back. */

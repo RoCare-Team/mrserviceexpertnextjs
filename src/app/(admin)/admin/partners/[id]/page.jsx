@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, BadgeCheck, Eye, ExternalLink, FileText, Loader2, FilePlus2, X } from "lucide-react";
+import { ArrowLeft, BadgeCheck, Eye, ExternalLink, FileText, Loader2, FilePlus2, X, Award } from "lucide-react";
 import {
   PageHead,
   Field,
@@ -108,6 +108,7 @@ export default function AdminPartnerDetail({ params }) {
   const [toast, setToast] = useState(null);
   const [docReq, setDocReq] = useState(null); // { doc_type, note, due_date } while the request modal is open
   const [docReject, setDocReject] = useState(null); // { doc, note }
+  const [badgeDays, setBadgeDays] = useState(null); // days input while "Give badge" is open
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
@@ -228,6 +229,50 @@ export default function AdminPartnerDetail({ params }) {
             )}
           </span>
         </div>
+        {app.status === "approved" && app.badge && (
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--adm-border, #eee)", display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+            <Award size={18} style={{ color: app.badge.active ? "#d97706" : "#a1a1aa" }} />
+            <span>
+              <b>Featured Partner badge:</b>{" "}
+              {app.badge.active ? (
+                <>active till <b>{fmt(app.badge.until)}</b> — listed first in their areas</>
+              ) : (
+                <span className="col-muted">not active (partner can buy it for ₹{app.badge.price} / {app.badge.period})</span>
+              )}
+            </span>
+            <span style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              <Button size="sm" onClick={() => setBadgeDays("365")}>{app.badge.active ? "Extend free" : "Give badge free"}</Button>
+              {app.badge.active && (
+                <Button
+                  size="sm"
+                  variant="danger"
+                  onClick={() =>
+                    setConfirm({
+                      title: "Remove the badge?",
+                      message: "The partner loses the Featured Partner badge and top ranking right away. Any paid days are not refunded automatically.",
+                      tone: "danger",
+                      run: () => call(`/api/admin/partners/${id}/badge`, "PATCH", { action: "revoke" }),
+                    })
+                  }
+                >
+                  Remove badge
+                </Button>
+              )}
+            </span>
+          </div>
+        )}
+        {app.status !== "approved" && app.badge?.pending_days > 0 && (
+          <p style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "#fffbeb", color: "#92400e", display: "flex", gap: 8, alignItems: "center" }}>
+            <Award size={16} /> Featured Partner badge <b>paid</b> during registration ({app.badge.pending_days} days) — starts when you approve.
+            {app.status === "rejected" && " Rejected: refund the badge payment from Easebuzz if they won't reapply."}
+          </p>
+        )}
+        {app.plan?.needs_badge && (
+          <p className="col-muted" style={{ marginTop: 8 }}>
+            Above the free plan: {app.plan.over.join(", ")}.{" "}
+            {app.badge?.active || app.badge?.pending_days > 0 ? "Covered by the badge." : "No badge — extras are hidden from listings and leads."}
+          </p>
+        )}
         {app.review_reason && (
           <p className="col-muted" style={{ marginTop: 10, whiteSpace: "pre-line" }}>
             <b>Last reason sent to partner:</b> {app.review_reason}
@@ -587,6 +632,33 @@ export default function AdminPartnerDetail({ params }) {
             if (await run(confirm.run, "Done.")) setConfirm(null);
           }}
         />
+      )}
+      {badgeDays !== null && (
+        <Modal
+          title={app.badge?.active ? "Extend badge for free" : "Give Featured Partner badge"}
+          onClose={() => setBadgeDays(null)}
+          footer={
+            <>
+              <Button onClick={() => setBadgeDays(null)} disabled={saving}>Cancel</Button>
+              <Button
+                variant="primary"
+                disabled={saving}
+                onClick={async () => {
+                  if (await run(() => call(`/api/admin/partners/${id}/badge`, "PATCH", { action: "grant", days: Number(badgeDays) }), "Badge updated.")) setBadgeDays(null);
+                }}
+              >
+                Give badge
+              </Button>
+            </>
+          }
+        >
+          <Field label="Days (1–365)">
+            <Input type="number" min={1} max={730} step={1} value={badgeDays} onChange={(e) => setBadgeDays(e.target.value)} />
+          </Field>
+          <p className="col-muted" style={{ marginTop: 10, fontSize: 13 }}>
+            No payment is taken. {app.badge?.active ? "Days are added to the current end date." : "The badge starts now."} The partner gets a notification.
+          </p>
+        </Modal>
       )}
       {docReq && (
         <Modal

@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Coins, Loader2, CheckCircle2, CircleAlert, Clock3, Receipt, ChevronDown } from "lucide-react";
+import { Coins, Loader2, CheckCircle2, CircleAlert, Clock3, Receipt, ChevronDown, Award } from "lucide-react";
 import { partnerApi } from "../partnerApi";
 import { btnPrimary, btnGhost, cardCls, inputCls, labelCls, FieldError } from "../ui";
+import PlanLimitsCard from "./PlanLimitsCard";
+import { FREE_PLAN_TEXT } from "../BadgePlan";
 
 const TYPE = { recharge: "Recharge", lead_debit: "Lead accepted", refund: "Refund", adjustment: "Adjustment" };
 const PRESETS = [500, 1000, 2000, 5000];
@@ -25,6 +27,7 @@ function PaymentRow({ p }) {
           <s.icon className="h-3.5 w-3.5" /> {s.label}
         </span>
         <b className="text-[var(--ink)]">₹{Number(p.amount).toLocaleString("en-IN")}</b>
+        <span className="text-xs font-medium text-[var(--ink-soft)]">{p.purpose === "badge" ? "Featured badge" : "Recharge"}</span>
         <span className="text-xs text-[var(--muted)]">{fmt(p.created_at)}</span>
         {p.mode === "test" && <span className="rounded bg-gray-100 px-1.5 text-[10px] font-semibold uppercase text-gray-500">test</span>}
         <ChevronDown className={`ml-auto h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
@@ -61,7 +64,62 @@ function PaymentRow({ p }) {
   );
 }
 
-export default function WalletTab({ app, setApp, paymentResult, setBalance }) {
+const fmtDay = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+/** Buy / renew the Featured Partner badge (Easebuzz, fixed price). */
+function BadgeCard({ app, email }) {
+  const b = app.badge;
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  if (!b || app.status !== "approved") return null;
+
+  const buy = async () => {
+    setErr("");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return setErr("Enter a valid email in “Email for receipt” below first.");
+    setBusy(true);
+    const r = await partnerApi("/api/partners/me/badge", { method: "POST", body: { email } });
+    if (r.ok) return window.location.assign(r.data.payUrl);
+    setBusy(false);
+    setErr(r.error.message);
+  };
+
+  return (
+    <section className={`${cardCls} border-amber-200 bg-gradient-to-br from-amber-50 to-white`}>
+      <div className="flex flex-wrap items-start gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-600">
+          <Award className="h-7 w-7" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-bold text-[var(--ink)]">
+            {b.name} badge{" "}
+            {b.active && <span className="ml-1 rounded-full bg-emerald-100 px-2.5 py-0.5 align-middle text-xs font-semibold text-emerald-800">Active</span>}
+          </h2>
+          {b.active ? (
+            <p className="mt-1 text-sm text-[var(--body-text)]">
+              You&apos;re shown <b>first</b> in all your service areas till <b>{fmtDay(b.until)}</b>. Renewing now adds {b.period} to that date.
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-[var(--body-text)]">
+              Get listed <b>above other partners</b> in your city and localities, with a “{b.name}” badge on your card — for {b.period}.
+            </p>
+          )}
+          <ul className="mt-2 space-y-0.5 text-xs text-[var(--muted)]">
+            <li>• No limits on cities, categories and brands (free plan: {FREE_PLAN_TEXT}).</li>
+            <li>• Among featured partners, rating and jobs done decide the order.</li>
+            <li>• Paid directly by UPI / card — your coins are not used.</li>
+          </ul>
+          {!app.is_listed && <p className="mt-2 text-xs font-medium text-amber-800">Your profile isn&apos;t live on the website right now, so the badge can&apos;t be bought.</p>}
+          {err && <p className="mt-2 text-sm font-medium text-red-700">{err}</p>}
+        </div>
+        <button type="button" className={btnPrimary} disabled={busy || !app.is_listed} onClick={buy}>
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />} {b.active ? "Renew" : "Get badge"} · ₹{b.price}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+export default function WalletTab({ app, setApp, paymentResult, paymentFor, setBalance }) {
   const [w, setW] = useState(null);
   const [payments, setPayments] = useState(null);
   const [amount, setAmount] = useState(500);
@@ -113,16 +171,25 @@ export default function WalletTab({ app, setApp, paymentResult, setBalance }) {
   return (
     <div className="space-y-5">
       {paymentResult === "success" && (
-        <p role="status" className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800"><CheckCircle2 className="h-5 w-5" /> Payment successful — coins have been added.</p>
+        <p role="status" className="flex items-center gap-2 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800">
+          <CheckCircle2 className="h-5 w-5" />{" "}
+          {paymentFor === "badge" ? "Payment successful — your Featured Partner badge is active." : "Payment successful — coins have been added."}
+        </p>
       )}
       {paymentResult === "failed" && (
-        <p role="alert" className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-700"><CircleAlert className="h-5 w-5" /> Payment failed or was cancelled. No coins were added — see the details below.</p>
+        <p role="alert" className="flex items-center gap-2 rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+          <CircleAlert className="h-5 w-5" />{" "}
+          {paymentFor === "badge" ? "Badge payment failed or was cancelled — see the details below." : "Payment failed or was cancelled. No coins were added — see the details below."}
+        </p>
       )}
       {paymentResult === "pending" && (
         <p role="status" className="flex items-center gap-2 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800">
           <Clock3 className="h-5 w-5" /> We&apos;re confirming your payment with the bank. It updates automatically within a few minutes.
         </p>
       )}
+
+      <BadgeCard app={app} email={email} />
+      <PlanLimitsCard app={app} />
 
       <div className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         <section className={cardCls}>
@@ -180,7 +247,7 @@ export default function WalletTab({ app, setApp, paymentResult, setBalance }) {
 
       <section className={cardCls}>
         <h2 className="mb-1 text-lg font-bold text-[var(--ink)]">Payment history</h2>
-        <p className="mb-2 text-xs text-[var(--muted)]">Every recharge attempt, including failed and pending ones. Tap a row for details.</p>
+        <p className="mb-2 text-xs text-[var(--muted)]">Every recharge and badge payment, including failed and pending ones. Tap a row for details.</p>
         {payments === null && <p className="flex items-center gap-2 text-sm text-[var(--muted)]"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</p>}
         {payments?.length === 0 && <p className="text-sm text-[var(--muted)]">No payments yet.</p>}
         <ul className="divide-y divide-[var(--line)]">{payments?.map((p) => <PaymentRow key={p.id} p={p} />)}</ul>

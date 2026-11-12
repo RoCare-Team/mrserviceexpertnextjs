@@ -12,7 +12,7 @@ import StepLocations from "./StepLocations";
 import StepReview from "./StepReview";
 import { cardCls, btnPrimary, btnGhost, inputCls, labelCls, FieldError, StepNav } from "./ui";
 
-const STEPS = ["Basic details", "Categories", "Services", "Brands", "Business", "Address & areas", "Review"];
+const STEPS = ["Basic details", "Business", "Address & areas", "Categories", "Services", "Brands", "Review"];
 const EDITABLE = ["draft", "rejected", "info_requested"];
 
 /**
@@ -20,11 +20,21 @@ const EDITABLE = ["draft", "rejected", "info_requested"];
  * "Continue" (the draft survives closing the browser); nothing sensitive is
  * kept in localStorage.
  */
-export default function JoinWizard({ initialApp = null }) {
+export default function JoinWizard({ initialApp = null, badgePayment = null }) {
   const router = useRouter();
   const [app, setApp] = useState(initialApp);
-  const [step, setStep] = useState(() => (initialApp ? Math.min(Math.max(initialApp.current_step, 1), 7) : 1));
-  const [banner, setBanner] = useState(null); // { tone, text, reload? }
+  const [step, setStep] = useState(() =>
+    initialApp && badgePayment && initialApp.current_step >= 7 ? 7 : initialApp ? Math.min(Math.max(initialApp.current_step, 1), 7) : 1
+  );
+  const [banner, setBanner] = useState(() =>
+    !badgePayment
+      ? null
+      : badgePayment === "success"
+        ? { tone: "ok", text: "Featured Partner badge paid. Its days start when your profile is approved — you can submit now." }
+        : badgePayment === "pending"
+          ? { tone: "warn", text: "Your badge payment is being confirmed. Refresh in a minute — if money was taken it will show here." }
+          : { tone: "warn", text: "The badge payment didn't go through. No money was taken — you can try again." }
+  ); // { tone, text, reload? }
   const [submitted, setSubmitted] = useState(null);
   const [mode, setMode] = useState("register"); // "register" | "signin" (step 1 only)
 
@@ -90,7 +100,12 @@ export default function JoinWizard({ initialApp = null }) {
       )}
 
       {banner && (
-        <div role="status" className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div
+          role="status"
+          className={`mb-4 flex flex-wrap items-center gap-3 rounded-2xl border p-4 text-sm ${
+            banner.tone === "ok" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-amber-200 bg-amber-50 text-amber-900"
+          }`}
+        >
           <CircleAlert className="h-5 w-5 shrink-0" />
           <span className="flex-1">{banner.text}</span>
           {banner.reload && (
@@ -147,13 +162,13 @@ export default function JoinWizard({ initialApp = null }) {
               )}
             </>
           ))}
-        {step === 2 && <StepCategories app={app} onSave={(d) => save(2, d)} onBack={() => go(1)} />}
-        {step === 3 && <StepServices app={app} onSave={(d) => save(3, d)} onBack={() => go(2)} />}
-        {step === 4 && <StepBrands app={app} onSave={(d) => save(4, d)} onBack={() => go(3)} />}
-        {step === 5 && (
-          <StepBusiness app={app} onSave={(d) => save(5, d)} onBack={() => go(4)} onAppUpdate={setApp} onError={handleError} />
+        {step === 2 && (
+          <StepBusiness app={app} onSave={(d) => save(2, d)} onBack={() => go(1)} onAppUpdate={setApp} onError={handleError} />
         )}
-        {step === 6 && <StepLocations app={app} onSave={(d) => save(6, d)} onBack={() => go(5)} />}
+        {step === 3 && <StepLocations app={app} onSave={(d) => save(3, d)} onBack={() => go(2)} />}
+        {step === 4 && <StepCategories app={app} onSave={(d) => save(4, d)} onBack={() => go(3)} />}
+        {step === 5 && <StepServices app={app} onSave={(d) => save(5, d)} onBack={() => go(4)} />}
+        {step === 6 && <StepBrands app={app} onSave={(d) => save(6, d)} onBack={() => go(5)} />}
         {step === 7 && (
           <StepReview app={app} onJump={go} onBack={() => go(6)} onSubmitted={setSubmitted} onError={handleError} />
         )}

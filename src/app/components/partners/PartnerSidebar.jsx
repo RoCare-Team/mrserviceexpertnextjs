@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Store, Star, MapPin, Wrench, Users, ArrowRight } from "lucide-react";
 import BookNowButton from "./BookNowButton";
-import { TrustBadges } from "./ui";
+import { TrustBadges, FeaturedBadge } from "./ui";
 
 export const SIDEBAR_MAX = 4;
 
@@ -51,12 +51,6 @@ export default function PartnerSidebar({ data }) {
                   </Link>
                 </h3>
                 <p className="mt-0.5 flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-xs text-[var(--muted)]">
-                  {p.rating?.count > 0 && (
-                    <span className="inline-flex items-center gap-1 font-semibold text-[var(--ink-soft)]">
-                      <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" aria-hidden="true" />
-                      {p.rating.average.toFixed(1)} <span className="font-normal text-[var(--muted)]">({p.rating.count})</span>
-                    </span>
-                  )}
                   {p.work_done && (
                     <span className="inline-flex items-center gap-1 font-semibold text-purple-700" title="Jobs completed through Mr. Service Expert">
                       <Wrench className="h-3 w-3" aria-hidden="true" /> {p.work_done} jobs
@@ -71,9 +65,28 @@ export default function PartnerSidebar({ data }) {
                   </p>
                 )}
               </div>
+              {/* Right: badge on top, reviews below. */}
+              <div className="flex shrink-0 flex-col items-end gap-1.5 text-right">
+                {p.featured && <FeaturedBadge compact />}
+                {p.rating?.count > 0 ? (
+                  <div>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-bold text-[var(--ink)]">
+                      <Star className="h-4 w-4 fill-amber-400 text-amber-400" aria-hidden="true" />
+                      {p.rating.average.toFixed(1)}
+                    </span>
+                    <span className="block text-[11px] text-[var(--muted)]">
+                      {p.rating.count} review{p.rating.count === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-[var(--muted)]">New partner</span>
+                )}
+              </div>
             </div>
             <div className="mt-2.5">
-              <TrustBadges verification={{ mobile: true, identity: p.identity_verified, gst: p.gst_verified }} compact />
+              <div className="flex flex-wrap gap-1.5">
+                <TrustBadges verification={{ mobile: true, identity: p.identity_verified, gst: p.gst_verified }} compact />
+              </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {p.is_available === false ? (

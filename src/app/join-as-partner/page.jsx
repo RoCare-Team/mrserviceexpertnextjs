@@ -13,10 +13,13 @@ export const metadata = {
   robots: "index, follow",
 };
 
-export default async function JoinAsPartnerPage() {
+export default async function JoinAsPartnerPage({ searchParams }) {
   // Signed-in partners resume their saved draft.
   const partnerId = await getPartnerId();
   const app = partnerId ? await getApplication(partnerId) : null;
+  // Back from the Easebuzz badge payment (bought during registration).
+  const { payment, for: paidFor } = (await searchParams) || {};
+  const badgePayment = paidFor === "badge" && ["success", "failed", "pending"].includes(payment) ? payment : null;
 
   return (
     <main className="bg-[var(--bg)] px-4 pb-16 pt-8 sm:pt-12">
@@ -33,7 +36,7 @@ export default async function JoinAsPartnerPage() {
           <li className="flex items-center gap-1.5"><BadgeCheck className="h-4 w-4 text-purple-600" /> Free to register</li>
         </ul>
       </header>
-      <JoinWizard initialApp={app} />
+      <JoinWizard initialApp={app} badgePayment={badgePayment} />
     </main>
   );
 }

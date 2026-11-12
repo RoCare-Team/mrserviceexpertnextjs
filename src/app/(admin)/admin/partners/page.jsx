@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Eye, BadgeCheck, MapPin, Wrench } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, BadgeCheck, MapPin, Wrench, Award } from "lucide-react";
 import {
   PageHead,
   Field,
@@ -21,6 +22,7 @@ import { STATUS_META } from "./statusMeta";
 const fmtDate = (d) => (d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : null);
 
 export default function AdminPartnersPage() {
+  const router = useRouter();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -130,6 +132,7 @@ export default function AdminPartnersPage() {
     ...Object.entries(STATUS_META).map(([k, m]) => [k, m.label, counts[k] || 0]),
     ["listed", "Listed", counts.listed || 0],
     ["unlisted", "Unlisted", counts.unlisted || 0],
+    ["featured", "Featured", counts.featured || 0],
   ];
   const sortProps = { sortBy, sortDir, onSort };
   const fromN = total === 0 ? 0 : (page - 1) * limit + 1;
@@ -248,10 +251,21 @@ export default function AdminPartnersPage() {
                 <TableState colSpan={9} loading={loading} emptyTitle="No partners found" emptyHint="Try another status or clear the filters." />
               ) : (
                 rows.map((r) => (
-                  <tr key={r.id}>
+                  <tr
+                    key={r.id}
+                    style={{ cursor: "pointer" }}
+                    title="Open partner details"
+                    // Whole row opens the partner; links / buttons inside keep their own action.
+                    onClick={(e) => !e.target.closest("a, button") && router.push(`/admin/partners/${r.id}`)}
+                  >
                     <td className="col-id">{r.ref}</td>
                     <td>
-                      <b style={{ display: "block" }}>{r.business_name || <Dash />}</b>
+                      <Link href={`/admin/partners/${r.id}`} style={{ display: "block", fontWeight: 700, color: "inherit" }}>
+                        {r.business_name || r.full_name || "Unnamed"}
+                        {r.featured && (
+                          <Award size={14} style={{ color: "#d97706", marginLeft: 4, verticalAlign: "-2px" }} aria-label="Featured Partner" />
+                        )}
+                      </Link>
                       <span className="col-muted">{r.full_name}</span>
                     </td>
                     <td style={{ whiteSpace: "nowrap" }}>

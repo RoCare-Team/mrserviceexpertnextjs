@@ -6,6 +6,7 @@ const WIZARD = "https://waterpurifierservicecenter.in/wizard/app";
 const PINCODE_API = "https://inet.waterpurifierservicecenter.in/include/ajax/get_city_with_pincode.php";
 
 export { CRM_LEAD_TYPES } from "@/lib/partners/crmMap";
+import { bookViaCheckout } from "@/lib/partners/crmCheckout";
 
 async function getJson(url, { timeout = 15_000 } = {}) {
   const ctrl = new AbortController();
@@ -48,12 +49,51 @@ const withPartner = (url, slug) => {
   }
 };
 
+const SITE = "https://www.mrserviceexpert.com";
+
+/**
+ * site_url values to try, best first. The CRM accepts bookings from our
+ * city / category pages (www host) but rejects others — e.g. a booking made
+ * on a partner profile (/partners/<slug>) came back {"error":true,"status":0}.
+ * So such leads fall back to the matching city page URL.
+ */
+function siteUrls(lead, partnerSlug) {
+  const urls = [];
+  const cityPage = lead.city_url && lead.category_url ? `${SITE}/${lead.city_url}/${lead.category_url}` : lead.category_url ? `${SITE}/${lead.category_url}` : SITE;
+  let original = null;
+  try {
+    const u = new URL(lead.page_url);
+    if (/(^|\.)mrserviceexpert\.com$/i.test(u.hostname) || u.hostname === "localhost") original = u;
+  } catch {}
+  const isCityPage = original && lead.page_city_id && !original.pathname.startsWith("/partners");
+  if (isCityPage) urls.push(withPartner(`${SITE}${original.pathname}`, partnerSlug));
+  urls.push(withPartner(cityPage, partnerSlug));
+  return [...new Set(urls)];
+}
+
 /**
  * Create the lead in the CRM the same way the booking popup does (details →
  * brand → slot → service), without sending the customer another OTP.
  * Returns { status: "sent" | "duplicate" | "failed", message }.
  */
 export async function forwardLeadToCrm(lead, partnerSlug) {
+  // Preferred: the checkout flow (address id + cart), like a normal site booking.
+  let checkoutNote = "";
+  if (lead.php_customer_id) {
+    try {
+      const r = await bookViaCheckout(lead);
+      if (r.status === "sent") return r;
+      checkoutNote = `${r.message} | `;
+    } catch (err) {
+      checkoutNote = `Checkout error: ${String(err?.message || err).slice(0, 150)} | `;
+    }
+  }
+  const r = await forwardViaWizard(lead, partnerSlug);
+  return r.status === "failed" ? { ...r, message: `${checkoutNote}${r.message}` } : r;
+}
+
+/** Fallback: the booking popup's wizard API (details → brand → slot → service). */
+async function forwardViaWizard(lead, partnerSlug) {
   const base = {
     name: lead.customer_name,
     mobile: lead.customer_mobile,
@@ -62,26 +102,32 @@ export async function forwardLeadToCrm(lead, partnerSlug) {
     state: lead.address_state,
     city: lead.php_city_id ? String(lead.php_city_id) : "",
     complain_type: "2",
-    site_url: withPartner(lead.page_url, partnerSlug),
     check: "nootp",
     otp_chk: "mrserviceexpert",
   };
-  const call = (extra) => getJson(`${WIZARD}/AddLead_new.php?${new URLSearchParams({ ...base, ...extra })}`, { timeout: 20_000 });
+  let siteUrl = "";
+  const call = (extra) =>
+    getJson(`${WIZARD}/AddLead_new.php?${new URLSearchParams({ ...base, site_url: siteUrl, ...extra })}`, { timeout: 20_000 });
 
   try {
-    const first = await call({
-      pincode: lead.pincode,
-      house_no: lead.house_no,
-      area: lead.area,
-      near_by: lead.landmark || lead.area,
-      sev_type_val: "2",
-      new_type_val: "product",
-      new_purchase_type: "1",
-      otpsend: "0",
-      otp_verify: "verifyed",
-    });
+    let first = null;
+    for (const url of siteUrls(lead, partnerSlug)) {
+      siteUrl = url;
+      first = await call({
+        pincode: lead.pincode,
+        house_no: lead.house_no,
+        area: lead.area,
+        near_by: lead.landmark || lead.area,
+        sev_type_val: "2",
+        new_type_val: "product",
+        new_purchase_type: "1",
+        otpsend: "0",
+        otp_verify: "verifyed",
+      });
+      if (first?.status === 1 || first?.status === 2) break;
+    }
     if (first?.status === 2) return { status: "duplicate", message: "CRM: customer already has a booking in this category." };
-    if (first?.status !== 1) return { status: "failed", message: `CRM rejected details: ${JSON.stringify(first).slice(0, 200)}` };
+    if (first?.status !== 1) return { status: "failed", message: `CRM rejected details: ${JSON.stringify(first).slice(0, 200)} (site_url ${siteUrl})` };
 
     const brand = lead.php_brand_id ? String(lead.php_brand_id) : "";
     await call({ brand });

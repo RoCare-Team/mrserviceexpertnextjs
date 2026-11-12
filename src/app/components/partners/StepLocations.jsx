@@ -5,6 +5,8 @@ import { MapPin, Plus, X, Loader2 } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { useCatalog, LoadState } from "./StepSelections";
 import { inputCls, labelCls, btnGhost, FieldError, StepNav } from "./ui";
+import { PlanNotice } from "./BadgePlan";
+import { overLimits } from "@/lib/partners/plan";
 
 /** Debounced city typeahead over /api/partner-catalog/cities. */
 export function CitySearch({ stateId, onPick, placeholder = "Type a city name…", label, excludeIds = [] }) {
@@ -263,6 +265,10 @@ export default function StepLocations({ app, onSave, onBack, submitLabel }) {
       </section>
 
       {err && !err.fields && <FieldError msg={err.message} />}
+      <PlanNotice app={app} over={overLimits({ cities: cov.length })} kind="cities" />
+      {cov.length > 1 && !app.badge?.active && (
+        <p className="mt-2 text-xs text-[var(--muted)]">Without the badge, only your <b>primary</b> city stays live.</p>
+      )}
       <StepNav onBack={onBack} busy={busy} {...(submitLabel ? { continueLabel: submitLabel } : {})} />
     </form>
   );

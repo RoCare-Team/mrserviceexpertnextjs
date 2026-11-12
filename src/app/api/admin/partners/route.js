@@ -1,6 +1,7 @@
 import db from "@/lib/db";
 import { ok, handle, requireAdmin, toInt } from "@/lib/partners/http";
 import { partnerRef } from "@/lib/partners/validation";
+import { featuredSql } from "@/lib/partners/badge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export const GET = handle(async (req) => {
   await requireAdmin(req);
   const sp = new URL(req.url).searchParams;
 
+  const featured = await featuredSql();
   const page = toInt(sp.get("page")) || 1;
   const limit = Math.min(toInt(sp.get("limit")) || 25, 100);
   const sortBy = SORTS[sp.get("sortBy")] || "p.id";
@@ -50,6 +52,8 @@ export const GET = handle(async (req) => {
     // Listed / unlisted only make sense for approved partners.
     where.push("p.status = 'approved' AND p.is_listed = ?");
     params.push(status === "listed" ? 1 : 0);
+  } else if (status === "featured") {
+    where.push(`p.status = 'approved' AND ${featured}`);
   }
   const categoryId = toInt(sp.get("categoryId"));
   if (categoryId) {
@@ -79,7 +83,7 @@ export const GET = handle(async (req) => {
     db.query(`SELECT COUNT(*) AS total FROM partners p WHERE ${whereSql}`, params),
     db.query(
       `SELECT p.id, p.full_name, p.business_name, p.mobile, p.mobile_verified_at IS NOT NULL AS mobile_verified,
-              p.status, p.is_listed, p.submitted_at, p.reviewed_at, p.created_at, p.slug,
+              p.status, p.is_listed, ${featured} AS featured, p.submitted_at, p.reviewed_at, p.created_at, p.slug,
               (SELECT GROUP_CONCAT(c.category_name ORDER BY c.id SEPARATOR ', ')
                  FROM partner_categories pc JOIN category_tb c ON c.id = pc.category_id
                 WHERE pc.partner_id = p.id) AS categories,
@@ -96,8 +100,9 @@ export const GET = handle(async (req) => {
       params
     ),
     db.query(
-      `SELECT status, COUNT(*) AS n, SUM(status = 'approved' AND is_listed = 1) AS listed
-         FROM partners WHERE deleted_at IS NULL GROUP BY status`
+      `SELECT status, COUNT(*) AS n, SUM(status = 'approved' AND is_listed = 1) AS listed,
+              SUM(status = 'approved' AND ${featured}) AS featured
+         FROM partners p WHERE deleted_at IS NULL GROUP BY status`
     ),
   ]);
 
@@ -106,9 +111,10 @@ export const GET = handle(async (req) => {
   const listed = countRows.reduce((a, r) => a + Number(r.listed || 0), 0);
   counts.listed = listed;
   counts.unlisted = counts.approved - listed;
+  counts.featured = countRows.reduce((a, r) => a + Number(r.featured || 0), 0);
 
   return ok({
-    rows: rows.map((r) => ({ ...r, ref: partnerRef(r.id), mobile_verified: !!r.mobile_verified, is_listed: !!r.is_listed })),
+    rows: rows.map((r) => ({ ...r, ref: partnerRef(r.id), mobile_verified: !!r.mobile_verified, is_listed: !!r.is_listed, featured: !!Number(r.featured) })),
     total: Number(total),
     page,
     totalPages: Math.max(1, Math.ceil(Number(total) / limit)),
