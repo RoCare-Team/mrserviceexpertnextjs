@@ -204,7 +204,7 @@ export async function startGatewayPayment({ partner, amount, email, purpose = "r
     // Keep the attempt on record as failed so both sides can see it.
     await db.query(
       "UPDATE partner_payments SET status = 'failed', error_message = ?, gateway_msg = 'initiate_failed', completed_at = NOW() WHERE txnid = ?",
-      [String(err?.message || "Could not start payment").slice(0, 255), txnid]
+      [String(err?.gatewayDetail ? `${err.message} Gateway: ${err.gatewayDetail}` : err?.message || "Could not start payment").slice(0, 255), txnid]
     );
     throw err;
   }

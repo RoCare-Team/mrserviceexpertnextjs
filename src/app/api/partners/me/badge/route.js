@@ -30,7 +30,7 @@ export const POST = handle(async (req) => {
     amount: badgePrice(),
     email: email.value,
     purpose: "badge",
-    productinfo: `MSE ${BADGE_NAME} Badge (${BADGE_PERIOD})`,
+    productinfo: `MSE ${BADGE_NAME} Badge ${BADGE_PERIOD}`, // Easebuzz rejects ( ) and most symbols here
     returnUrl: `${siteOrigin(req)}/api/payments/easebuzz/return`,
   });
   return ok({ payUrl });
