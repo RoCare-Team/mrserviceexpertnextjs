@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { MapPin, Clock, Briefcase, Store, Star, Wrench, Tag, Share2, BadgeCheck, Camera, Images } from "lucide-react";
 import { getPublicProfile } from "@/lib/partners/listing";
-import { TrustBadges, CategoryIcon, cardCls } from "@/app/components/partners/ui";
+import { TrustBadges, FeaturedBadge, CategoryIcon, cardCls } from "@/app/components/partners/ui";
 import { BUSINESS_TYPES } from "@/lib/partners/validation";
 import { getPublicReviews } from "@/lib/partners/reviews";
 import { queuePartnerSeo } from "@/lib/partners/seo";
@@ -261,6 +261,7 @@ export default async function PartnerProfilePage({ params }) {
                     <span className="font-medium text-amber-700/80">({reviews.count})</span>
                   </a>
                 )}
+                {p.featured && <FeaturedBadge />}
                 <TrustBadges verification={p.verification} />
               </div>
               <p className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-sm text-[var(--muted)]">

@@ -106,7 +106,8 @@ export default function AdminPartnerPaymentsPage() {
                       <Link href={`/admin/partners/${r.partner_id}`}>{r.business_name || r.full_name}</Link>
                       <span className="col-muted" style={{ display: "block", fontSize: 12 }}>{r.partner_mobile}</span>
                     </td>
-                    <td><b>₹{Number(r.amount).toLocaleString("en-IN")}</b>{r.mode === "test" && <span className="col-muted" style={{ display: "block", fontSize: 11 }}>TEST</span>}</td>
+                    <td><b>₹{Number(r.amount).toLocaleString("en-IN")}</b>{r.mode === "test" && <span className="col-muted" style={{ display: "block", fontSize: 11 }}>TEST</span>}
+                      <span className="col-muted" style={{ display: "block", fontSize: 11 }}>{r.purpose === "badge" ? "Featured badge" : "Recharge"}</span></td>
                     <td>
                       <Badge tone={TONE[r.status]}>{LABEL[r.status]}</Badge>
                       {r.error_message && <span className="col-muted" style={{ display: "block", fontSize: 11, maxWidth: 200 }}>{r.error_message}</span>}
@@ -128,7 +129,7 @@ export default function AdminPartnerPaymentsPage() {
         <Modal title="Payment details" id={viewing.id} onClose={() => setViewing(null)} footer={<Button onClick={() => setViewing(null)}>Close</Button>}>
           <div className="adm-formgrid">
             <Field label="Partner"><ReadOnly value={`${viewing.business_name || viewing.full_name} · ${viewing.partner_mobile}`} /></Field>
-            <Field label="Amount"><ReadOnly value={`₹${Number(viewing.amount)} (${viewing.mode})`} /></Field>
+            <Field label="Amount"><ReadOnly value={`₹${Number(viewing.amount)} (${viewing.mode}) · ${viewing.purpose === "badge" ? "Featured badge" : "Wallet recharge"}`} /></Field>
             <Field label="Status"><ReadOnly value={`${LABEL[viewing.status]}${viewing.gateway_status ? ` · gateway: ${viewing.gateway_status}` : ""}`} /></Field>
             <Field label="Reason (if failed)"><ReadOnly value={viewing.error_message} /></Field>
             <Field label="Transaction ID"><ReadOnly value={viewing.txnid} mono /></Field>

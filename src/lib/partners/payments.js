@@ -5,7 +5,11 @@ import db from "@/lib/db";
 import { withTransaction } from "@/lib/partners/application";
 import { applyTxn } from "@/lib/partners/wallet";
 import { retrieveTransaction, verifyResponseHash } from "@/lib/partners/easebuzz";
+import crypto from "node:crypto";
 import { notifyPartner } from "@/lib/partners/notify";
+import { easebuzzMode, initiatePayment } from "@/lib/partners/easebuzz";
+import { BADGE_PERIOD, BADGE_NAME, creditBadgePayment } from "@/lib/partners/badge";
+import { hasColumn } from "@/lib/partners/schema";
 
 const s = (v, n) => (v === undefined || v === null || v === "" ? null : String(v).slice(0, n));
 const FAIL_STATES = new Set(["failure", "failed", "usercancelled", "dropped", "bounced", "cancelled"]);
@@ -53,7 +57,13 @@ export async function settlePayment(paymentId, outcome, gateway = {}) {
         d.gateway_status, outcome, d.raw_response, row.id,
       ]
     );
-    if (outcome === "success") {
+    if (outcome === "success" && row.purpose === "badge") {
+      // Badge purchase: no coins — extends the Featured Partner badge.
+      // Paid during registration → the days start on approval.
+      const credit = await creditBadgePayment(conn, row.partner_id, `${BADGE_PERIOD}, paid ₹${Number(row.amount)} (${row.txnid})`);
+      row.featured_until = credit.until || null;
+      row.badge_pending = !!credit.pendingDays;
+    } else if (outcome === "success") {
       await applyTxn(conn, {
         partnerId: row.partner_id,
         type: "recharge",
@@ -65,7 +75,20 @@ export async function settlePayment(paymentId, outcome, gateway = {}) {
     }
     return row;
   });
-  if (result) {
+  if (result && result.purpose === "badge") {
+    const till = result.featured_until
+      ? new Date(result.featured_until).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })
+      : "";
+    await notifyPartner(
+      result.partner_id,
+      outcome === "success"
+        ? result.badge_pending
+          ? { type: "badge", title: `${BADGE_NAME} badge paid`, body: `Your ${BADGE_PERIOD} starts the day your profile is approved.`, link: "/partner/dashboard" }
+          : { type: "badge", title: `You're a ${BADGE_NAME}!`, body: `Badge active till ${till}. You now appear first in your areas.`, link: "/partner/dashboard?tab=wallet" }
+        : { type: "payment", title: `Badge payment of ₹${Number(result.amount)} failed`, body: d.error_message || "No money was taken for the badge. You can try again.", link: "/partner/dashboard?tab=wallet" },
+      { push: outcome === "success" }
+    );
+  } else if (result) {
     await notifyPartner(result.partner_id, {
       type: "payment",
       title: outcome === "success" ? `₹${Number(result.amount)} added to your wallet` : `Payment of ₹${Number(result.amount)} failed`,
@@ -145,20 +168,64 @@ export async function reconcileStalePayments({ partnerId = null, limit = 10 } = 
   }
 }
 
+/**
+ * Record a payment attempt and get the Easebuzz hosted-checkout URL.
+ * purpose: "recharge" (coins) | "badge" (Featured Partner, fixed price).
+ */
+export async function startGatewayPayment({ partner, amount, email, purpose = "recharge", productinfo, returnUrl }) {
+  const mode = easebuzzMode();
+  const prefix = purpose === "badge" ? "MSEB" : "MSEW";
+  const txnid = `${prefix}${partner.id}T${Date.now()}${crypto.randomBytes(2).toString("hex")}`.slice(0, 40);
+  if (purpose !== "recharge" && !(await hasColumn("partner_payments", "purpose"))) {
+    throw new Error("Badge payments need migration 2026_11_11_010 to be run first.");
+  }
+  if (purpose === "recharge") {
+    await db.query("INSERT INTO partner_payments (partner_id, txnid, amount, email, mode) VALUES (?, ?, ?, ?, ?)", [
+      partner.id, txnid, amount, email, mode,
+    ]);
+  } else {
+    await db.query("INSERT INTO partner_payments (partner_id, txnid, amount, purpose, email, mode) VALUES (?, ?, ?, ?, ?, ?)", [
+      partner.id, txnid, amount, purpose, email, mode,
+    ]);
+  }
+  try {
+    return await initiatePayment({
+      txnid,
+      amount,
+      firstname: (partner.full_name || "Partner").replace(/[^\p{L} .]/gu, "").slice(0, 60) || "Partner",
+      email,
+      phone: partner.mobile,
+      productinfo,
+      surl: returnUrl,
+      furl: returnUrl,
+      mode,
+    });
+  } catch (err) {
+    // Keep the attempt on record as failed so both sides can see it.
+    await db.query(
+      "UPDATE partner_payments SET status = 'failed', error_message = ?, gateway_msg = 'initiate_failed', completed_at = NOW() WHERE txnid = ?",
+      [String(err?.message || "Could not start payment").slice(0, 255), txnid]
+    );
+    throw err;
+  }
+}
+
+const publicCols = async () => (await hasColumn("partner_payments", "purpose") ? `${PUBLIC_COLS}, purpose` : `${PUBLIC_COLS}, 'recharge' AS purpose`);
+
 const PUBLIC_COLS = `id, txnid, amount, email, mode, status, easebuzz_id, payment_mode, bank_ref_num, card_or_vpa,
   bank_name, error_message, gateway_status, created_at, completed_at`;
 
 export async function listPartnerPayments(partnerId, { limit = 50 } = {}) {
   await reconcileStalePayments({ partnerId, limit: 5 });
   const [rows] = await db.query(
-    `SELECT ${PUBLIC_COLS} FROM partner_payments WHERE partner_id = ? ORDER BY id DESC LIMIT ${Math.min(Number(limit) || 50, 200)}`,
+    `SELECT ${await publicCols()} FROM partner_payments WHERE partner_id = ? ORDER BY id DESC LIMIT ${Math.min(Number(limit) || 50, 200)}`,
     [partnerId]
   );
   return rows;
 }
 
 export async function getPartnerPayment(partnerId, paymentId) {
-  const [[row]] = await db.query(`SELECT ${PUBLIC_COLS} FROM partner_payments WHERE id = ? AND partner_id = ?`, [paymentId, partnerId]);
+  const [[row]] = await db.query(`SELECT ${await publicCols()} FROM partner_payments WHERE id = ? AND partner_id = ?`, [paymentId, partnerId]);
   return row || null;
 }
 

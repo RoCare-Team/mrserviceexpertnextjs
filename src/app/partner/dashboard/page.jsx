@@ -15,13 +15,14 @@ export default async function PartnerDashboardPage({ searchParams }) {
   if (!id) redirect("/partner/login");
   const app = await getApplication(id);
   if (!app) redirect("/partner/login");
-  const { tab, payment } = await searchParams;
+  const { tab, payment, for: paidFor } = await searchParams;
 
   return (
     <PartnerDashboard
       initialApp={app}
       initialTab={typeof tab === "string" ? tab : "overview"}
       paymentResult={["success", "failed", "pending"].includes(payment) ? payment : null}
+      paymentFor={paidFor === "badge" ? "badge" : "recharge"}
     />
   );
 }

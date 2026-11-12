@@ -13,6 +13,7 @@ import { brandKey, validName } from "@/lib/partners/validation";
 import { notifyPartner } from "@/lib/partners/notify";
 import { sendLeadAssignedWhatsApp } from "@/lib/partners/whatsapp";
 import { getRefundPercent, parsePercent, refundCoins } from "@/lib/partners/settings";
+import { locksReady } from "@/lib/partners/badge";
 
 export const LEAD_WINDOW_MIN = 15; // chosen partner's exclusive window
 export const OPEN_WINDOW_MIN = 15; // then open to the whole city
@@ -41,7 +42,8 @@ export async function createLead(customer, input) {
   const [[cat]] = await db.query(
     `SELECT c.id, c.category_url FROM category_tb c
       WHERE LOWER(c.category_url) = ?
-        AND EXISTS (SELECT 1 FROM partner_services ps WHERE ps.partner_id = ? AND ps.category_id = c.id)`,
+        AND EXISTS (SELECT 1 FROM partner_services ps WHERE ps.partner_id = ? AND ps.category_id = c.id)
+        ${(await locksReady()) ? `AND NOT EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = ${Number(partner.id)} AND pc.category_id = c.id AND pc.badge_locked = 1)` : ""}`,
     [String(input.category || "").toLowerCase(), partner.id]
   );
   if (!cat) throw bad("This partner doesn't offer that service category.");
@@ -221,20 +223,23 @@ function shapeForPartner(l, partnerId) {
 
 const GROUPS = { new: ["new"], accepted: ["accepted"], completed: ["completed"], missed: ["rejected", "expired", "taken"] };
 
+// `lk` = free-plan locks exist (migration 011): a city / category above the
+// free plan (no badge) gets no open-pool leads.
 /** SQL: partner ? serves the city the lead's open pool is drawn from (city, locality or parent city). */
-const SERVES_LEAD_CITY = `EXISTS (
+const servesLeadCity = (lk) => `EXISTS (
   SELECT 1 FROM partner_service_areas a
-   WHERE a.partner_id = ?
+   WHERE a.partner_id = ?${lk ? " AND a.badge_locked = 0" : ""}
      AND (a.city_id = l.open_city_id OR a.locality_id = l.open_city_id
           OR a.city_id = (SELECT m.parent_city_id FROM city_parent_map m WHERE m.city_id = l.open_city_id LIMIT 1)))`;
-const OFFERS_LEAD_CATEGORY = "EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = ? AND pc.category_id = l.category_id)";
+const offersLeadCategory = (lk) =>
+  `EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = ? AND pc.category_id = l.category_id${lk ? " AND pc.badge_locked = 0" : ""})`;
 const PASSED = "EXISTS (SELECT 1 FROM partner_lead_passes x WHERE x.lead_id = l.id AND x.partner_id = ?)";
 /** Leads this partner may see: their own, ones they originally got, and the city's open pool. */
-const VISIBLE = `(
+const visible = (lk) => `(
   (l.partner_id = ? AND NOT ${PASSED})
   OR (l.original_partner_id = ? AND l.status <> 'new')
   OR (l.phase = 'open' AND l.status = 'new' AND l.expires_at > NOW() AND l.open_city_id IS NOT NULL
-      AND ${OFFERS_LEAD_CATEGORY} AND ${SERVES_LEAD_CITY} AND NOT ${PASSED})
+      AND ${offersLeadCategory(lk)} AND ${servesLeadCity(lk)} AND NOT ${PASSED})
 )`;
 const MY_STATUS = "IF(l.partner_id = ? OR l.status = 'new', l.status, 'taken')";
 
@@ -243,7 +248,7 @@ export async function listPartnerLeads(partnerId, { group = null, search = "", f
   await processDueLeads().catch((e) => console.error("[leads] process", e?.message));
   const p = partnerId;
   const params = [p, p, p, p, p, p, p]; // MY_STATUS (select) + VISIBLE
-  let where = VISIBLE;
+  let where = visible(await locksReady());
   if (GROUPS[group]) {
     where += ` AND ${MY_STATUS} IN (?)`;
     params.push(p, GROUPS[group]);
@@ -288,11 +293,13 @@ async function lockOwnLead(conn, partnerId, leadId) {
 /** Approved partners (other than `excludeId`) who offer the category and serve the lead's city. */
 async function eligiblePartnerIds(conn, l, excludeId = 0) {
   if (!l.open_city_id) return [];
+  const lk = (await locksReady()) ? " AND pc.badge_locked = 0" : "";
+  const lka = lk ? " AND a.badge_locked = 0" : "";
   const [rows] = await conn.query(
     `SELECT DISTINCT p.id
        FROM partners p
-       JOIN partner_categories pc ON pc.partner_id = p.id AND pc.category_id = ?
-       JOIN partner_service_areas a ON a.partner_id = p.id
+       JOIN partner_categories pc ON pc.partner_id = p.id AND pc.category_id = ?${lk}
+       JOIN partner_service_areas a ON a.partner_id = p.id${lka}
         AND (a.city_id = ? OR a.locality_id = ?
              OR a.city_id = (SELECT m.parent_city_id FROM city_parent_map m WHERE m.city_id = ? LIMIT 1))
       WHERE p.status = 'approved' AND p.is_listed = 1 AND p.is_available = 1
@@ -364,7 +371,7 @@ export async function acceptLead(partnerId, leadId) {
     if (!mine) {
       const [[ok]] = await conn.query(
         `SELECT 1 AS ok FROM partner_leads l
-          WHERE l.id = ? AND ${OFFERS_LEAD_CATEGORY} AND ${SERVES_LEAD_CITY}`,
+          WHERE l.id = ? AND ${offersLeadCategory(await locksReady())} AND ${servesLeadCity(await locksReady())}`,
         [leadId, partnerId, partnerId]
       );
       if (!ok) throw new HttpError(403, "not_eligible", "This lead is outside your service area or categories.");
@@ -461,7 +468,12 @@ export async function reportLeadIssue(partnerId, leadId, note) {
 
 async function forwardOne(leadId) {
   const [[l]] = await db.query(
-    `SELECT l.*, p.slug FROM partner_leads l JOIN partners p ON p.id = l.partner_id
+    `SELECT l.*, p.slug, c.city_url, cat.category_url, sc.php_customer_id
+       FROM partner_leads l
+       JOIN partners p ON p.id = l.partner_id
+       LEFT JOIN site_customers sc ON sc.id = l.customer_id
+       LEFT JOIN city_tb c ON c.id = COALESCE(l.page_city_id, l.open_city_id)
+       LEFT JOIN category_tb cat ON cat.id = l.category_id
       WHERE l.id = ? AND l.crm_status IN ('pending','failed') AND l.crm_attempts < ?`,
     [leadId, MAX_CRM_ATTEMPTS]
   );

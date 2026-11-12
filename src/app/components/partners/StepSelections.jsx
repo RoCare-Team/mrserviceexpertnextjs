@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { partnerApi } from "./partnerApi";
 import { CategoryIcon, FieldError, StepNav, inputCls } from "./ui";
+import { PlanNotice } from "./BadgePlan";
+import { overLimits } from "@/lib/partners/plan";
 
 /** Fetch a catalogue resource; returns { data, loading, error, retry }. */
 export function useCatalog(url) {
@@ -125,6 +127,7 @@ export function StepCategories({ app, onSave, onBack }) {
           Removing {removed.map((c) => c.name).join(", ")} will also clear its saved services and brands.
         </p>
       )}
+      <PlanNotice app={app} over={overLimits({ categories: selected.length })} kind="categories" />
       <FieldError msg={err?.message} />
       <StepNav onBack={onBack} busy={busy} disabled={!cats.data} />
     </form>
@@ -235,6 +238,11 @@ export function StepBrands({ app, onSave, onBack }) {
   // Brands are optional: skipping clears any saved brand selection.
   const skip = () => run({ brands: {} });
 
+  const brandCounts = Object.fromEntries(
+    app.categories.map((c) => [c.id, (picked[c.id] || []).length + (otherOpen[c.id] && other[c.id]?.trim() ? 1 : 0)])
+  );
+  const brandOver = overLimits({ brands: brandCounts }, Object.fromEntries(app.categories.map((c) => [c.id, c.name])));
+
   return (
     <form onSubmit={submit} noValidate>
       <p className="mb-5 text-sm text-[var(--muted)]">
@@ -277,6 +285,7 @@ export function StepBrands({ app, onSave, onBack }) {
           ))}
         </div>
       )}
+      {br.data && <PlanNotice app={app} over={brandOver} kind="brands" />}
       {err && !err.fields && <FieldError msg={err.message} />}
       <StepNav onBack={onBack} busy={busy} disabled={!br.data} />
       <div className="mt-3 text-center sm:text-right">
