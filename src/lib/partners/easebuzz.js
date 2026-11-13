@@ -35,6 +35,8 @@ const sha512 = (s) => crypto.createHash("sha512").update(s).digest("hex");
 export async function initiatePayment({ txnid, amount, firstname, email, phone, productinfo, surl, furl, mode = easebuzzMode() }) {
   const { key, salt } = creds(mode);
   const amt = Number(amount).toFixed(2);
+  // Easebuzz validates these strictly — brackets etc. fail with "invalid productinfo".
+  productinfo = String(productinfo).replace(/[^A-Za-z0-9 .\-_]/g, " ").replace(/\s+/g, " ").trim().slice(0, 100);
   const udf = ["", "", "", "", "", "", "", "", "", ""];
   // key|txnid|amount|productinfo|firstname|email|udf1..udf10|salt
   const hash = sha512([key, txnid, amt, productinfo, firstname, email, ...udf, salt].join("|"));
@@ -49,7 +51,9 @@ export async function initiatePayment({ txnid, amount, firstname, email, phone, 
   const json = await res.json().catch(() => null);
   if (json?.status !== 1 || !json.data) {
     console.error("[easebuzz] initiate failed:", JSON.stringify(json).slice(0, 300));
-    throw new HttpError(502, "payment_init_failed", "Could not start the payment. Please try again.");
+    const err = new HttpError(502, "payment_init_failed", "Could not start the payment. Please try again.");
+    err.gatewayDetail = String(json?.error_desc || json?.data || json?.message || `HTTP ${res.status}`).slice(0, 200);
+    throw err;
   }
   return `${HOSTS[mode].pay}/pay/${json.data}`;
 }
