@@ -69,8 +69,9 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
         <ServiceHero
           compact
           crumbs={[
-            ...(parentCity ? [{ label: parentCity.city_name, href: `/${parentCity.city_url}/${brandSlug}/${catSlug}` }] : []),
-            { label: cityName, href: `/${citySlug}` },
+            ...(parentCity ? [{ label: parentCity.city_name, href: `/${parentCity.city_url}/${catSlug}` }] : []),
+            // A locality has no bare /{locality} page (it redirects to its city).
+            { label: cityName, href: pagedata?.is_locality ? undefined : `/${citySlug}` },
             { label: pagedata?.categoryname || catName, href: `/${citySlug}/${catSlug}` },
             { label: brandName },
           ]}
