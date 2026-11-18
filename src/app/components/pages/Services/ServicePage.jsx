@@ -71,6 +71,19 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
     title: `${pagedata?.category_name} in ${c.city_name}`,
   }));
   const hideAbout = city === "bangalore" && cat === "ro-water-purifier";
+  // Localities (city page) or sibling localities (locality page) that have this page.
+  const parentCity = pagedata?.parent_city || null;
+  const localities = (pagedata?.localities || []).map((c) => ({
+    href: `/${c.city_url}/${cat}`,
+    label: c.city_name,
+    title: `${pagedata?.category_name} in ${c.city_name}`,
+  }));
+  const hubName = parentCity?.city_name || cityName;
+  const crumbs = [
+    ...(parentCity ? [{ label: parentCity.city_name, href: `/${parentCity.city_url}/${cat}` }] : []),
+    { label: cityName, href: `/${city}` },
+    { label: pagedata?.category_name || catName },
+  ];
 
   return (
     <>
@@ -81,7 +94,7 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
       <Container className="pt-4 sm:pt-6">
         <ServiceHero
           compact
-          crumbs={[{ label: cityName, href: `/${city}` }, { label: pagedata?.category_name || catName }]}
+          crumbs={crumbs}
           eyebrow={group ? "Home care & handyman" : "Appliance repair"}
           title={h1}
           subtitle={subtitle}
@@ -145,6 +158,9 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
 
       <Container>
           <Section className="!pt-0 flex flex-col gap-4">
+            {localities.length > 0 && (
+              <LinkCloud id="localities" max={12} title={parentCity ? `${pagedata?.category_name} in other areas of ${hubName}` : `${pagedata?.category_name} by locality in ${hubName}`} subtitle={parentCity ? `More areas of ${hubName} we serve` : `Areas of ${hubName} we serve`} items={localities} />
+            )}
             {brands.length > 0 && (
               <LinkCloud id="brands" icon={Tag} title={`${pagedata?.category_name} by brand in ${cityName}`} subtitle="Brand-trained technicians and genuine parts" items={brands} />
             )}

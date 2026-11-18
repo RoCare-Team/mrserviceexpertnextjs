@@ -1,14 +1,17 @@
 import db from "@/lib/db";
+import { hideLocalitiesSql } from "@/lib/localities";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     // status = 1 wali active cities hi lena (agar sab chahiye to WHERE hata dena)
+    // Imported localities are not cities — keep this list as it was.
+    const hideLoc = await hideLocalitiesSql("c");
     const [rows] = await db.query(
       `SELECT UPPER(TRIM(state)) AS state_name, TRIM(city_name) AS city_name
-       FROM city_tb
+       FROM city_tb c
        WHERE status = '1'
-         AND state IS NOT NULL AND state <> ''
+         AND state IS NOT NULL AND state <> ''${hideLoc}
        ORDER BY state_name ASC, city_name ASC`
     );
 

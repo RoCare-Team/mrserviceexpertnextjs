@@ -11,6 +11,7 @@
 // The returned shape matches exactly what <ServicePage> reads from `pagedata`.
 
 import db from "@/lib/db";
+import { hideLocalitiesSql, localitiesReady, getAreaContext, getAreaLinks } from "@/lib/localities";
 
 const normalize = (v = "") => v.toString().toLowerCase().trim();
 
@@ -19,6 +20,9 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
   const brand = normalize(rawBrand);
   const cat = normalize(rawCat);
   if (!city || !brand || !cat) return null;
+
+  // Checked before a connection is held (these use the pool themselves).
+  const [hideLoc, locReady] = await Promise.all([hideLocalitiesSql("ci"), localitiesReady()]);
 
   let connection;
   try {
@@ -100,6 +104,7 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
     // back to any city carrying this brand + category, capped so the page does
     // not sprout hundreds of links.
     const CITY_LINK_CAP = 40;
+    // Imported localities (hideLoc) are linked in their own block below.
     const relatedCitiesSql = (scoped) => `
       SELECT DISTINCT ci.id, ci.city_name, ci.city_url
         FROM page_master_tb pm
@@ -109,7 +114,7 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
          AND LOWER(b.brand_url) = ?
          AND LOWER(ci.city_url) <> ?
          AND ci.city_url IS NOT NULL AND ci.city_url <> ''
-         ${scoped ? "AND ci.state = ?" : ""}
+         ${scoped ? "AND ci.state = ?" : ""}${hideLoc}
        ORDER BY ci.city_name ASC
        ${scoped ? "" : `LIMIT ${CITY_LINK_CAP}`}`;
 
@@ -141,7 +146,20 @@ export async function getBrandPageData(rawCity, rawBrand, rawCat) {
       [cityRow.id, brand, catRow.id]
     );
 
+    // Localities of this city (or siblings + parent on a locality page) that
+    // have this same brand + category page.
+    const held = { q: connection, ready: locReady };
+    const area = await getAreaContext(cityRow.id, held);
+    const localities = await getAreaLinks({ cityId: cityRow.id, parentId: area.parent?.id, categoryId: catRow.id, brandUrl: brand }, held);
+
     return {
+      city_id: cityRow.id,
+      category_id: catRow.id,
+      brand_id: brandRow.id,
+      page_id: pageRow?.id || null,
+      is_locality: area.isLocality,
+      parent_city: area.parent ? { city_name: area.parent.city_name, city_url: area.parent.city_url } : null,
+      localities: localities.map((c) => ({ city_name: c.city_name, city_url: c.city_url })),
       // page_master_tb row → pagedata.content.* (page_content, meta_*, faq*)
       content: pageRow,
       cityname: cityRow.city_name,

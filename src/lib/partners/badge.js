@@ -16,6 +16,7 @@ import { withTransaction, logHistory } from "@/lib/partners/application";
 import { notifyPartner } from "@/lib/partners/notify";
 import { hasColumn } from "@/lib/partners/schema";
 import { FREE_LIMITS } from "@/lib/partners/plan";
+import { queuePartnerPages } from "@/lib/partners/pages";
 
 export const BADGE_NAME = "Featured Partner";
 export const BADGE_DAYS = 365;
@@ -204,6 +205,7 @@ export async function chooseActive(partnerId, { category_ids, brand_ids }) {
     await conn.query("UPDATE partner_brands SET badge_locked = IF(id IN (?), 0, 1) WHERE partner_id = ?", [brandIds.length ? brandIds : [0], partnerId]);
     await syncBadgeLocks(conn, partnerId); // fills free slots left empty, never exceeds limits
   });
+  queuePartnerPages(partnerId); // newly unlocked items → their missing pages
 }
 
 const fmtDay = (d) => new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" });
@@ -218,6 +220,7 @@ export async function adminGrantBadge(admin, partnerId, days) {
     if (p.status !== "approved") throw new HttpError(409, "not_approved", "Only approved partners can get the badge.");
     return extendBadge(conn, partnerId, n, { actorType: "admin", actorId: admin.id, reason: `${n} days (given by admin)` });
   });
+  queuePartnerPages(partnerId); // badge unlocks everything → their missing pages
   await notifyPartner(
     partnerId,
     { type: "badge", title: `You're a ${BADGE_NAME}!`, body: `Your badge is active till ${fmtDay(until)}. You now appear first in your areas.`, link: "/partner/dashboard?tab=wallet" },

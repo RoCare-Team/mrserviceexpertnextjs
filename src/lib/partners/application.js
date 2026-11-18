@@ -8,6 +8,7 @@ import { publicUrl } from "@/lib/partners/storage";
 import { notifyPartner } from "@/lib/partners/notify";
 import { sendPartnerApprovedWhatsApp } from "@/lib/partners/whatsapp";
 import { queuePartnerSeo } from "@/lib/partners/seo";
+import { queuePartnerPages } from "@/lib/partners/pages";
 import { getRefundPercent } from "@/lib/partners/settings";
 import { listDocRequests } from "@/lib/partners/docRequests";
 import { BADGE_DAYS, BADGE_PERIOD, BADGE_NAME, badgeInfo, badgePrice, syncBadgeLocks, activatePendingBadge } from "@/lib/partners/badge";
@@ -667,6 +668,8 @@ export async function adminChangeStatus(partnerId, admin, { action, reason, publ
   const out = await adminChangeStatusTx(partnerId, admin, rule, action, why, publish);
   // Profile is (about to be) public: write / refresh its SEO copy in the background.
   if (rule.to === "approved") queuePartnerSeo(partnerId);
+  // Create the city / locality / brand pages this partner needs (missing ones only).
+  if (rule.to === "approved") queuePartnerPages(partnerId);
   // First approval only (not reactivation); fire-and-forget, never blocks the response.
   if (action === "approve") sendPartnerApprovedWhatsApp(partnerId);
   await notifyPartner(
@@ -718,6 +721,12 @@ async function adminChangeStatusTx(partnerId, admin, rule, action, why, publish)
 }
 
 export async function adminSetListing(partnerId, admin, listed) {
+  const out = await adminSetListingTx(partnerId, admin, listed);
+  if (listed) queuePartnerPages(partnerId); // now public → its missing pages
+  return out;
+}
+
+async function adminSetListingTx(partnerId, admin, listed) {
   return withTransaction(async (conn) => {
     const p = await lockPartner(conn, partnerId);
     if (listed && p.status !== "approved") {
@@ -797,6 +806,7 @@ export async function saveLiveLocations(partnerId, data) {
     await logHistory(conn, { partnerId, action: "areas_updated", from: p.status, to: p.status, actorType: "partner", actorId: partnerId });
   });
   queuePartnerSeo(partnerId); // cities changed → copy mentions them
+  queuePartnerPages(partnerId); // new areas → their missing pages
 }
 
 /* ── change requests (identity / catalogue; need admin approval) ──────── */
@@ -919,6 +929,7 @@ export async function decideChangeRequest(admin, requestId, { approve, reason })
     return req;
   });
   if (approve) queuePartnerSeo(r.partner_id); // categories / brands / name may have changed
+  if (approve) queuePartnerPages(r.partner_id); // new categories / brands → their missing pages
   await notifyPartner(
     r.partner_id,
     {

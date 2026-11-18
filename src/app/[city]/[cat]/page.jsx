@@ -10,6 +10,7 @@ import PartnerListingSection from "@/app/components/partners/PartnerListingSecti
 import PartnerSidebar, { SIDEBAR_MAX } from "@/app/components/partners/PartnerSidebar";
 import { getPagePartners } from "@/app/components/partners/pagePartners";
 import { Container, Section } from "@/app/components/public/ui";
+import { pageRobots } from "@/lib/localities";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -34,6 +35,10 @@ export async function generateMetadata({ params }) {
     // other page (home care etc.) keeps the meta saved in the DB.
     const appliance = isHomeAppliance(cat) ? applianceMeta({ category: data.category_name, city: data.city_name }) : null;
 
+    // "index, follow" for every existing page; noindex only for a locality
+    // without its own page row, or a partner-made page no partner serves now.
+    const robots = await pageRobots({ cityId: data.city_id, categoryId: data.category_id, pageId: data.page_id, isLocality: data.is_locality });
+
     return {
       title: appliance?.title || data?.content?.meta_title || `Service in ${city} | Your Brand`,
       description: appliance?.description || data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
@@ -41,7 +46,7 @@ export async function generateMetadata({ params }) {
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}/${cat}`,
       },
-      robots: "index, follow",
+      robots,
     };
   } catch (error) {
     console.error("generateMetadata error:", error);

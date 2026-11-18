@@ -1,6 +1,7 @@
 // lib/cityData.js
 import db from "@/lib/db";
 import { getStoresByCityId } from "@/lib/storeLocatorData";
+import { hideLocalitiesSql, getAreaContext } from "@/lib/localities";
 
 const CITY_COLUMNS = `
   id, city_name, city_url, city_content, state, status,
@@ -24,10 +25,11 @@ const normalize = (v = "") => v.toString().toLowerCase().trim();
 
 // ── All cities (used by generateStaticParams) ───────────────────────────────
 export async function getAllCities() {
+  const hideLoc = await hideLocalitiesSql("c");
   const [rows] = await db.query(
     `SELECT id, city_name, city_url
-       FROM city_tb
-      WHERE city_url IS NOT NULL AND city_url <> ''
+       FROM city_tb c
+      WHERE city_url IS NOT NULL AND city_url <> ''${hideLoc}
       ORDER BY city_name ASC`
   );
   return rows;
@@ -62,13 +64,15 @@ export async function getCityByUrl(rawCityUrl) {
   const cityDetail = rows[0];
 
   // "Popular Cities Near Me" — ALL other cities in the SAME state (no limit).
+  // Imported localities are left out so this list is unchanged by them.
+  const [hideLoc, area] = await Promise.all([hideLocalitiesSql("c"), getAreaContext(cityDetail.id)]);
   const [[recent], stores] = await Promise.all([
     db.query(
       `SELECT id, city_name, city_url
-         FROM city_tb
+         FROM city_tb c
         WHERE city_url IS NOT NULL AND city_url <> ''
           AND state = ?
-          AND LOWER(city_url) <> ?
+          AND LOWER(city_url) <> ?${hideLoc}
         ORDER BY city_name ASC`,
       [cityDetail.state, cityUrl]
     ),
@@ -83,6 +87,8 @@ export async function getCityByUrl(rawCityUrl) {
     // Force "1" so City renders the CITY layout (its `if status === "1"` branch).
     status: "1",
     type: "city",
+    // Imported locality: its bare /{locality} page is noindex (see [city]/page.jsx).
+    is_locality: area.isLocality,
     // Kept nested too, for generateMetadata (data.city_detail.meta_title).
     city_detail: cityDetail,
     categorydetail: null,

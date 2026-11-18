@@ -6,6 +6,7 @@ import { applianceMeta, isHomeAppliance } from "@/lib/homeCare";
 import PartnerListingSection from "@/app/components/partners/PartnerListingSection";
 import PartnerSidebar, { SIDEBAR_MAX } from "@/app/components/partners/PartnerSidebar";
 import { getPagePartners } from "@/app/components/partners/pagePartners";
+import { pageRobots } from "@/lib/localities";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -45,6 +46,9 @@ export async function generateMetadata({ params }) {
         })
       : null;
 
+    // Same rule as /{city}/{cat}: only a partner-made page with no partner left is noindex.
+    const robots = await pageRobots({ cityId: data.city_id, categoryId: data.category_id, brandId: data.brand_id, pageId: data.page_id });
+
     return {
       title: appliance?.title || data?.content?.meta_title || `Service in ${city} | Your Brand`,
       description: appliance?.description || data?.content?.meta_description || `Find the best services in ${city}. Book now!`,
@@ -52,7 +56,7 @@ export async function generateMetadata({ params }) {
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}/${brand}/${cat}`,
       },
-      robots: "index, follow",
+      robots,
     };
   } catch (error) {
     console.error("generateMetadata error:", error);
