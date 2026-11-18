@@ -6,7 +6,7 @@ import { hasColumn } from "@/lib/partners/schema";
 // partner's pages show up without re-running `npm run sitemaps`. A page is
 // listed only while at least one partner is visible on it — the same rule
 // that keeps it indexable (lib/localities.js pageRobots).
-export const revalidate = 3600;
+export const revalidate = 600;
 
 const BASE = "https://www.mrserviceexpert.com";
 const SLUG = /^[a-z0-9-]+$/;
