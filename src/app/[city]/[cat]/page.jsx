@@ -79,7 +79,9 @@ export default async function Page({ params }) {
   }
 
   // notFound() throws — keep it outside the try/catch so it isn't swallowed.
-  if (!data) {
+  // An imported locality is live only once a page row exists for it, i.e.
+  // after an approved partner serving it got its pages (lib/partnerPages.js).
+  if (!data || (data.is_locality && !data.page_id)) {
     return notFound();
   }
 

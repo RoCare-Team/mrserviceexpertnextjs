@@ -89,6 +89,7 @@ export async function getCityByUrl(rawCityUrl) {
     type: "city",
     // Imported locality: its bare /{locality} page is noindex (see [city]/page.jsx).
     is_locality: area.isLocality,
+    parent_city_url: area.parent?.city_url?.toLowerCase() || null,
     // Kept nested too, for generateMetadata (data.city_detail.meta_title).
     city_detail: cityDetail,
     categorydetail: null,

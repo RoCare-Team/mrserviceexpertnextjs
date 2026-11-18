@@ -47,7 +47,7 @@ export function PlanNotice({ app, over, kind }) {
       <span>
         <b>{b.name} badge needed:</b> {over.join(", ")}. The free plan allows {FREE_PLAN_TEXT}.{" "}
         {registering
-          ? `You can pay ₹${b.price} on the Review step — your ${b.period} starts when your profile is approved.`
+          ? `You can still continue: without the badge only the free-plan items go live, the rest stay saved but hidden. Pay ₹${b.price} on the Review step or later to show everything.`
           : `Without the badge only the free-plan items stay live; the rest are saved but hidden. Get it from Wallet → ₹${b.price}.`}
       </span>
     </div>
@@ -94,12 +94,13 @@ export function BadgeBuyBox({ app, required, over = [] }) {
         </span>
         <div className="min-w-0 flex-1">
           <h3 id="badge-buy-h" className="font-bold text-[var(--ink)]">
-            {required ? `${b.name} badge required` : `Become a ${b.name}`} · ₹{b.price} / {b.period}
+            {required ? `Show everything you selected` : `Become a ${b.name}`} · ₹{b.price} / {b.period}
           </h3>
           {required ? (
             <p className="mt-1 text-sm text-[var(--body-text)]">
-              Your selection is above the free plan: <b>{over.join(", ")}</b>. Get the badge to submit — or go back and reduce your selection to{" "}
-              {FREE_PLAN_TEXT}.
+              Your selection is above the free plan: <b>{over.join(", ")}</b>. You can submit without paying — then only{" "}
+              {FREE_PLAN_TEXT} show on the website and the rest stay saved but hidden. Get the {b.name} badge (now, or later from
+              Dashboard → Wallet) and everything you selected goes live.
             </p>
           ) : (
             <p className="mt-1 text-sm text-[var(--body-text)]">Optional — get listed above other partners, with a badge on your card.</p>

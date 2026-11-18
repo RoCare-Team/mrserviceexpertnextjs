@@ -80,6 +80,12 @@ export default async function Page({ params }) {
     return notFound();
   }
 
+  // Imported localities have no page of their own — only /{locality}/{category}
+  // pages made for partners. This route is cached, so send every one to its city.
+  if (data.is_locality && data.parent_city_url) {
+    redirect(`/${data.parent_city_url}`);
+  }
+
   if (data.recent_cities && Array.isArray(data.recent_cities)) {
     data.recent_cities = data.recent_cities.map((city) => ({
       id: city.id,

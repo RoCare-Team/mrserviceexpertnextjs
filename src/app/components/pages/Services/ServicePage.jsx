@@ -81,7 +81,8 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
   const hubName = parentCity?.city_name || cityName;
   const crumbs = [
     ...(parentCity ? [{ label: parentCity.city_name, href: `/${parentCity.city_url}/${cat}` }] : []),
-    { label: cityName, href: `/${city}` },
+    // A locality has no bare /{locality} page (it redirects to its city).
+    { label: cityName, href: pagedata?.is_locality ? undefined : `/${city}` },
     { label: pagedata?.category_name || catName },
   ];
 
