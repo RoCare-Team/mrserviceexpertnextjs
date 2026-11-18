@@ -256,6 +256,80 @@ export function categoryPage(copy) {
   };
 }
 
+/* ─────────── /{city or locality}/{category} for partner areas ─────────── */
+// Written when an approved partner serves a city / locality that had no row
+// for this category (src/lib/partnerPages.js). `place` is the display name,
+// e.g. "Gurgaon" or "DLF Phase 1, Gurgaon". categoryPage() above is left
+// untouched so the near-me rows never change.
+
+export function cityCategoryPage(copy, place) {
+  const { service, thing, tasks, problems, interval, from } = copy;
+
+  const page_content = [
+    `<h2><strong>${service} in ${place} &ndash; Verified Technicians at Your Doorstep</strong></h2>`,
+    `<p>Need ${lowerCase(service)} in ${place}? Mr Service Expert connects you with background verified ${thing} technicians who already work in and around ${place}, so you get a confirmed visit instead of a call that never comes. Pricing starts at &#8377;${from} and every job carries a service warranty.</p>`,
+    `<p>Tell us the problem and we match you with a local technician near you. Spare parts are genuine, the charge is told to you before any work begins, and nothing is replaced without your approval.</p>`,
+
+    `<h3>What Our ${service} in ${place} Covers</h3>`,
+    `<ul>${li(tasks)}</ul>`,
+
+    `<h3>Common ${titleCase(thing)} Problems We Fix</h3>`,
+    `<p>Most complaints we attend in ${place} fall into a few familiar faults. If your ${thing} is showing any of these, one visit is usually enough:</p>`,
+    `<ul>${li(problems)}</ul>`,
+
+    `<h3>Why Book ${service} With Mr Service Expert</h3>`,
+    `<ul>`,
+    `<li><strong>Local verified technicians</strong> &ndash; professionals who work in ${place} and are background checked.</li>`,
+    `<li><strong>Upfront pricing</strong> &ndash; you are told the charge before the work starts.</li>`,
+    `<li><strong>Service warranty</strong> &ndash; if the same fault comes back within the warranty period, we return at no extra cost.</li>`,
+    `<li><strong>Genuine spare parts</strong> &ndash; replacements carry their own warranty.</li>`,
+    `<li><strong>Same day slots</strong> &ndash; book before noon and a technician usually reaches you the same day.</li>`,
+    `</ul>`,
+
+    `<p>To book ${lowerCase(service)} in ${place}, call <strong>${PHONE}</strong> or use the booking form and get a confirmed slot right away.</p>`,
+  ].join("\n");
+
+  const faqs = [
+    [
+      `How do I book ${lowerCase(service)} in ${place}?`,
+      `Call ${PHONE} or book on this page. Share the problem, pick a slot, and a verified ${thing} technician working in ${place} reaches your doorstep. The charge is confirmed before any work starts.`,
+    ],
+    [
+      `What is included in ${lowerCase(service)}?`,
+      `A visit can cover ${tasks.map((t) => t.toLowerCase()).join(", ")}. The technician inspects your ${thing} first and tells you exactly what is needed.`,
+    ],
+    [
+      `What ${thing} problems can be fixed at home?`,
+      `Most of them. We regularly fix issues like ${problems.slice(0, 3).map((p) => p.toLowerCase()).join(", ")} on the spot. If a fault needs workshop equipment, the technician tells you upfront.`,
+    ],
+    [
+      `How often should I book ${lowerCase(service)}?`,
+      `We recommend ${interval} for normal usage. Regular servicing keeps the ${thing} efficient and catches small faults before they become expensive.`,
+    ],
+    [
+      `How much does ${lowerCase(service)} cost in ${place}?`,
+      `${service} starts at &#8377;${from}. The final amount depends on the fault and any spare parts required, and it is always confirmed with you before work begins.`,
+    ],
+  ];
+
+  return {
+    page_title: `${service} in ${place} @${PHONE}`.slice(0, 200),
+    meta_title: `${service} in ${place} | Verified Technicians at Home`.slice(0, 255),
+    meta_description: clip(
+      `${service} in ${place} starting at Rs ${from}. Verified local technicians, upfront pricing, genuine parts and same day slots. Call ${PHONE}.`
+    ),
+    meta_keywords: [
+      `${lowerCase(service)} in ${place}`,
+      `${thing} repair in ${place}`,
+      `${thing} service ${place}`,
+      `${lowerCase(service)} near me`,
+      `${lowerCase(service)} charges ${place}`,
+    ].join(", ").slice(0, 255),
+    page_content,
+    faqs,
+  };
+}
+
 /* ─────────────── /{city}/{brand}/{category} ─────────────── */
 
 /**

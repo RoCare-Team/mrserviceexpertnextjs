@@ -57,6 +57,10 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
 
   const otherCities = (pagedata?.related_cities || []).map((c) => ({ href: c.url, label: c.city_name, title: `${brandName} ${pagedata?.categoryname} in ${c.city_name}` }));
   const otherCategories = (pagedata?.related_categories || []).map((c) => ({ href: c.url, label: c.category_name, title: `${brandName} ${c.category_name} in ${cityName}` }));
+  const parentCity = pagedata?.parent_city || null;
+  const hubName = parentCity?.city_name || cityName;
+  const brandSlug = (brand || "").toLowerCase();
+  const localities = (pagedata?.localities || []).map((c) => ({ href: `/${c.city_url}/${brandSlug}/${catSlug}`, label: c.city_name, title: `${brandName} ${pagedata?.categoryname} in ${c.city_name}` }));
   const otherBrands = (pagedata?.brands || []).map((b) => ({ href: `/${citySlug}/${b.brand_url}/${catSlug}`, label: b.brand_name, title: `${b.brand_name} ${pagedata?.categoryname} in ${cityName}` }));
 
   return (
@@ -65,6 +69,7 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
         <ServiceHero
           compact
           crumbs={[
+            ...(parentCity ? [{ label: parentCity.city_name, href: `/${parentCity.city_url}/${brandSlug}/${catSlug}` }] : []),
             { label: cityName, href: `/${citySlug}` },
             { label: pagedata?.categoryname || catName, href: `/${citySlug}/${catSlug}` },
             { label: brandName },
@@ -128,6 +133,7 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
 
       <Container>
         <Section className="!pt-0 flex flex-col gap-4">
+          {localities.length > 0 && <LinkCloud id="localities" max={12} title={parentCity ? `${brandName} ${pagedata?.categoryname} in other areas of ${hubName}` : `${brandName} ${pagedata?.categoryname} by locality in ${hubName}`} items={localities} />}
           {otherBrands.length > 0 && <LinkCloud id="brands" icon={Tag} title={`Other ${pagedata?.categoryname} brands in ${cityName}`} items={otherBrands} />}
           {otherCategories.length > 0 && <LinkCloud id="brand-services" icon={Wrench} title={`Other ${brandName} services in ${cityName}`} items={otherCategories} />}
           {otherCities.length > 0 ? (

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { hideLocalitiesSql } from "@/lib/localities";
 
 export const runtime = "nodejs";
 // Cities change rarely — let Next cache the response for an hour.
@@ -8,11 +9,13 @@ export const revalidate = 3600;
 export async function GET() {
   let connection;
   try {
+    // Imported localities are not cities — keep this list as it was.
+    const hideLoc = await hideLocalitiesSql("c");
     connection = await db.getConnection();
     const [rows] = await connection.query(
       `SELECT id, city_name, city_url, state
-       FROM city_tb
-       WHERE status = '1'
+       FROM city_tb c
+       WHERE status = '1'${hideLoc}
        ORDER BY city_name ASC`
     );
     return NextResponse.json(

@@ -22,6 +22,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { hideLocalitiesSql } from "@/lib/localities";
 import {
   CATEGORY_COPY,
   brandPage,
@@ -55,10 +56,13 @@ async function targetCities(connection, scope) {
     );
     return rows;
   }
+  // "All cities" means cities — imported localities get brand pages only
+  // through partners (src/lib/partnerPages.js).
+  const hideLoc = await hideLocalitiesSql("c");
   const [rows] = await connection.query(
     `SELECT id, city_name, city_url
-       FROM city_tb
-      WHERE city_url IS NOT NULL AND city_url <> ''
+       FROM city_tb c
+      WHERE city_url IS NOT NULL AND city_url <> ''${hideLoc}
       ORDER BY city_name ASC`
   );
   return rows;

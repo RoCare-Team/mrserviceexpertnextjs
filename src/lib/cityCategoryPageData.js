@@ -2,6 +2,7 @@
 import db from "@/lib/db";
 import { getStoresByCityId } from "@/lib/storeLocatorData";
 import { serviceGroupFor } from "@/lib/homeCare";
+import { hideLocalitiesSql, getAreaContext, getAreaLinks } from "@/lib/localities";
 
 const normalize = (v = "") => v.toString().toLowerCase().trim();
 
@@ -34,7 +35,12 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
   const group = serviceGroupFor(catRow.category_url);
   const homeCare = Boolean(group);
 
-  const [[[pageRow]], [brands], [related], stores, [otherHomeCare]] = await Promise.all([
+  // Localities (migration 012): imported localities stay out of the old
+  // "nearby cities" list; a city page links its localities, a locality page
+  // its parent + siblings — only the ones that have this page.
+  const [hideLoc, area] = await Promise.all([hideLocalitiesSql("c"), getAreaContext(cityRow.id)]);
+
+  const [[[pageRow]], [brands], [related], stores, [otherHomeCare], localities] = await Promise.all([
     // Page content for this city + category (no brand) → master_tb_withoutbrand.
     db.query(
       `SELECT *
@@ -69,10 +75,10 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
     // Related cities (same state) → "Popular Cities Near Me" (all, no limit).
     db.query(
       `SELECT id, city_name, city_url
-         FROM city_tb
+         FROM city_tb c
         WHERE state = ?
           AND city_url IS NOT NULL AND city_url <> ''
-          AND LOWER(city_url) <> ?
+          AND LOWER(city_url) <> ?${hideLoc}
         ORDER BY city_name ASC`,
       [cityRow.state, city]
     ),
@@ -94,6 +100,7 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
           [group?.map((s) => s.url), cat, cityRow.id]
         )
       : [[]],
+    getAreaLinks({ cityId: cityRow.id, parentId: area.parent?.id, categoryId: catRow.id }),
   ]);
 
   // Keep the footer / homepage order.
@@ -133,6 +140,13 @@ export async function getCityCategoryPageData(rawCity, rawCat) {
       city_name: c.city_name,
       city_url: c.city_url,
     })),
+    // Locality block (empty unless localities exist for this area).
+    city_id: cityRow.id,
+    category_id: catRow.id,
+    page_id: pageRow?.id || null,
+    is_locality: area.isLocality,
+    parent_city: area.parent ? { city_name: area.parent.city_name, city_url: area.parent.city_url } : null,
+    localities: localities.map((c) => ({ city_name: c.city_name, city_url: c.city_url })),
     // Page blanks these out itself; included for shape parity.
     cities: [],
     category_services: [],

@@ -134,6 +134,15 @@ const [categories] = await db.query(
 
 const written = [];
 
+// Pages created for partners (migration 012) are listed by the live
+// sitemap/partner-pages.xml route — only while a partner is visible on them —
+// so they are skipped here.
+const [genTable] = await db.query("SHOW TABLES LIKE 'partner_generated_pages'");
+const skipGen = (alias, kind) =>
+  genTable.length
+    ? ` AND NOT EXISTS (SELECT 1 FROM partner_generated_pages g WHERE g.page_kind = '${kind}' AND g.page_id = ${alias}.id)`
+    : "";
+
 for (const cat of categories) {
   const slug = clean(cat.category_url);
 
@@ -143,7 +152,7 @@ for (const cat of categories) {
        FROM master_tb_withoutbrand m
        JOIN city_tb ci ON ci.id = m.city_id
       WHERE m.category_id = ?
-        AND m.robots <> 'noindex'
+        AND m.robots <> 'noindex'${skipGen("m", "category")}
         AND ci.city_url IS NOT NULL AND ci.city_url <> ''`,
     [cat.id]
   );
@@ -160,7 +169,7 @@ for (const cat of categories) {
        FROM page_master_tb p
        JOIN city_tb ci ON ci.id = p.city_id
        JOIN brand_tb b ON b.id = p.brand_id
-      WHERE p.category_id = ?
+      WHERE p.category_id = ?${skipGen("p", "brand")}
         AND b.status = '1'
         AND ci.city_url IS NOT NULL AND ci.city_url <> ''
         AND b.brand_url IS NOT NULL AND b.brand_url <> ''`,
@@ -179,11 +188,11 @@ for (const cat of categories) {
 
 await db.end();
 
-// blogs.xml, partners.xml and careers.xml are live routes (src/app/sitemap/*.xml/route.js),
+// blogs.xml, partners.xml, careers.xml and partner-pages.xml are live routes (src/app/sitemap/*.xml/route.js),
 // not files this script writes, but they still belong in the index.
 fs.writeFileSync(
   INDEX_FILE,
-  indexXml([...written.map((w) => w.file), "blogs.xml", "partners.xml", "careers.xml"]),
+  indexXml([...written.map((w) => w.file), "blogs.xml", "partners.xml", "careers.xml", "partner-pages.xml"]),
   "utf8"
 );
 

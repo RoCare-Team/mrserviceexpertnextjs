@@ -45,7 +45,8 @@ export const generateMetadata = async ({ params }) => {
       title: cityDetail?.meta_title || categorydetail?.meta_title || `Services in ${city}`,
       description: cityDetail?.meta_description || categorydetail?.meta_description || `Find services in ${city}`,
       keywords: cityDetail?.meta_keywords || categorydetail?.meta_keywords || `services, ${city}`,
-      robots: "index, follow",
+      // Imported localities only get indexed /{locality}/{category} pages.
+      robots: data?.is_locality ? "noindex, follow" : "index, follow",
       alternates: {
         canonical: `https://www.mrserviceexpert.com/${city}`,
       },

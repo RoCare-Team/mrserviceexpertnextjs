@@ -14,6 +14,7 @@ import { getRatingSummaries } from "@/lib/partners/reviews";
 import { CRM_LEAD_TYPES } from "@/lib/partners/crm";
 import { getWorkDoneCounts, workDoneLabel } from "@/lib/partners/seo";
 import { featuredSql, unlockedSql, locksReady } from "@/lib/partners/badge";
+import { hasColumn } from "@/lib/partners/schema";
 
 const PUBLIC_WHERE = `p.status = 'approved' AND p.is_listed = 1
   AND p.mobile_verified_at IS NOT NULL AND p.deleted_at IS NULL`;
@@ -48,7 +49,15 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
   // Free-plan locks: cities / categories / brands above the free plan are
   // hidden while the partner has no active badge (see badge.js).
   const locks = await locksReady();
+  // Locality page: also list the parent city's city-wide partners, after the
+  // locality's own ones (see parentCityOf / migration 012).
+  const parentId = await parentCityOf(cityId);
   const params = [categoryId, cityId, cityId];
+  let parentSql = "";
+  if (parentId) {
+    parentSql = " OR (a.city_id = ? AND a.locality_key = 0)";
+    params.push(parentId);
+  }
   let brandSql = "";
   if (brandId) {
     brandSql = `AND EXISTS (SELECT 1 FROM partner_brands pb
@@ -64,7 +73,7 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
     AND EXISTS (SELECT 1 FROM partner_services ps WHERE ps.partner_id = p.id AND ps.category_id = ?)
     AND EXISTS (SELECT 1 FROM partner_service_areas a
                  WHERE a.partner_id = p.id${locks ? " AND a.badge_locked = 0" : ""}
-                   AND ((a.city_id = ? AND a.locality_key = 0) OR a.locality_id = ?))
+                   AND ((a.city_id = ? AND a.locality_key = 0) OR a.locality_id = ?${parentSql}))
     ${brandSql}
     ${catLock}`;
 
@@ -78,6 +87,11 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
   //   3. Jobs done (completed leads), then review count, ID-verified, oldest.
   // Steps 2–3 order partners inside the featured group and inside the rest.
   const featured = await featuredSql();
+  // Locality pages: partners who picked this locality come before the parent
+  // city's city-wide partners. Plain city pages have no parent → no-op.
+  const directOrder = parentId
+    ? `EXISTS (SELECT 1 FROM partner_service_areas d WHERE d.partner_id = p.id AND d.locality_id = ?${locks ? " AND d.badge_locked = 0" : ""}) DESC,`
+    : "";
   const [rows] = await db.query(
     `SELECT p.id, p.slug, p.business_name, p.business_type, p.experience_years, p.logo_key,
             p.operating_hours, p.is_available, ${featured} AS featured,
@@ -89,17 +103,57 @@ export async function getListingPage({ cityId, categoryId, brandId = null, page 
        LEFT JOIN (SELECT partner_id, COUNT(*) AS jobs
                     FROM partner_leads WHERE status = 'completed' GROUP BY partner_id) wd ON wd.partner_id = p.id
       WHERE ${where}
-      ORDER BY ${featured} DESC,
+      ORDER BY ${directOrder} ${featured} DESC,
                (COALESCE(rv.avg_rating, 0) * COALESCE(rv.review_count, 0) + 4.0 * 2) / (COALESCE(rv.review_count, 0) + 2) DESC,
                COALESCE(wd.jobs, 0) DESC,
                COALESCE(rv.review_count, 0) DESC,
                (p.identity_verified_at IS NOT NULL) DESC, p.approved_at ASC, p.id ASC
       LIMIT ${size} OFFSET ${offset}`,
-    params
+    parentId ? [...params, cityId] : params
   );
 
   const items = await decorate(rows, categoryId);
   return { items, total, page: Math.floor(offset / size) + 1, pageSize: size, hasMore: offset + rows.length < total };
+}
+
+/**
+ * Parent city of a locality, or null. Only once migration 012 has cleaned the
+ * legacy "nearby city" rows (before that, Noida would wrongly pull in Agra's
+ * partners), so it is gated on city_parent_map.kind.
+ */
+async function parentCityOf(cityId) {
+  if (!(await hasColumn("city_parent_map", "kind"))) return null;
+  const [[m]] = await db.query("SELECT parent_city_id FROM city_parent_map WHERE city_id = ? LIMIT 1", [cityId]);
+  return m?.parent_city_id || null;
+}
+
+/**
+ * Partners shown on this exact page because they chose this city (city-wide)
+ * or this locality — the parent-city fallback is NOT counted. Used to noindex
+ * partner-created pages nobody serves any more.
+ */
+export async function countDirectPartners({ cityId, categoryId, brandId = null }) {
+  const locks = await locksReady();
+  const params = [categoryId, cityId, cityId];
+  let extra = "";
+  if (brandId) {
+    extra += ` AND EXISTS (SELECT 1 FROM partner_brands pb WHERE pb.partner_id = p.id AND pb.category_id = ? AND pb.brand_id = ?${locks ? " AND pb.badge_locked = 0" : ""})`;
+    params.push(categoryId, brandId);
+  }
+  if (locks) {
+    extra += " AND EXISTS (SELECT 1 FROM partner_categories pc WHERE pc.partner_id = p.id AND pc.category_id = ? AND pc.badge_locked = 0)";
+    params.push(categoryId);
+  }
+  const [[{ n }]] = await db.query(
+    `SELECT COUNT(*) AS n FROM partners p
+      WHERE ${PUBLIC_WHERE}
+        AND EXISTS (SELECT 1 FROM partner_services ps WHERE ps.partner_id = p.id AND ps.category_id = ?)
+        AND EXISTS (SELECT 1 FROM partner_service_areas a
+                     WHERE a.partner_id = p.id${locks ? " AND a.badge_locked = 0" : ""}
+                       AND ((a.city_id = ? AND a.locality_key = 0) OR a.locality_id = ?))${extra}`,
+    params
+  );
+  return Number(n) || 0;
 }
 
 async function decorate(rows, categoryId) {

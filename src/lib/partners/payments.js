@@ -10,6 +10,7 @@ import { notifyPartner } from "@/lib/partners/notify";
 import { easebuzzMode, initiatePayment } from "@/lib/partners/easebuzz";
 import { BADGE_PERIOD, BADGE_NAME, creditBadgePayment } from "@/lib/partners/badge";
 import { hasColumn } from "@/lib/partners/schema";
+import { queuePartnerPages } from "@/lib/partners/pages";
 
 const s = (v, n) => (v === undefined || v === null || v === "" ? null : String(v).slice(0, n));
 const FAIL_STATES = new Set(["failure", "failed", "usercancelled", "dropped", "bounced", "cancelled"]);
@@ -76,6 +77,8 @@ export async function settlePayment(paymentId, outcome, gateway = {}) {
     return row;
   });
   if (result && result.purpose === "badge") {
+    // Badge unlocks every area / category / brand → create their missing pages.
+    if (outcome === "success") queuePartnerPages(result.partner_id);
     const till = result.featured_until
       ? new Date(result.featured_until).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" })
       : "";

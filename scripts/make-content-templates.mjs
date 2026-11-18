@@ -160,10 +160,15 @@ const [brands] = await db.query(
     WHERE status = '1'
       AND brand_url IS NOT NULL AND brand_url <> ''`
 );
+// Imported localities (city_parent_map.kind = 'locality', migration 012) get
+// their pages through partners, not through these workbooks.
+const [kindCol] = await db.query("SHOW COLUMNS FROM city_parent_map LIKE 'kind'").catch(() => [[]]);
 const [cities] = await db.query(
   `SELECT id, city_name, LOWER(city_url) AS city_url, state
-     FROM city_tb
-    WHERE city_url IS NOT NULL AND city_url <> ''`
+     FROM city_tb c
+    WHERE city_url IS NOT NULL AND city_url <> ''${
+      kindCol.length ? " AND NOT EXISTS (SELECT 1 FROM city_parent_map lm WHERE lm.city_id = c.id AND lm.kind = 'locality')" : ""
+    }`
 );
 const [existing] = await db.query(
   `SELECT city_id, category_id, brand_id FROM page_master_tb`

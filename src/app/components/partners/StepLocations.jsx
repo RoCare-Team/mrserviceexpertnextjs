@@ -282,11 +282,50 @@ function CoverageCity({ g, primary, onPrimary, onChange, onRemove }) {
   const toggleLoc = (id) =>
     onChange({ localities: g.localities.includes(id) ? g.localities.filter((x) => x !== id) : [...g.localities, id] });
 
+  // Typing searches this city's localities; a known one is selected, only an
+  // unknown name becomes a request for the admin.
+  const [sugOpen, setSugOpen] = useState(false);
+  const [sugActive, setSugActive] = useState(0);
+  const typed = reqText.replace(/\s+/g, " ").trim().toLowerCase();
+  const suggestions = typed
+    ? (locs.data || [])
+        .filter((l) => !g.localities.includes(l.id) && l.name.toLowerCase().includes(typed))
+        .sort((a, b) => a.name.toLowerCase().indexOf(typed) - b.name.toLowerCase().indexOf(typed))
+        .slice(0, 8)
+    : [];
+  const exact = (locs.data || []).find((l) => l.name.toLowerCase() === typed);
+
+  const pickLocality = (l) => {
+    if (!g.localities.includes(l.id)) onChange({ localities: [...g.localities, l.id] });
+    setReqText("");
+    setSugOpen(false);
+  };
+
   const addRequest = () => {
     const name = reqText.replace(/\s+/g, " ").trim();
-    if (!name || g.requests.some((r) => r.toLowerCase() === name.toLowerCase())) return;
+    if (!name) return;
+    if (exact) return pickLocality(exact); // it's already in our list — just select it
+    if (g.requests.some((r) => r.toLowerCase() === name.toLowerCase())) return;
     onChange({ requests: [...g.requests, name] });
     setReqText("");
+    setSugOpen(false);
+  };
+
+  const onReqKey = (e) => {
+    if (e.key === "ArrowDown" && suggestions.length) {
+      e.preventDefault();
+      setSugOpen(true);
+      setSugActive((i) => Math.min(i + 1, suggestions.length - 1));
+    } else if (e.key === "ArrowUp" && suggestions.length) {
+      e.preventDefault();
+      setSugActive((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (sugOpen && suggestions[sugActive]) pickLocality(suggestions[sugActive]);
+      else addRequest();
+    } else if (e.key === "Escape") {
+      setSugOpen(false);
+    }
   };
 
   return (
@@ -333,21 +372,57 @@ function CoverageCity({ g, primary, onPrimary, onChange, onRemove }) {
       )}
 
       <div className="mt-3">
-        <p className="text-xs text-[var(--muted)]">Locality not listed? Request it — our team will review and add it.</p>
-        <div className="mt-1 flex max-w-md gap-2">
-          <label htmlFor={`req-${g.city_id}`} className="sr-only">Request a locality in {g.city_name}</label>
+        <p className="text-xs text-[var(--muted)]">
+          {hasLocalities
+            ? "Search a locality to add it. Not in the list? Press + to request it — our team will review and add it."
+            : "Locality not listed? Request it — our team will review and add it."}
+        </p>
+        <div className="relative mt-1 flex max-w-md gap-2">
+          <label htmlFor={`req-${g.city_id}`} className="sr-only">Search or request a locality in {g.city_name}</label>
           <input
             id={`req-${g.city_id}`}
             className={inputCls}
             value={reqText}
             maxLength={120}
-            placeholder="Locality name"
-            onChange={(e) => setReqText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addRequest())}
+            placeholder={hasLocalities ? `Search localities in ${g.city_name}` : "Locality name"}
+            autoComplete="off"
+            role="combobox"
+            aria-expanded={sugOpen && suggestions.length > 0}
+            aria-controls={`req-list-${g.city_id}`}
+            aria-autocomplete="list"
+            onChange={(e) => {
+              setReqText(e.target.value);
+              setSugOpen(true);
+              setSugActive(0);
+            }}
+            onFocus={() => setSugOpen(true)}
+            onBlur={() => setTimeout(() => setSugOpen(false), 150)}
+            onKeyDown={onReqKey}
           />
-          <button type="button" className={btnGhost} onClick={addRequest} aria-label="Add locality request">
+          <button type="button" className={btnGhost} onClick={addRequest} aria-label={exact ? `Add ${exact.name}` : "Request this locality"}>
             <Plus className="h-4 w-4" />
           </button>
+          {sugOpen && suggestions.length > 0 && (
+            <ul
+              id={`req-list-${g.city_id}`}
+              role="listbox"
+              className="absolute left-0 right-14 top-full z-20 mt-1 max-h-64 overflow-auto rounded-xl border border-[var(--line)] bg-white py-1 shadow-lg"
+            >
+              {suggestions.map((l, i) => (
+                <li
+                  key={l.id}
+                  role="option"
+                  aria-selected={i === sugActive}
+                  onMouseDown={(e) => (e.preventDefault(), pickLocality(l))}
+                  onMouseEnter={() => setSugActive(i)}
+                  className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${i === sugActive ? "bg-purple-50 text-purple-800" : "text-[var(--ink-soft)]"}`}
+                >
+                  <MapPin className="h-3.5 w-3.5 text-purple-500" aria-hidden="true" />
+                  {l.name}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         {g.requests.length > 0 && (
           <ul className="mt-2 flex flex-wrap gap-2">

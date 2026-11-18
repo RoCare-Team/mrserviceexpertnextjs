@@ -1,4 +1,5 @@
 import db from "@/lib/db";
+import { hideGeneratedSql } from "@/lib/localities";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,8 @@ export async function GET(request) {
       ? [city.toLowerCase(), city.toLowerCase()]
       : [state.toLowerCase()];
 
+    // Partner-made pages are not part of this list (unchanged behaviour).
+    const hideGen = await hideGeneratedSql("m");
     const [rows] = await db.query(
       `SELECT DISTINCT ci.city_url, c.id AS category_id, c.category_url,
               m.meta_keywords
@@ -39,7 +42,7 @@ export async function GET(request) {
          JOIN city_tb ci ON ci.id = m.city_id
          JOIN category_tb c ON c.id = m.category_id
         WHERE ${where}
-          AND m.robots <> 'noindex'
+          AND m.robots <> 'noindex'${hideGen}
           AND c.status = '1'
           AND c.id IN (?)
           AND ci.city_url IS NOT NULL AND ci.city_url <> ''
