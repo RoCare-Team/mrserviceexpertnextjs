@@ -176,7 +176,7 @@ export default function StepReview({ app, onJump, onBack, onSubmitted, onError }
 
       <div className="mt-7 flex flex-col-reverse gap-3 border-t border-[var(--line)] pt-5 sm:flex-row sm:justify-between">
         <button type="button" className={btnGhost} onClick={onBack} disabled={busy}>Back</button>
-        <button type="button" className={btnPrimary} onClick={submit} disabled={busy || !app.completion.ready || (app.plan?.needs_badge && !app.plan?.badge_ok)}>
+        <button type="button" className={btnPrimary} onClick={submit} disabled={busy || !app.completion.ready}>
           {busy && <Loader2 className="h-4 w-4 animate-spin" />} Submit application
         </button>
       </div>

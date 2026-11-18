@@ -570,9 +570,9 @@ export async function submitApplication(partnerId, { consents, ip, userAgent }) 
   if (!app.completion.ready) {
     throw new HttpError(422, "incomplete", "Your application is incomplete.", { steps: app.completion.missing });
   }
-  if (app.plan.needs_badge && !app.plan.badge_ok) {
-    throw new HttpError(402, "badge_required", `Your selection is above the free plan (${app.plan.over.join(", ")}). Get the ${BADGE_NAME} badge to submit, or reduce your selection.`);
-  }
+  // Above the free plan without a badge is allowed: the extras are saved but
+  // locked (badge_locked = 1, hidden from listings, leads and page creation)
+  // and unlock the moment the badge is paid (syncBadgeLocks).
 
   return withTransaction(async (conn) => {
     const p = await lockPartner(conn, partnerId);
@@ -586,6 +586,7 @@ export async function submitApplication(partnerId, { consents, ip, userAgent }) 
     await conn.query("INSERT INTO partner_consents (partner_id, consent_type, version, ip, user_agent) VALUES ?", [
       ["terms", "privacy", "public_display"].map((t) => [partnerId, t, CONSENT_VERSION, ip || "", ua]),
     ]);
+    await syncBadgeLocks(conn, partnerId);
     await conn.query(
       `UPDATE partners SET status = 'pending', is_listed = 0, submitted_at = NOW(), current_step = 7,
               version = version + 1 WHERE id = ?`,
