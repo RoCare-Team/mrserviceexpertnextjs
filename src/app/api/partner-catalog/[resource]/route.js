@@ -7,6 +7,7 @@ import {
   getStates,
   searchCities,
   getLocalities,
+  lookupPincode,
 } from "@/lib/partners/catalog";
 import { idList as parseIds } from "@/lib/partners/validation";
 
@@ -29,6 +30,7 @@ const idsFrom = (sp) => parseIds(String(sp.get("categoryIds") || sp.get("categor
  * GET /api/partner-catalog/states
  * GET /api/partner-catalog/cities?q=gur&stateId=13
  * GET /api/partner-catalog/localities?cityId=316
+ * GET /api/partner-catalog/pincode?pin=122017   → { state_id, city_id, … } | null
  */
 export const GET = handle(async (req, ctx) => {
   const { resource } = await ctx.params;
@@ -55,6 +57,12 @@ export const GET = handle(async (req, ctx) => {
       const cityId = toInt(sp.get("cityId"));
       if (!cityId) return fail(422, "validation_error", "cityId is required.");
       return cached(await getLocalities(cityId));
+    }
+    case "pincode": {
+      rateLimit(`pincode:${clientIp(req)}`, 60, 60_000);
+      const pin = String(sp.get("pin") || "").trim();
+      if (!/^[1-9]\d{5}$/.test(pin)) return fail(422, "validation_error", "Enter a valid 6-digit pincode.");
+      return cached(await lookupPincode(pin));
     }
     default:
       return fail(404, "not_found", "Unknown catalogue resource.");

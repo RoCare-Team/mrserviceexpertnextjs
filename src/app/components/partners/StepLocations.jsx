@@ -128,6 +128,30 @@ export default function StepLocations({ app, onSave, onBack, submitLabel }) {
   const [err, setErr] = useState(null);
 
   const setA = (k) => (e) => setAddr((s) => ({ ...s, [k]: e.target.value }));
+
+  // 6-digit pincode → fill state and city (same lookup as the booking popup).
+  const [pinMsg, setPinMsg] = useState(null);
+  const [pinBusy, setPinBusy] = useState(false);
+  const pinSeq = useRef(0);
+  const onPin = async (e) => {
+    const pin = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setAddr((s) => ({ ...s, pincode: pin }));
+    setPinMsg(null);
+    const seq = ++pinSeq.current;
+    if (!/^[1-9]\d{5}$/.test(pin)) return setPinBusy(false);
+    setPinBusy(true);
+    const r = await partnerApi(`/api/partner-catalog/pincode?pin=${pin}`);
+    if (seq !== pinSeq.current) return;
+    setPinBusy(false);
+    const d = r.ok ? r.data : null;
+    if (!d) return setPinMsg({ ok: false, text: "Couldn't find this pincode — please choose the state and city yourself." });
+    setAddr((s) => ({ ...s, state_id: d.state_id, city_id: d.city_id || "", city_name: d.city || "" }));
+    setPinMsg(
+      d.city_id
+        ? { ok: true, text: `${d.city}, ${d.state} filled from pincode.` }
+        : { ok: true, text: `State set to ${d.state}. Please search and pick your city.` }
+    );
+  };
   const update = (cityId, patch) => setCov((list) => list.map((g) => (g.city_id === cityId ? { ...g, ...patch } : g)));
 
   const addCity = (c) => {
@@ -185,6 +209,27 @@ export default function StepLocations({ app, onSave, onBack, submitLabel }) {
             <input id="a-line" className={inputCls} value={addr.line} onChange={setA("line")} maxLength={255} aria-invalid={!!fe["address.line"]} />
             <FieldError msg={fe["address.line"]} />
           </div>
+          <div className="sm:col-span-2 sm:max-w-[calc(50%-0.5rem)]">
+            <label htmlFor="a-pin" className={labelCls}>Pincode *</label>
+            <div className="relative">
+              <input
+                id="a-pin"
+                className={inputCls}
+                inputMode="numeric"
+                autoComplete="postal-code"
+                placeholder="6-digit pincode"
+                value={addr.pincode}
+                onChange={onPin}
+                aria-invalid={!!fe["address.pincode"]}
+                aria-describedby="a-pin-msg"
+              />
+              {pinBusy && <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[var(--muted)]" aria-hidden="true" />}
+            </div>
+            <p id="a-pin-msg" aria-live="polite" className={`mt-1 text-xs ${pinMsg ? (pinMsg.ok ? "text-emerald-700" : "text-amber-700") : "text-[var(--muted)]"}`}>
+              {pinMsg ? pinMsg.text : "State and city fill in automatically from the pincode."}
+            </p>
+            <FieldError msg={fe["address.pincode"]} />
+          </div>
           <div>
             <label htmlFor="a-state" className={labelCls}>State *</label>
             <select
@@ -226,11 +271,6 @@ export default function StepLocations({ app, onSave, onBack, submitLabel }) {
             <label htmlFor="a-loc" className={labelCls}>Locality / area</label>
             <input id="a-loc" className={inputCls} value={addr.locality} onChange={setA("locality")} maxLength={150} placeholder="e.g. Badshahpur" />
             <FieldError msg={fe["address.locality"]} />
-          </div>
-          <div>
-            <label htmlFor="a-pin" className={labelCls}>Pincode *</label>
-            <input id="a-pin" className={inputCls} inputMode="numeric" value={addr.pincode} onChange={(e) => setAddr((s) => ({ ...s, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) }))} aria-invalid={!!fe["address.pincode"]} />
-            <FieldError msg={fe["address.pincode"]} />
           </div>
         </div>
         <p className="mt-2 text-xs text-[var(--muted)]">

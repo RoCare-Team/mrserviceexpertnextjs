@@ -1,6 +1,8 @@
 import db from "@/lib/db";
 import { ok, handle, requireAdmin, readJson, toInt, HttpError } from "@/lib/partners/http";
 import { withTransaction, logHistory } from "@/lib/partners/application";
+import { syncBadgeLocks } from "@/lib/partners/badge";
+import { queuePartnerPages } from "@/lib/partners/pages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -98,7 +100,7 @@ export const PATCH = handle(async (req) => {
   const requestId = toInt(body.request_id);
   if (!requestId || !["map", "reject"].includes(body.action)) throw new HttpError(422, "validation_error", "Invalid request.");
 
-  return withTransaction(async (conn) => {
+  const mappedFor = await withTransaction(async (conn) => {
     const [[r]] = await conn.query("SELECT * FROM partner_location_requests WHERE id = ? FOR UPDATE", [requestId]);
     if (!r || r.status !== "pending") throw new HttpError(404, "not_found", "Request not found or already handled.");
 
@@ -107,7 +109,7 @@ export const PATCH = handle(async (req) => {
         "UPDATE partner_location_requests SET status = 'rejected', resolved_by = ?, resolved_at = NOW() WHERE id = ?",
         [admin.id, requestId]
       );
-      return ok(null);
+      return null;
     }
 
     const localityId = toInt(body.locality_id);
@@ -130,6 +132,11 @@ export const PATCH = handle(async (req) => {
       actorType: "admin",
       actorId: admin.id,
     });
-    return ok(null);
+    // The new area row follows the free-plan limits like any other area.
+    await syncBadgeLocks(conn, r.partner_id);
+    return r.partner_id;
   });
+  // Create the missing pages for the new locality (no-op unless the partner is public).
+  if (mappedFor) queuePartnerPages(mappedFor);
+  return ok(null);
 });

@@ -861,7 +861,21 @@ function cleanPayload(raw = {}) {
 }
 
 export async function submitChangeRequest(partnerId, raw) {
-  const payload = cleanPayload(raw);
+  let payload = cleanPayload(raw);
+  // A new request replaces the pending one, so keep the parts of the pending
+  // request this one doesn't touch (e.g. a name-only change must not drop a
+  // pending categories / brands change).
+  const [[prev]] = await db.query(
+    "SELECT payload FROM partner_change_requests WHERE partner_id = ? AND status = 'pending' ORDER BY id DESC LIMIT 1",
+    [partnerId]
+  );
+  if (prev) {
+    try {
+      const old = typeof prev.payload === "string" ? JSON.parse(prev.payload) : prev.payload || {};
+      if (payload.category_ids) for (const k of ["category_ids", "services", "brands"]) delete old[k];
+      payload = { ...old, ...payload };
+    } catch {}
+  }
   await dryRun(partnerId, payload);
   await withTransaction(async (conn) => {
     await conn.query("UPDATE partner_change_requests SET status = 'superseded' WHERE partner_id = ? AND status = 'pending'", [partnerId]);

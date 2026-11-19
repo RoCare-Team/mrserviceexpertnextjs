@@ -82,6 +82,75 @@ export async function searchCities({ q = "", stateId = null, limit = 20 } = {}) 
   return rows;
 }
 
+const PINCODE_API = "https://inet.waterpurifierservicecenter.in/include/ajax/get_city_with_pincode.php";
+const norm = (s) => String(s || "").toUpperCase().replace(/&/g, "AND").replace(/[^A-Z0-9]+/g, " ").trim();
+// Old state names the lookup service still returns → names in our states table.
+const STATE_ALIASES = {
+  ORISSA: "ODISHA",
+  PONDICHERRY: "PUDUCHERRY",
+  UTTARANCHAL: "UTTARAKHAND",
+  CHATTISGARH: "CHHATTISGARH",
+  CHHATISGARH: "CHHATTISGARH",
+  "NEW DELHI": "DELHI",
+  "NCT OF DELHI": "DELHI",
+};
+
+/**
+ * Pincode → { state_id, state, city_id, city } in OUR tables, using the same
+ * lookup service as the booking popup (its city ids belong to another DB, so
+ * state and city are matched here by name). city_id is null when the city
+ * isn't one of ours; null overall when the pincode is unknown.
+ */
+export async function lookupPincode(pin) {
+  if (!/^[1-9]\d{5}$/.test(String(pin))) return null;
+  let data = null;
+  try {
+    const res = await fetch(`${PINCODE_API}?pincode=${pin}`, { signal: AbortSignal.timeout(6000), cache: "no-store" });
+    data = await res.json();
+  } catch {}
+  // Fallback for pincodes the booking service doesn't know (Noida, Dehradun …): India Post.
+  if (!data?.state) {
+    try {
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pin}`, { signal: AbortSignal.timeout(6000), cache: "no-store" });
+      const office = (await res.json())?.[0]?.PostOffice?.[0];
+      data = office?.State ? { state: office.State, city: office.District } : null;
+    } catch {
+      data = null;
+    }
+  }
+  if (!data?.state) return null;
+
+  const [states] = await db.query("SELECT id, name FROM states");
+  const st =
+    states.find((s) => norm(s.name) === norm(data.state)) ||
+    states.find((s) => norm(s.name) === STATE_ALIASES[norm(data.state)]);
+  if (!st) return null;
+  // city_tb.state sometimes keeps an old spelling (Raipur → "CHATTISGARH").
+  const stateNames = [norm(st.name), ...Object.keys(STATE_ALIASES).filter((k) => STATE_ALIASES[k] === norm(st.name))];
+
+  let city = null;
+  const raw = norm(data.city);
+  if (raw) {
+    // Top-level cities of that state; localities are picked under their city.
+    const [rows] = await db.query(
+      `SELECT c.id, c.city_name AS name, LOWER(c.city_url) AS url, SOUNDEX(c.city_name) = SOUNDEX(?) AS sounds
+         FROM city_tb c
+        WHERE c.status = '1' AND c.city_url <> ''
+          AND NOT EXISTS (SELECT 1 FROM city_parent_map m WHERE m.city_id = c.id)
+          AND UPPER(REPLACE(c.state, '&', 'AND')) IN (?)
+        ORDER BY c.id`,
+      [raw, stateNames]
+    );
+    const slug = raw.toLowerCase().replace(/ /g, "-");
+    city =
+      rows.find((c) => norm(c.name) === raw || c.url === slug) || // exact
+      rows.filter((c) => (` ${raw} `).includes(` ${norm(c.name)} `)).sort((a, b) => b.name.length - a.name.length)[0] || // "Central Delhi" → Delhi
+      (rows.filter((c) => c.sounds).length === 1 ? rows.find((c) => c.sounds) : null) || // "Khorda" → Khordha (only if unambiguous)
+      null;
+  }
+  return { state_id: st.id, state: st.name, city_id: city?.id || null, city: city?.name || null, raw_city: data.city || null };
+}
+
 export async function getLocalities(cityId) {
   const [rows] = await db.query(
     `SELECT c.id, c.city_name AS name

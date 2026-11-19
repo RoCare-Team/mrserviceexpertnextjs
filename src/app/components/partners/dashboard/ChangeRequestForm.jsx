@@ -70,7 +70,8 @@ export default function ChangeRequestForm({ app, onDone, onCancel }) {
     const r = await partnerApi("/api/partners/me/change-requests", {
       method: "POST",
       body: {
-        ...f,
+        // Identity fields only when changed, so a pending name change isn't undone.
+        ...Object.fromEntries(Object.entries(f).filter(([k, v]) => String(v || "").trim() !== String(app.business[k] || "").trim())),
         category_ids: cats,
         services: Object.fromEntries(cats.map((c) => [c, (svc[c] || []).filter((id) => (svcByCat[c] || []).some((s) => s.id === id))])),
         brands: Object.fromEntries(cats.map((c) => [c, { brand_ids: brands[c] || [], other: null }])),
