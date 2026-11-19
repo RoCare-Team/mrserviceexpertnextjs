@@ -7,7 +7,7 @@ import { cardCls, inputCls, labelCls, btnPrimary, btnGhost, FieldError, Category
 import { ImageField, Documents } from "../StepBusiness";
 import StepLocations from "../StepLocations";
 import ChangeRequestForm from "./ChangeRequestForm";
-import { BUSINESS_TYPES } from "@/lib/partners/validation";
+import { BUSINESS_TYPES, validGstin } from "@/lib/partners/validation";
 
 function Section({ title, hint, children }) {
   return (
@@ -16,6 +16,90 @@ function Section({ title, hint, children }) {
       {hint && <p className="mb-4 mt-0.5 text-sm text-[var(--muted)]">{hint}</p>}
       {children}
     </section>
+  );
+}
+
+/** Name / business type / GSTIN — sent as a change request (admin approves). */
+function NameChange({ app, pending, onSent }) {
+  const b = app.business;
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ business_type: b.business_type || "", business_name: b.business_name || "", gstin: b.gstin || "" });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState(null);
+  const [sent, setSent] = useState(false);
+  const pendingName = pending?.payload?.business_name;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    const fields = {};
+    if (!f.business_type) fields.business_type = "Choose a business type.";
+    if (f.business_name.trim().length < 2) fields.business_name = "Name is required.";
+    const g = validGstin(f.gstin);
+    if (g.error) fields.gstin = g.error;
+    const changed = Object.fromEntries(Object.entries(f).filter(([k, v]) => String(v || "").trim() !== String(b[k] || "").trim()));
+    if (!Object.keys(fields).length && !Object.keys(changed).length) fields.business_name = "Nothing changed.";
+    if (Object.keys(fields).length) return setErr({ fields });
+    setBusy(true);
+    setErr(null);
+    const r = await partnerApi("/api/partners/me/change-requests", { method: "POST", body: changed });
+    setBusy(false);
+    if (!r.ok) return setErr(r.error);
+    setSent(true);
+    setOpen(false);
+    onSent(r.data);
+  };
+  const fe = err?.fields || {};
+
+  if (!open) {
+    return (
+      <div>
+        <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-3">
+          <div><dt className="text-[var(--muted)]">{b.business_type === "individual" ? "Technician name" : "Business / shop name"}</dt><dd className="font-medium">{b.business_name || "—"}</dd></div>
+          <div><dt className="text-[var(--muted)]">Business type</dt><dd className="font-medium">{BUSINESS_TYPES[b.business_type] || "—"}</dd></div>
+          <div><dt className="text-[var(--muted)]">GSTIN</dt><dd className="font-medium">{b.gstin || "—"}</dd></div>
+        </dl>
+        {(sent || pendingName) && (
+          <p className="mt-3 flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            <Clock3 className="h-4 w-4" /> {pendingName ? `New name “${pendingName}” is waiting for approval.` : "Your change is waiting for approval."}
+          </p>
+        )}
+        <button type="button" className={`${btnGhost} mt-3`} onClick={() => setOpen(true)}>Change name / business type</button>
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-3">
+      <fieldset>
+        <legend className={labelCls}>Business type</legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {Object.entries(BUSINESS_TYPES).map(([v, label]) => (
+            <label key={v} className={`flex min-h-11 cursor-pointer items-center justify-center rounded-xl border-2 px-2 text-center text-sm ${f.business_type === v ? "border-purple-600 bg-purple-50" : "border-[var(--line)]"}`}>
+              <input type="radio" className="sr-only" name="nm-type" checked={f.business_type === v} onChange={() => setF((s) => ({ ...s, business_type: v }))} />
+              {label}
+            </label>
+          ))}
+        </div>
+        <FieldError msg={fe.business_type} />
+      </fieldset>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="nm-name" className={labelCls}>{f.business_type === "individual" ? "Technician name" : "Business / shop name"}</label>
+          <input id="nm-name" className={inputCls} maxLength={150} value={f.business_name} onChange={(e) => setF((s) => ({ ...s, business_name: e.target.value }))} />
+          <FieldError msg={fe.business_name} />
+        </div>
+        <div>
+          <label htmlFor="nm-gst" className={labelCls}>GSTIN (optional)</label>
+          <input id="nm-gst" className={`${inputCls} uppercase`} maxLength={15} value={f.gstin} onChange={(e) => setF((s) => ({ ...s, gstin: e.target.value }))} />
+          <FieldError msg={fe.gstin} />
+        </div>
+      </div>
+      {err && !err.fields && <FieldError msg={err.message} />}
+      <div className="flex gap-2">
+        <button type="submit" className={btnPrimary} disabled={busy}>{busy && <Loader2 className="h-4 w-4 animate-spin" />} Send for approval</button>
+        <button type="button" className={btnGhost} onClick={() => setOpen(false)}>Cancel</button>
+      </div>
+    </form>
   );
 }
 
@@ -264,6 +348,10 @@ export default function ProfileTab({ app, setApp }) {
             )}
           </div>
         )}
+      </Section>
+
+      <Section title="Name & business type (needs approval)" hint="Your profile keeps the current name until our team approves the change.">
+        <NameChange app={app} pending={pending} onSent={setRequests} />
       </Section>
 
       <Section title="Details (update instantly)" hint="These changes appear on your profile right away.">
