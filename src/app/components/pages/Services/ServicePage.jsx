@@ -15,6 +15,8 @@ import { Container, Section, ServiceHero, TwoThirds, Card, CardTitle, Faq, LinkC
 import { serviceGroupFor } from "@/lib/homeCare";
 import { schemasFor, faqItemsFor } from "./serviceSchemas";
 
+const SITE_URL = "https://www.mrserviceexpert.com";
+
 /**
  * /{city}/{cat} — e.g. /delhi/ac. Hero, then the bookable services in the
  * 2/3 column with the cart + approved partners sticky in the 1/3 column.
@@ -57,7 +59,16 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
     : `Same-day doorstep ${catName} repair, installation and maintenance in ${cityName}. Genuine spare parts, upfront prices and a service warranty on every job.`;
 
   const aiContentHeading = `${(pagedata?.category_name || cat?.replace(/-/g, " ") || "").replace(/\s*services?\s*$/i, "").trim()} Service in ${cityName}`;
-  const schemas = schemasFor(city, cat);
+  // A locality only has the brand pages partners created, so its fixed brand
+  // list schema keeps just the brands whose page exists (no 404 URLs).
+  const liveBrandUrls = new Set((pagedata?.brands || []).map((b) => `${SITE_URL}/${city}/${String(b.brand_url).toLowerCase()}/${cat}`));
+  const schemas = schemasFor(city, cat)
+    .map((s) => {
+      if (!pagedata?.is_locality || s["@type"] !== "BreadcrumbList") return s;
+      const items = s.itemListElement.filter((it) => liveBrandUrls.has(it.item));
+      return items.length ? { ...s, itemListElement: items.map((it, i) => ({ ...it, position: i + 1 })) } : null;
+    })
+    .filter(Boolean);
   const faqItems = faqItemsFor({ content: pagedata?.content, city: cityName, cat });
   const brands = (pagedata?.brands || []).map((b) => ({
     href: `/${city}/${b.brand_url}/${cat}`,
