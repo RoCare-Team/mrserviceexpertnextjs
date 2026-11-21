@@ -90,12 +90,16 @@ export function Breadcrumbs({ items, className = "" }) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: list.map((c, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      name: c.label,
-      ...(c.href ? { item: `${SITE}${c.href}` } : {}),
-    })),
+    // Google needs "item" on every entry except the last, so an unlinked middle
+    // crumb (e.g. a locality, which has no page of its own) is left out here.
+    itemListElement: list
+      .filter((c, i) => c.href || i === list.length - 1)
+      .map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.label,
+        ...(c.href ? { item: `${SITE}${c.href}` } : {}),
+      })),
   };
   return (
     <nav aria-label="Breadcrumb" className={`min-w-0 ${className}`}>

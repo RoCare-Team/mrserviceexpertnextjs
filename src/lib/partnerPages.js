@@ -66,8 +66,11 @@ async function insertPage(conn, table, keys, page, extra = {}) {
  * saying whether each already exists. Read-only.
  */
 export async function planPartnerPages(conn, partnerId) {
-  const locks = await columnExists(conn, "partner_service_areas", "badge_locked");
-  const unlocked = (a) => (locks ? ` AND ${a}.badge_locked = 0` : "");
+  // Pages are made for EVERYTHING the partner selected, including items above
+  // the free plan (badge_locked = 1). Whether the partner is SHOWN on a page is
+  // decided at render time by the locks (listing.js, pageRobots, sitemap), so a
+  // badge bought later lights the partner up on pages that already exist.
+  const unlocked = () => "";
 
   const [[p]] = await conn.query(
     `SELECT id FROM partners
