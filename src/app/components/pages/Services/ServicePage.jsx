@@ -11,6 +11,7 @@ import AiContent from "@/app/components/aiContent/AiContent";
 import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import PopularCities from "@/app/components/popularCities/PopularCities";
 import LeadPopup from "@/app/components/public/LeadPopup";
+import LeadFormCard from "@/app/components/public/LeadFormCard";
 import { Container, Section, ServiceHero, TwoThirds, Card, CardTitle, Faq, LinkCloud } from "@/app/components/public/ui";
 import { serviceGroupFor } from "@/lib/homeCare";
 import { schemasFor, faqItemsFor } from "./serviceSchemas";
@@ -151,22 +152,25 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
 
       {children}
 
+      {/* FAQ + main content (3/5) beside the static booking form (2/5). */}
       <Container>
         <Section>
-          <Faq title="Frequently asked questions" subtitle={`Everything about ${catName} service in ${cityName}`} items={faqItems} />
+          <TwoThirds
+            main={
+              <div className="flex flex-col gap-6">
+                <Faq title="Frequently asked questions" subtitle={`Everything about ${catName} service in ${cityName}`} items={faqItems} />
+                {!hideAbout && pagedata?.content?.page_content && (
+                  <Card className="p-5 sm:p-7">
+                    <CardTitle icon={Info} title={`About ${catName} service in ${cityName}`} />
+                    <CollapsibleHtml html={pagedata.content.page_content} className="prose-site" />
+                  </Card>
+                )}
+              </div>
+            }
+            aside={<LeadFormCard />}
+          />
         </Section>
       </Container>
-
-      {!hideAbout && pagedata?.content?.page_content && (
-        <Container>
-          <Section className="!pt-0">
-            <Card className="p-5 sm:p-7">
-              <CardTitle icon={Info} title={`About ${catName} service in ${cityName}`} />
-              <CollapsibleHtml html={pagedata.content.page_content} className="prose-site" />
-            </Card>
-          </Section>
-        </Container>
-      )}
 
       <Container>
           <Section className="!pt-0 flex flex-col gap-4">
