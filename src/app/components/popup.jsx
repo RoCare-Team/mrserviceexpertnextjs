@@ -4,7 +4,9 @@ import { Camera, Clock, MapPin, Phone, Mail, Home, CheckCircle2, ChevronDown, Ch
 import { toast } from 'react-toastify';
 import useServiceOverrides from '@/lib/useServiceOverrides';
 
-export default function ServiceRequestForm() {
+export default function ServiceRequestForm({ compact = false }) {
+    // compact = the static form in the page column (the modal stays as it was).
+    const idp = compact ? "static-" : "";
     const [currentStep, setCurrentStep] = useState('basic_details');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -599,7 +601,7 @@ export default function ServiceRequestForm() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-4 px-4">
+        <div className={compact ? "" : "min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-4 px-4"}>
             <div className="max-w-4xl mx-auto">
                 {/* Progress Bar */}
                 {!['otp_section', 'success_message_section'].includes(currentStep) && currentStep !== 'basic_details' && (
@@ -633,7 +635,7 @@ export default function ServiceRequestForm() {
                 )}
 
                 {/* Form Container */}
-                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
+                <div className={compact ? "bg-white overflow-hidden" : "bg-white rounded-2xl shadow-2xl overflow-hidden"}>
 
                     {/* Step 1: Basic Details */}
                     {currentStep === 'basic_details' && (
@@ -696,7 +698,7 @@ export default function ServiceRequestForm() {
                                 </label> */}
                                     <input
                                         type="text"
-                                        id="pincode"
+                                        id={`${idp}pincode`}
                                         value={formData.pincode}
                                         onChange={(e) => handleInputChange('pincode', e.target.value)}
                                         maxLength={6}
@@ -713,11 +715,11 @@ export default function ServiceRequestForm() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                                    <label htmlFor={`${idp}state`} className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                                         State *
                                     </label>
                                     <select
-                                        id="state"
+                                        id={`${idp}state`}
                                         value={formData.state}
                                         onChange={(e) => handleInputChange('state', e.target.value)}
                                         className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 text-sm sm:text-base"
@@ -732,11 +734,11 @@ export default function ServiceRequestForm() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+                                    <label htmlFor={`${idp}city`} className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                                         City *
                                     </label>
                                     <select
-                                        id="city"
+                                        id={`${idp}city`}
                                         value={formData.city}
                                         onChange={handleCityChange}
                                         className="w-full px-3 py-2 sm:px-4 sm:py-3 border-2 border-gray-200 rounded-lg sm:rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200 text-sm sm:text-base"
@@ -996,7 +998,7 @@ export default function ServiceRequestForm() {
                         <div className="p-6 space-y-6">
                             <h3 className="text-xl font-semibold text-gray-800 mb-4">Select Your Brand</h3>
 
-                            <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+                            <div className={compact ? "grid grid-cols-3 gap-3" : "grid grid-cols-2 md:grid-cols-6 gap-4"}>
                                 {(showAllBrands ? brands : brands.slice(0, 12)).map(brand => (
                                     <label
                                         key={brand.id}
