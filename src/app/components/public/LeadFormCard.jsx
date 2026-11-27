@@ -9,10 +9,7 @@ import Popup from "@/app/components/popup";
 export default function LeadFormCard() {
   return (
     <div id="book" className="overflow-hidden rounded-2xl border border-[var(--line,#e5e7eb)] bg-white shadow-sm">
-      <div className="p-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mrserviceexpertbanner.webp" alt="Mr. Service Expert offers" loading="lazy" className="h-[110px] w-full rounded-xl object-cover" />
-      </div>
+      <h2 className="px-6 pt-5 text-xl font-bold text-[var(--ink,#111827)]">Book Service</h2>
       <Popup compact />
     </div>
   );
