@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import { applyGatewayResult, checkWithGateway } from "@/lib/partners/payments";
+import { siteOrigin } from "@/lib/partners/http";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const siteOrigin = (req) => process.env.SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
 const back = async (req, result, payment) => {
   if (payment?.purpose === "badge") {
     // Bought while registering / under review → back to the form.

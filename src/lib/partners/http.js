@@ -82,6 +82,23 @@ export function assertSameOrigin(req) {
   if (host !== expected) throw new HttpError(403, "forbidden", "Cross-site request blocked.");
 }
 
+/**
+ * Public origin for absolute URLs we hand out (payment return URL, redirects).
+ * On cPanel the app runs behind Passenger, so req.url says http://localhost:3000
+ * — use SITE_URL, else the Host the browser sent, else the live domain.
+ */
+const LIVE_ORIGIN = "https://www.mrserviceexpert.com";
+export function siteOrigin(req) {
+  const env = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  if (env) return env.replace(/\/$/, "");
+  const host = (req.headers.get("x-forwarded-host") || req.headers.get("host") || "").split(",")[0].trim();
+  if (/^[a-z0-9.-]+(:\d+)?$/i.test(host)) {
+    const local = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host);
+    return `${local ? "http" : "https"}://${host}`;
+  }
+  return LIVE_ORIGIN;
+}
+
 export function clientIp(req) {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0].trim().slice(0, 45);
