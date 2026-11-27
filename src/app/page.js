@@ -123,7 +123,7 @@ export default function Home() {
                 Fast, Trusted Home Appliance Service <span className="text-purple-700">at Your Doorstep</span>
               </h1>
               <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[var(--body-text)] sm:text-[17px]">
-                Mr. Service Expert sends verified technicians for RO, AC, washing machine, refrigerator, geyser and every other home appliance — same day, with genuine parts and upfront prices.
+                Mr. Service Expert provides reliable home appliance repair and maintenance services through expert technicians for RO water purifiers, air conditioners, washing machines, refrigerators, geysers, and other household appliances. Get convenient doorstep service, prompt assistance, genuine spare parts, and transparent pricing to keep your appliances running efficiently.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <a href="#appliances" className={btnPrimary}>
@@ -152,7 +152,7 @@ export default function Home() {
             <div className="relative">
               <div className="overflow-hidden rounded-3xl border border-[var(--line)] bg-[var(--surface-soft)] shadow-[var(--shadow-lg)]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/assets/images/homeBanner.webp" alt="Mr. Service Expert technician at a customer's home" title="Our Services" width={600} height={450} loading="eager" className="h-auto w-full object-cover" />
+                <img src="/assets/images/hero-section.webp" alt="Mr. Service Expert technician at a customer's home" title="Our Services" width={600} height={450} loading="eager" className="h-auto w-full object-cover" />
               </div>
               <div className="absolute -bottom-3 left-4 hidden items-center gap-2 rounded-2xl border border-[var(--line)] bg-white px-3.5 py-2 shadow-[var(--shadow-md)] sm:flex">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
