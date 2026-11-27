@@ -1,4 +1,4 @@
-import { ok, handle, readJson, assertSameOrigin, rateLimit, HttpError } from "@/lib/partners/http";
+import { ok, handle, readJson, assertSameOrigin, rateLimit, HttpError, siteOrigin } from "@/lib/partners/http";
 import { requirePartner } from "@/lib/partners/auth";
 import { MIN_RECHARGE, MAX_RECHARGE } from "@/lib/partners/wallet";
 import { validEmail } from "@/lib/partners/validation";
@@ -7,7 +7,6 @@ import { startGatewayPayment } from "@/lib/partners/payments";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const siteOrigin = (req) => process.env.SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
 
 /** { amount, email } → { payUrl } (Easebuzz hosted checkout). */
 export const POST = handle(async (req) => {

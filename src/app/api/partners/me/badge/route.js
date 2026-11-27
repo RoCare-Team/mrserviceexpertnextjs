@@ -1,4 +1,4 @@
-import { ok, handle, readJson, assertSameOrigin, rateLimit, HttpError } from "@/lib/partners/http";
+import { ok, handle, readJson, assertSameOrigin, rateLimit, HttpError, siteOrigin } from "@/lib/partners/http";
 import { requirePartner } from "@/lib/partners/auth";
 import { validEmail } from "@/lib/partners/validation";
 import { startGatewayPayment } from "@/lib/partners/payments";
@@ -7,7 +7,6 @@ import { BADGE_PERIOD, BADGE_NAME, badgePrice, lockedItems, chooseActive } from 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const siteOrigin = (req) => process.env.SITE_URL?.replace(/\/$/, "") || new URL(req.url).origin;
 
 /** Buy / renew the Featured Partner badge (also during registration): { email } → { payUrl }. Price is fixed server-side. */
 export const POST = handle(async (req) => {
