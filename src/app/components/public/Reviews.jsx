@@ -1,6 +1,6 @@
 import { Star, Quote, BadgeCheck } from "lucide-react";
 import { SectionHeader, SITE } from "./ui";
-import Scroller, { itemCls } from "./Scroller";
+import Scroller from "./Scroller";
 
 /**
  * Review cards. Used by the homepage testimonials (static list) and by the
@@ -33,7 +33,7 @@ function ReviewGrid({ reviews }) {
   return (
       <Scroller label="Reviews">
         {reviews.map((r, i) => (
-          <li key={i} className={`${itemCls} flex flex-col rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[var(--shadow-sm)]`}>
+          <li key={i} className={`pub-scroll-item flex flex-col rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[var(--shadow-sm)]`}>
             <div className="flex items-center justify-between gap-2">
               <span className="flex gap-0.5" aria-label={`Rated ${r.rating} out of 5`}>
                 {[1, 2, 3, 4, 5].map((n) => (
