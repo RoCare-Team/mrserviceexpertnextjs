@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Home,
   LayoutGrid,
+  Info,
   Users,
   LogIn,
   LogOut,
@@ -229,6 +230,14 @@ export default function Header() {
                       </div>
                     ))}
                   </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-[var(--line)] pt-3 px-2">
+                    <Link href="/our-services" onClick={() => setServicesOpen(false)} className="text-[13.5px] font-semibold text-purple-700 hover:text-purple-900">
+                      View all services →
+                    </Link>
+                    <Link href="/about-us" onClick={() => setServicesOpen(false)} className="text-[13px] font-medium text-[var(--ink-soft)] hover:text-purple-800">
+                      About us
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>
@@ -341,6 +350,16 @@ export default function Header() {
                 <li>
                   <Link href="/" className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
                     <Home className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> Home
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/our-services" className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
+                    <LayoutGrid className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> All services
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/about-us" className="flex items-center gap-3 rounded-xl px-2 py-2.5 text-[15px] font-semibold text-[var(--ink)] hover:bg-purple-50">
+                    <Info className="h-4.5 w-4.5 text-purple-600" aria-hidden="true" /> About us
                   </Link>
                 </li>
               </ul>

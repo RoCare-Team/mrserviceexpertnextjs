@@ -12,6 +12,7 @@ import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import PopularCities from "@/app/components/popularCities/PopularCities";
 import LeadPopup from "@/app/components/public/LeadPopup";
 import LeadFormCard from "@/app/components/public/LeadFormCard";
+import { ReviewCards, reviewSchema } from "@/app/components/public/Reviews";
 import { Container, Section, ServiceHero, TwoThirds, Card, CardTitle, Faq, LinkCloud } from "@/app/components/public/ui";
 import { faqItemsFor } from "./serviceSchemas";
 
@@ -20,7 +21,7 @@ import { faqItemsFor } from "./serviceSchemas";
  * the city+category page: hero, services (2/3) + sticky cart & partners (1/3),
  * FAQ, about copy and the brand / city / category link clouds.
  */
-export default function ServicePage({ city, brand, cat, pagedata, aiContent, partnerSection = null, partnerSidebar = null }) {
+export default function ServicePage({ city, brand, cat, pagedata, aiContent, partnerSection = null, partnerSidebar = null, reviews = [] }) {
   const citySlug = (city || "").toLowerCase();
   const catSlug = (cat || "").toLowerCase();
 
@@ -64,8 +65,11 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
   const localities = (pagedata?.localities || []).map((c) => ({ href: `/${c.city_url}/${brandSlug}/${catSlug}`, label: c.city_name, title: `${brandName} ${pagedata?.categoryname} in ${c.city_name}` }));
   const otherBrands = (pagedata?.brands || []).map((b) => ({ href: `/${citySlug}/${b.brand_url}/${catSlug}`, label: b.brand_name, title: `${b.brand_name} ${pagedata?.categoryname} in ${cityName}` }));
 
+  const ratingSchema = reviewSchema({ reviews, name: `${brandName} ${pagedata?.categoryname || catName} in ${cityName}`, path: `${citySlug}/${brandSlug}/${catSlug}` });
+
   return (
     <>
+      {ratingSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingSchema) }} />}
       <Container className="pt-4 sm:pt-6">
         <ServiceHero
           compact
@@ -113,6 +117,14 @@ export default function ServicePage({ city, brand, cat, pagedata, aiContent, par
       {partnerSection && (
         <Container>
           <Section>{partnerSection}</Section>
+        </Container>
+      )}
+
+      {reviews.length > 0 && (
+        <Container>
+          <Section>
+            <ReviewCards id="reviews" eyebrow="Customer reviews" title={`What customers say about our ${brandName} ${catName} service in ${cityName}`} reviews={reviews} />
+          </Section>
         </Container>
       )}
 

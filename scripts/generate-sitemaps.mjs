@@ -188,11 +188,11 @@ for (const cat of categories) {
 
 await db.end();
 
-// blogs.xml, partners.xml, careers.xml and partner-pages.xml are live routes (src/app/sitemap/*.xml/route.js),
+// blogs.xml, partners.xml, careers.xml, partner-pages.xml and pages.xml are live routes (src/app/sitemap/*.xml/route.js),
 // not files this script writes, but they still belong in the index.
 fs.writeFileSync(
   INDEX_FILE,
-  indexXml([...written.map((w) => w.file), "blogs.xml", "partners.xml", "careers.xml", "partner-pages.xml"]),
+  indexXml([...written.map((w) => w.file), "blogs.xml", "partners.xml", "careers.xml", "partner-pages.xml", "pages.xml"]),
   "utf8"
 );
 

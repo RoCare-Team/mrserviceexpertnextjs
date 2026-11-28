@@ -8,6 +8,7 @@ import {
   Tags,
   PlusCircle,
   Globe2,
+  Star,
   MapPin,
   FolderTree,
   FileText,
@@ -82,6 +83,7 @@ const NAV = [
       { href: "/admin/blogs", icon: Newspaper, name: "Blogs" },
       { href: "/admin/blog-categories", icon: Newspaper, name: "Blog Categories" },
       { href: "/admin/other_cities", icon: Globe2, name: "Homepage Cities" },
+      { href: "/admin/page_reviews", icon: Star, name: "Page Reviews" },
     ],
   },
   {

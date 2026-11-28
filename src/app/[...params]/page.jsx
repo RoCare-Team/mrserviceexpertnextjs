@@ -7,6 +7,7 @@ import PartnerListingSection from "@/app/components/partners/PartnerListingSecti
 import PartnerSidebar, { SIDEBAR_MAX } from "@/app/components/partners/PartnerSidebar";
 import { getPagePartners } from "@/app/components/partners/pagePartners";
 import { pageRobots } from "@/lib/localities";
+import { getPageReviews } from "@/lib/pageReviews";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -107,6 +108,7 @@ export default async function Page({ params }) {
     categoryName: `${data.brandname} ${data.categoryname}`,
   });
   const showGrid = partners && partners.first.total > SIDEBAR_MAX;
+  const reviews = await getPageReviews(`${city}/${brand}/${cat}`);
 
   return (
     <ServicePage
@@ -117,6 +119,7 @@ export default async function Page({ params }) {
       aiContent={aiContent}
       partnerSidebar={<PartnerSidebar data={partners} />}
       partnerSection={showGrid ? <PartnerListingSection data={partners} /> : null}
+      reviews={reviews}
     />
   );
 }

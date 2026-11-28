@@ -7,7 +7,10 @@ import { HANDYMAN_SERVICES } from "@/lib/homeCare";
 import PopularCities from "./components/popularCities/PopularCities";
 import OtherCities from "./components/popularCities/OtherCities";
 import CollapsibleBlock from "./components/public/CollapsibleBlock";
-import { Container, Section, Card, CardTitle, TrustStrip, btnPrimary, btnGhost, PHONE, PHONE_DISPLAY } from "./components/public/ui";
+import { Container, Section, Card, CardTitle, TrustStrip, Faq, btnPrimary, btnGhost, PHONE, PHONE_DISPLAY } from "./components/public/ui";
+import { ReviewCards } from "./components/public/Reviews";
+import LatestBlogs from "./components/public/LatestBlogs";
+import { HOME_TESTIMONIALS } from "@/lib/homeTestimonials";
 
 // The Homepage Cities block is admin-managed, so the page is revalidated
 // instead of being frozen at build time. Five minutes keeps the homepage
@@ -211,6 +214,15 @@ export default function Home() {
         </Section>
       </Container>
 
+      {/* ---------------- Testimonials (static, lib/homeTestimonials.js) ---------------- */}
+      {HOME_TESTIMONIALS.length > 0 && (
+        <Container>
+          <Section className="!pt-0">
+            <ReviewCards id="testimonials" eyebrow="Testimonials" title="What our customers say" subtitle="Real feedback from homes we have serviced across India" reviews={HOME_TESTIMONIALS} />
+          </Section>
+        </Container>
+      )}
+
       {/* ---------------- About ---------------- */}
       <Container>
         <Section className="!pt-0">
@@ -251,7 +263,25 @@ export default function Home() {
                 <strong>Book online:</strong> <a href="https://www.mrserviceexpert.com">www.mrserviceexpert.com</a>
               </p>
             </CollapsibleBlock>
+            <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[14px] font-semibold">
+              <a href="/about-us" className="text-purple-700 hover:text-purple-900">More about us →</a>
+              <a href="/our-services" className="text-purple-700 hover:text-purple-900">See all our services →</a>
+            </p>
           </Card>
+        </Section>
+      </Container>
+
+      {/* ---------------- FAQ (same list as the FAQPage schema above) ---------------- */}
+      <Container>
+        <Section className="!pt-0">
+          <Faq id="home-faq" title="Frequently asked questions" subtitle="Quick answers about booking, pricing and our services" items={FAQS.map(([q, a]) => ({ q, a }))} />
+        </Section>
+      </Container>
+
+      {/* ---------------- Latest blogs ---------------- */}
+      <Container>
+        <Section className="!pt-0">
+          <LatestBlogs />
         </Section>
       </Container>
 

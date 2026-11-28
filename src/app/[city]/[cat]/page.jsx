@@ -11,6 +11,7 @@ import PartnerSidebar, { SIDEBAR_MAX } from "@/app/components/partners/PartnerSi
 import { getPagePartners } from "@/app/components/partners/pagePartners";
 import { Container, Section } from "@/app/components/public/ui";
 import { pageRobots } from "@/lib/localities";
+import { getPageReviews } from "@/lib/pageReviews";
 
 export const dynamic = "force-dynamic"; // always read fresh from the DB
 
@@ -114,6 +115,7 @@ export default async function Page({ params }) {
   // grid further down the page.
   const partners = await getPagePartners({ cityUrl: city, categoryUrl: cat, cityName: data?.city_name, categoryName: data?.category_name });
   const showGrid = partners && partners.first.total > SIDEBAR_MAX;
+  const reviews = await getPageReviews(`${city}/${cat}`);
 
   return (
     <ServicePage
@@ -123,6 +125,7 @@ export default async function Page({ params }) {
       aiContent={aiContent}
       partnerSidebar={<PartnerSidebar data={partners} />}
       partnerSection={showGrid ? <PartnerListingSection data={partners} /> : null}
+      reviews={reviews}
     >
       {data?.stores?.length > 0 && (
         <Container>

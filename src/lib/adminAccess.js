@@ -52,6 +52,7 @@ const PAGE_MODULES = {
   blogs: "content",
   "blog-categories": "content",
   other_cities: "content",
+  page_reviews: "content",
   ai_content: "ai",
   redirects: "redirects",
 };
@@ -77,6 +78,7 @@ const API_MODULES = {
   blogs: "content",
   blog_category: "content",
   other_cities: "content",
+  page_reviews: "content",
   ai_content: "ai",
 };
 

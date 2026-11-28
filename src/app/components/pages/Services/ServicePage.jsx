@@ -12,6 +12,7 @@ import CollapsibleHtml from "@/app/components/collapsibleHtml/CollapsibleHtml";
 import PopularCities from "@/app/components/popularCities/PopularCities";
 import LeadPopup from "@/app/components/public/LeadPopup";
 import LeadFormCard from "@/app/components/public/LeadFormCard";
+import { ReviewCards, reviewSchema, withoutFixedRatings } from "@/app/components/public/Reviews";
 import { Container, Section, ServiceHero, TwoThirds, Card, CardTitle, Faq, LinkCloud } from "@/app/components/public/ui";
 import { serviceGroupFor } from "@/lib/homeCare";
 import { schemasFor, faqItemsFor } from "./serviceSchemas";
@@ -24,7 +25,7 @@ const SITE_URL = "https://www.mrserviceexpert.com";
  * `partnerSidebar` / `partnerSection` are server-rendered by the route and
  * passed in; `children` is any extra server content (stores, city extras).
  */
-export default function ServicePage({ pagedata, city, cat, aiContent, partnerSection = null, partnerSidebar = null, children = null }) {
+export default function ServicePage({ pagedata, city, cat, aiContent, partnerSection = null, partnerSidebar = null, reviews = [], children = null }) {
   const [cartChanged, setCartChanged] = useState(false);
   const [cartLoaded, setCartLoaded] = useState(false);
   const [addedServices, setAddedServices] = useState([]);
@@ -63,13 +64,17 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
   // A locality only has the brand pages partners created, so its fixed brand
   // list schema keeps just the brands whose page exists (no 404 URLs).
   const liveBrandUrls = new Set((pagedata?.brands || []).map((b) => `${SITE_URL}/${city}/${String(b.brand_url).toLowerCase()}/${cat}`));
-  const schemas = schemasFor(city, cat)
+  const baseSchemas = schemasFor(city, cat)
     .map((s) => {
       if (!pagedata?.is_locality || s["@type"] !== "BreadcrumbList") return s;
       const items = s.itemListElement.filter((it) => liveBrandUrls.has(it.item));
       return items.length ? { ...s, itemListElement: items.map((it, i) => ({ ...it, position: i + 1 })) } : null;
     })
     .filter(Boolean);
+  // A page with admin reviews rates itself from them; others keep their schema as is.
+  const schemas = reviews.length
+    ? [...withoutFixedRatings(baseSchemas), reviewSchema({ reviews, name: `${pagedata?.category_name || catName} in ${cityName}`, path: `${city}/${cat}` })]
+    : baseSchemas;
   const faqItems = faqItemsFor({ content: pagedata?.content, city: cityName, cat });
   const brands = (pagedata?.brands || []).map((b) => ({
     href: `/${city}/${b.brand_url}/${cat}`,
@@ -151,6 +156,14 @@ export default function ServicePage({ pagedata, city, cat, aiContent, partnerSec
       )}
 
       {children}
+
+      {reviews.length > 0 && (
+        <Container>
+          <Section>
+            <ReviewCards id="reviews" eyebrow="Customer reviews" title={`What customers say about our ${catName} service in ${cityName}`} reviews={reviews} />
+          </Section>
+        </Container>
+      )}
 
       {/* FAQ + main content (3/5) beside the static booking form (2/5). */}
       <Container>

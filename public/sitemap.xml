@@ -105,4 +105,7 @@
   <sitemap>
     <loc>https://www.mrserviceexpert.com/sitemap/partner-pages.xml</loc>
   </sitemap>
+  <sitemap>
+    <loc>https://www.mrserviceexpert.com/sitemap/pages.xml</loc>
+  </sitemap>
 </sitemapindex>

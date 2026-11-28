@@ -19,6 +19,8 @@ import { HANDYMAN_SERVICES, HOME_CARE_SERVICES } from '@/lib/homeCare';
 
 const quickLinks = [
   { label: 'Home', href: '/' },
+  { label: 'About Us', href: '/about-us' },
+  { label: 'Our Services', href: '/our-services' },
   { label: 'Blogs', href: '/blogs' },
   { label: 'Career', href: '/careers' },
   { label: 'Contact Us', href: '/contact' },
