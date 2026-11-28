@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
  * Horizontal card scroller: swipe on touch, arrow buttons on larger screens.
  * Children should be <li> elements; give them a width (see itemCls).
  */
-export const itemCls = "w-[85%] shrink-0 snap-start sm:w-[calc(50%-8px)] lg:w-[calc(33.333%-11px)]";
+export const itemCls = "pub-scroll-item"; // widths in globals.css
 
 export default function Scroller({ children, label = "Scroll", className = "" }) {
   const ref = useRef(null);

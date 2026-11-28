@@ -3131,3 +3131,17 @@ hr {
 @media (prefers-reduced-motion: reduce) {
   .join-partner-cta { animation: none; }
 }
+
+/* Card scroller (components/public/Scroller.jsx): 1 card on phones (next one
+   peeks), 2 on tablets, exactly 3 from 1024px — the rest scroll sideways. */
+.pub-scroll-item {
+  flex: 0 0 85%;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+@media (min-width: 640px) {
+  .pub-scroll-item { flex-basis: calc((100% - 16px) / 2); }
+}
+@media (min-width: 1024px) {
+  .pub-scroll-item { flex-basis: calc((100% - 32px) / 3); }
+}
