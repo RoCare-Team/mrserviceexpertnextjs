@@ -41,9 +41,10 @@ export default async function LatestBlogs({ limit = 3, title = "Latest insights"
           </Link>
         }
       />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Swipe row on phones, grid from sm up. */}
+      <ul className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-3">
         {blogs.map((b) => (
-          <li key={b.id}>
+          <li key={b.id} className="w-[82%] shrink-0 snap-start sm:w-auto">
             <Link href={`/blogs/${b.blog_url}`} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[var(--shadow-sm)] transition hover:shadow-[var(--shadow-md)]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={imgSrc(b.image)} alt={b.title} loading="lazy" className="aspect-[16/9] w-full object-cover" />

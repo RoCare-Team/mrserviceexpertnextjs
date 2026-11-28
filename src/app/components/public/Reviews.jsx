@@ -1,17 +1,15 @@
 import { Star, Quote, BadgeCheck } from "lucide-react";
 import { SectionHeader, SITE } from "./ui";
+import Scroller, { itemCls } from "./Scroller";
 
 /**
  * Review cards. Used by the homepage testimonials (static list) and by the
  * service pages (admin-managed, per URL — lib/pageReviews.js).
  * reviews: [{ name, city?, service?, rating, text, date? }]
  */
-export function ReviewCards({ reviews = [], title, subtitle, eyebrow, id = "reviews", initial = 6 }) {
+export function ReviewCards({ reviews = [], title, subtitle, eyebrow, id = "reviews" }) {
   if (!reviews.length) return null;
   const avg = averageRating(reviews);
-  // First `initial` cards always show; the rest sit behind a "Show all" toggle (no JS needed).
-  const first = reviews.slice(0, initial);
-  const rest = reviews.slice(initial);
   return (
     <section id={id} aria-labelledby={`${id}-h`}>
       <SectionHeader
@@ -26,24 +24,16 @@ export function ReviewCards({ reviews = [], title, subtitle, eyebrow, id = "revi
           </span>
         }
       />
-      <ReviewGrid reviews={first} />
-      {rest.length > 0 && (
-        <details className="group mt-4">
-          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-full border border-purple-200 bg-white px-4 py-2 text-[14px] font-semibold text-purple-700 hover:bg-purple-50 group-open:hidden [&::-webkit-details-marker]:hidden">
-            Show all {reviews.length} reviews
-          </summary>
-          <ReviewGrid reviews={rest} />
-        </details>
-      )}
+      <ReviewGrid reviews={reviews} />
     </section>
   );
 }
 
 function ReviewGrid({ reviews }) {
   return (
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <Scroller label="Reviews">
         {reviews.map((r, i) => (
-          <li key={i} className="flex flex-col rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[var(--shadow-sm)]">
+          <li key={i} className={`${itemCls} flex flex-col rounded-2xl border border-[var(--line)] bg-white p-5 shadow-[var(--shadow-sm)]`}>
             <div className="flex items-center justify-between gap-2">
               <span className="flex gap-0.5" aria-label={`Rated ${r.rating} out of 5`}>
                 {[1, 2, 3, 4, 5].map((n) => (
@@ -68,7 +58,7 @@ function ReviewGrid({ reviews }) {
             </div>
           </li>
         ))}
-      </ul>
+      </Scroller>
   );
 }
 
