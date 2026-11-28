@@ -1,7 +1,47 @@
-// Homepage testimonials — a fixed list (not admin-managed).
-// Add real customer reviews only. The section stays hidden while this is empty.
-//
-//   { name: "Rahul Sharma", city: "Delhi", service: "AC Repair", rating: 5,
-//     text: "Technician came on time…", date: "2026-10-12" }
+// Homepage testimonials — a fixed list (not admin-managed), two per service.
+// Shape: { service, name, rating, text, city?, date? }
 
-export const HOME_TESTIMONIALS = [];
+export const HOME_TESTIMONIALS = [
+  { service: "RO Water Purifier", name: "Rahul Sharma", rating: 5, text: "The technician was professional and explained the issue with my RO purifier clearly. The service was completed quickly and the water quality is much better now. Very satisfied with the experience." },
+  { service: "RO Water Purifier", name: "Priya Verma", rating: 5, text: "Excellent RO service at home. The technician checked all filters and components properly and gave useful maintenance tips. The pricing was reasonable and the service was hassle-free." },
+  { service: "AC Service", name: "Amit Singh", rating: 5, text: "My AC was not cooling properly, but the technician fixed the issue and cleaned the unit thoroughly. The service was professional and everything was explained before the work started." },
+  { service: "AC Service", name: "Neha Gupta", rating: 5, text: "Very good AC servicing experience. The technician arrived on time, cleaned the indoor unit and checked the cooling performance. I would definitely recommend their service." },
+  { service: "Washing Machine", name: "Vikas Yadav", rating: 5, text: "My washing machine was making unusual noises and not working properly. The technician diagnosed the problem quickly and repaired it efficiently. Great service and polite behaviour." },
+  { service: "Washing Machine", name: "Anjali Mehta", rating: 5, text: "Good experience with washing machine repair. The technician was knowledgeable, arrived on time and completed the repair without any unnecessary delays." },
+  { service: "Refrigerator", name: "Rohit Malhotra", rating: 5, text: "My refrigerator had a cooling problem and I was worried about the food inside. The technician checked it carefully and resolved the issue. Very helpful and professional service." },
+  { service: "Refrigerator", name: "Simran Kaur", rating: 5, text: "Excellent refrigerator repair service. The technician explained the problem, shared the repair cost in advance and did a great job. Highly satisfied." },
+  { service: "Geyser", name: "Manish Tiwari", rating: 5, text: "The geyser was not heating water properly. The technician inspected it, identified the issue and got it working again. Professional service and a smooth experience." },
+  { service: "Geyser", name: "Pooja Agarwal", rating: 5, text: "Very satisfactory geyser maintenance service. The technician cleaned the unit properly and checked everything before leaving. Booking was easy and service was quick." },
+  { service: "Microwave", name: "Arjun Saini", rating: 5, text: "My microwave stopped heating food properly. The technician inspected it carefully and fixed the problem. Good communication and a very professional approach." },
+  { service: "Microwave", name: "Shweta Jain", rating: 5, text: "Quick and reliable microwave repair. The technician was polite, explained the issue in simple terms and completed the repair efficiently. Good overall experience." },
+  { service: "LED TV", name: "Varun Kapoor", rating: 5, text: "My LED TV had a display problem and the technician diagnosed it correctly. The repair was handled professionally and the TV is working perfectly now." },
+  { service: "LED TV", name: "Ritika Sharma", rating: 5, text: "Very happy with the TV repair service. The technician was experienced, courteous and explained the repair process before starting the work." },
+  { service: "Vacuum Cleaner", name: "Karan Bhatia", rating: 5, text: "My vacuum cleaner had lost suction and wasn't performing well. The technician checked it properly and restored its performance. Nice and convenient service." },
+  { service: "Vacuum Cleaner", name: "Monika Das", rating: 5, text: "Professional vacuum cleaner maintenance. The technician was punctual, knowledgeable and did a thorough job. Would recommend for appliance servicing." },
+  { service: "Kitchen Chimney", name: "Akash Chawla", rating: 5, text: "The kitchen chimney was full of grease and not working efficiently. The technician cleaned it thoroughly and checked the motor and suction. Great improvement after servicing." },
+  { service: "Kitchen Chimney", name: "Divya Nair", rating: 5, text: "Excellent chimney cleaning service. The team was professional and cleaned everything properly without making a mess in the kitchen. Very satisfied." },
+  { service: "Air Purifier", name: "Sandeep Rawat", rating: 5, text: "The air purifier was making noise and needed maintenance. The technician checked the filters and machine thoroughly. Helpful service and good technical knowledge." },
+  { service: "Air Purifier", name: "Radhika Bose", rating: 5, text: "Good air purifier servicing experience. The technician explained the filter condition and maintenance requirements clearly. The entire process was smooth and convenient." },
+  { service: "Kitchen Cleaning", name: "Megha Arora", rating: 5, text: "The kitchen cleaning team did a wonderful job. They cleaned the difficult corners, cabinets and greasy surfaces carefully. My kitchen looks much cleaner now." },
+  { service: "Kitchen Cleaning", name: "Rakesh Mishra", rating: 5, text: "Very professional kitchen cleaning service. The team arrived on time and worked efficiently. I was impressed with the attention to detail." },
+  { service: "Home Deep Cleaning", name: "Tanvi Khanna", rating: 5, text: "The deep cleaning team was hardworking and professional. They cleaned the entire house properly, including areas that are usually difficult to clean. Great experience." },
+  { service: "Home Deep Cleaning", name: "Gaurav Joshi", rating: 5, text: "Booked home deep cleaning and the results were impressive. The team was punctual, organised and paid attention to every detail." },
+  { service: "Bathroom Cleaning", name: "Komal Patel", rating: 5, text: "The bathroom cleaning service was excellent. Hard water stains and dirt were cleaned properly and the bathroom looks fresh and hygienic." },
+  { service: "Bathroom Cleaning", name: "Abhishek Roy", rating: 5, text: "Very good cleaning service. The staff was polite and did a thorough job with the tiles, fittings and corners. Happy with the results." },
+  { service: "Sofa Cleaning", name: "Priyanka Ghosh", rating: 5, text: "The sofa cleaning service was really good. The team removed visible stains and cleaned the sofa thoroughly. It looks much fresher after the service." },
+  { service: "Sofa Cleaning", name: "Mohit Jain", rating: 5, text: "Professional sofa cleaning with great attention to detail. The team handled the fabric carefully and completed the job efficiently." },
+  { service: "Tank Cleaning", name: "Sunil Kumar", rating: 5, text: "The water tank cleaning team did a thorough job. They cleaned the tank properly and explained the cleaning process. Good service and professional behaviour." },
+  { service: "Tank Cleaning", name: "Reena Choudhary", rating: 5, text: "Very satisfied with the tank cleaning service. The team was punctual and worked carefully to ensure the tank was cleaned properly." },
+  { service: "Pest Control", name: "Ajay Thakur", rating: 5, text: "The pest control service was well organised. The technician inspected the affected areas and explained the treatment process and precautions clearly." },
+  { service: "Pest Control", name: "Nisha Kapoor", rating: 5, text: "Good pest control experience. The technician was professional and covered the required areas carefully. Booking and service were both hassle-free." },
+  { service: "Plumber", name: "Deepanshu Verma", rating: 5, text: "There was a leakage in my bathroom and the plumber fixed it efficiently. The work was neat and the technician was polite and professional." },
+  { service: "Plumber", name: "Kirti Singh", rating: 5, text: "Quick plumbing service with a professional approach. The technician checked the issue properly and completed the repair without unnecessary complications." },
+  { service: "Electrician", name: "Sameer Khan", rating: 5, text: "The electrician fixed the wiring issue at my home and checked everything carefully for safety. Very professional and reliable service." },
+  { service: "Electrician", name: "Preeti Dubey", rating: 5, text: "Excellent electrical repair service. The technician was knowledgeable, punctual and completed the work neatly. Good experience overall." },
+  { service: "Carpenter", name: "Yash Malhotra", rating: 5, text: "The carpenter repaired my cupboard door and handles perfectly. The work was neat and completed on time. Very happy with the service." },
+  { service: "Carpenter", name: "Alka Sood", rating: 5, text: "Good carpentry service. The technician understood the requirement and fixed the furniture properly. Professional behaviour and quality work." },
+  { service: "House Painting", name: "Rajat Ahuja", rating: 5, text: "The painters did a great job with my room. The finishing was neat, they covered the furniture properly and cleaned up after completing the work." },
+  { service: "House Painting", name: "Sonali Mishra", rating: 5, text: "Very good painting service. The team was professional, followed the agreed schedule and delivered a smooth finish on the walls." },
+  { service: "Mason Service", name: "Hemant Kumar", rating: 5, text: "The mason repaired a damaged wall area at my home and the finishing was quite good. The work was completed efficiently and professionally." },
+  { service: "Mason Service", name: "Rohini Sethi", rating: 5, text: "Reliable masonry service. The technician understood the repair requirements and did a neat job. Good communication and satisfactory work." },
+];

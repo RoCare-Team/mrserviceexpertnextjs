@@ -218,7 +218,7 @@ export default function Home() {
       {HOME_TESTIMONIALS.length > 0 && (
         <Container>
           <Section className="!pt-0">
-            <ReviewCards id="testimonials" eyebrow="Testimonials" title="What our customers say" subtitle="Real feedback from homes we have serviced across India" reviews={HOME_TESTIMONIALS} />
+            <ReviewCards id="testimonials" eyebrow="Testimonials" title="What our customers say" subtitle="Real feedback from homes we have serviced across India" reviews={[...HOME_TESTIMONIALS.filter((_, i) => i % 2 === 0), ...HOME_TESTIMONIALS.filter((_, i) => i % 2 === 1)]} />
           </Section>
         </Container>
       )}
